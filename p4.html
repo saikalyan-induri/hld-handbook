@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>4. Chat System (WhatsApp) — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">4. Chat System (WhatsApp) <span class="badge">Advanced</span></h1>
+
+<div class="section-toc">
+<a href="#p4-a">A. Interview Prompt</a><a href="#p4-b">B. Difficulty</a><a href="#p4-c">C. What It Tests</a>
+<a href="#p4-d">D. Requirements</a><a href="#p4-e">E. Clarifying Questions</a><a href="#p4-f">F. Assumptions</a>
+<a href="#p4-g">G. Capacity Estimation</a><a href="#p4-h">H. Core Entities</a><a href="#p4-i">I. API Design</a>
+<a href="#p4-j">J. Basic Design (V1)</a><a href="#p4-k">K. Data Model &amp; Store Choice</a><a href="#p4-l">L. End-to-End Flow</a>
+<a href="#p4-m">M. Deep Dive 1: Connections</a><a href="#p4-n">N. Deep Dive 2: Routing</a><a href="#p4-o">O. Deep Dive 3: Ordering</a>
+<a href="#p4-p">P. Deep Dive 4: Delivery Guarantees</a><a href="#p4-q">Q. Deep Dive 5: Group Chat</a><a href="#p4-r">R. Deep Dive 6: Offline Delivery</a>
+<a href="#p4-s">S. Deep Dive 7: Encryption</a><a href="#p4-t">T. Full Solution at Scale</a><a href="#p4-u">U. Design Evolution</a>
+<a href="#p4-v">V. Consistency Model</a><a href="#p4-w">W. Failure Scenarios</a><a href="#p4-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p4-y">Y. Trade-Offs</a><a href="#p4-z">Z. Common Bad Designs</a><a href="#p4-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p4-ab">AB. Interviewer Evaluation</a><a href="#p4-ac">AC. Interview Simulation</a><a href="#p4-ad">AD. Source Comparison</a>
+<a href="#p4-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p4">Jump to section:</label><select id="jump-p4" class="jump-select" data-jump-select><option value="p4-a">A. Realistic Interview Prompt</option><option value="p4-b">B. Difficulty</option><option value="p4-c">C. What This Problem Tests</option><option value="p4-d">D. Requirements</option><option value="p4-e">E. Clarifying Questions</option><option value="p4-f">F. Assumptions</option><option value="p4-g">G. Capacity Estimation</option><option value="p4-h">H. Core Entities</option><option value="p4-i">I. API Design</option><option value="p4-j">J. Basic / Naive High-Level Design (V1)</option><option value="p4-k">K. Data Model &amp; Store Choice</option><option value="p4-l">L. End-to-End Flow — 1:1 Message, Both Users Online</option><option value="p4-m">M. Deep Dive 1 — Connection Management at Scale</option><option value="p4-n">N. Deep Dive 2 — The Routing Problem</option><option value="p4-o">O. Deep Dive 3 — Message Ordering</option><option value="p4-p">P. Deep Dive 4 — Delivery Guarantees (Sent / Delivered / Read)</option><option value="p4-q">Q. Deep Dive 5 — Group Chat Fanout</option><option value="p4-r">R. Deep Dive 6 — Offline Delivery (Store-and-Forward)</option><option value="p4-s">S. Deep Dive 7 — End-to-End Encryption &amp; Multi-Device</option><option value="p4-t">T. Full Solution at Scale — Final Architecture</option><option value="p4-u">U. Design Evolution</option><option value="p4-v">V. Consistency Model</option><option value="p4-w">W. Failure Scenarios</option><option value="p4-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p4-y">Y. Design Trade-Offs</option><option value="p4-z">Z. Common Bad Designs</option><option value="p4-aa">AA. Interviewer Follow-Ups</option><option value="p4-ab">AB. Interviewer Evaluation Rubric</option><option value="p4-ac">AC. Interview Simulation</option><option value="p4-ad">AD. Online Solution Comparison</option><option value="p4-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p4-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a real-time chat system like WhatsApp: 1:1 and group messaging, message delivery even when the recipient is offline, and delivery status (sent/delivered/read)."</div>
+<p>Unlike the previous three problems, the core challenge here isn't a request/response API at all — it's maintaining <strong>long-lived, stateful connections</strong> for hundreds of millions of concurrent users, and routing a message to whichever specific server happens to hold the recipient's connection <em>right now</em>. That routing problem — "which of my N servers is this user actually connected to" — is the single idea that unlocks the rest of the design.</p>
+
+<h3 id="p4-b">B. Difficulty</h3>
+<p><strong>Advanced from the first sentence</strong> — there is no simple V1 that's merely "naive," because even the most basic version of this problem requires picking a connection model (polling vs. WebSockets) before anything else can be discussed. This problem is closer in spirit to Uber than to URL Shortener or Rate Limiter: the naive design is naive specifically because it picks the wrong <em>transport</em>, not because it skips a later optimization.</p>
+
+<h3 id="p4-c">C. What This Problem Tests</h3>
+<ul>
+<li>Understanding of persistent connections (WebSockets) versus request/response HTTP, and why real-time delivery structurally requires the former</li>
+<li>The "which server is this user connected to" routing problem — recognizing it as a distinct piece of state that must live somewhere shared, not on any one connection server</li>
+<li>Ordering and delivery-guarantee reasoning distinct from Rate Limiter's approximate-counting tolerance — a chat message silently dropped or duplicated is a much more visible bug than an off-by-one rate limit</li>
+<li>Group-chat fanout, which rhymes with the News Feed problem's fanout discussion but with much stricter latency and ordering requirements</li>
+<li>Awareness that end-to-end encryption changes what the server is even allowed to see — a constraint that reshapes storage, search, and multi-device sync simultaneously</li>
+</ul>
+
+<h3 id="p4-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Users can send/receive 1:1 messages in real time when both are online</li>
+<li>Messages sent while the recipient is offline are delivered once they reconnect (store-and-forward)</li>
+<li>Users can create groups and send messages that fan out to all members</li>
+<li>Delivery status is tracked and shown to the sender: <strong>sent → delivered → read</strong></li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Low latency</strong> — a message should arrive at an online recipient in <strong>&lt;100ms</strong>-class time; this is a "typing and seeing replies live" interaction</li>
+<li><strong>Massive concurrent-connection scale</strong> — this document uses <strong>500M DAU with ~150M concurrent connections at peak</strong> as the standard illustrative input</li>
+<li><strong>Ordering guarantee</strong> — messages within one conversation must arrive in the order they were sent, even across server failovers</li>
+<li><strong>No message loss</strong> — a message accepted by the server must eventually be delivered, even across recipient disconnects, reconnects, or server crashes</li>
+<li><strong>Durability without server-side plaintext access</strong> (extension, S) — end-to-end encryption means the server must do all of the above (routing, ordering, storage) without being able to read message content</li>
+</ul>
+<p><strong>Out of scope:</strong> voice/video calls, status/stories, payments — each is its own design problem layered on the same connection infrastructure.</p>
+
+<h3 id="p4-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Is end-to-end encryption required, or is server-side plaintext acceptable?</td><td>E2E fundamentally restricts what the server can do with content (search, previews) and how multi-device sync works</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>2</td><td>What's the max practical group size?</td><td>Determines whether group fanout can reuse 1:1 delivery unmodified or needs its own path</td><td>Deep Dive 5 (Q)</td></tr>
+<tr><td>3</td><td>Do we need "read receipts," or just "delivered"?</td><td>Read receipts require a second round-trip of status updates back to the sender</td><td>Data Model (H)</td></tr>
+<tr><td>4</td><td>Single device per user, or multi-device sync (phone + web + desktop simultaneously)?</td><td>Multi-device turns "deliver to a user" into "deliver to a set of the user's active sessions"</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>5</td><td>How long should undelivered messages be retained before giving up?</td><td>Bounds the store-and-forward queue's storage requirement</td><td>Deep Dive 6 (R)</td></tr>
+<tr><td>6</td><td>Is strict ordering required across a server failover, or is "usually ordered" acceptable?</td><td>Strict ordering needs a per-conversation sequence number; "usually" can get away with timestamps alone</td><td>Deep Dive 3 (O)</td></tr>
+</table>
+
+<h3 id="p4-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> 1:1 and group real-time messaging, offline delivery, sent/delivered/read status.</li>
+<li><strong>Assumption:</strong> WebSocket-based persistent connections, not HTTP polling — the only transport that meets the &lt;100ms real-time NFR without wasteful constant re-polling.</li>
+<li><strong>Assumption:</strong> strict per-conversation ordering is required — the more interesting, more commonly-asked version of this problem.</li>
+<li><strong>Assumption:</strong> single primary device per user for the base design (J-R); multi-device sync is an explicit, clearly-flagged extension folded into the encryption deep dive (S), since real multi-device sync (as in WhatsApp/Signal) is inseparable from how encryption keys are distributed.</li>
+<li><strong>Assumption:</strong> end-to-end encryption is in scope as the final deep dive (S) — it's the single hardest, most differentiating extension for this specific problem, the same way multi-region was for Rate Limiter.</li>
+</ul>
+
+<h3 id="p4-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>DAU</td><td>500M</td><td>Base input</td></tr>
+<tr><td>Peak concurrent connections</td><td>~150M (30% of DAU online simultaneously at peak — a standard, illustrative ratio)</td><td>This is the number that actually sizes the connection-server fleet, not DAU itself (M)</td></tr>
+<tr><td>Messages/day</td><td>500M users × ~40 messages/day ≈ 20B/day</td><td>Base write volume</td></tr>
+<tr><td>Message write QPS</td><td>20B ÷ 86,400s ≈ <strong>~230K/sec</strong> average (peak 3-5×, ~1M/sec)</td><td>Sets the throughput bar for the message-ingest and routing path</td></tr>
+<tr><td>Connections per server</td><td>A single well-tuned server can hold roughly <strong>1-2M concurrent WebSocket connections</strong> (a widely-cited, illustrative figure for event-loop-based connection servers)</td><td>150M ÷ ~1M per server ≈ <strong>~150 connection servers</strong> — the concrete fleet size driving the routing problem in N</td></tr>
+<tr><td>Message size</td><td>~1KB average (text; media handled like Twitter's R — blob store + CDN, not inline)</td><td>Confirms text messages themselves are cheap to store; media is the real storage driver, out of scope for the core design</td></tr>
+<tr><td>Storage/day (text only)</td><td>20B × 1KB ≈ <strong>~20TB/day</strong></td><td>Non-trivial — motivates a scalable wide-column store, not a single relational instance (K)</td></tr>
+</table>
+
+<h3 id="p4-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>User</code></td><td>An account</td><td><code>user_id</code>, <code>devices</code> (for S)</td></tr>
+<tr><td><code>Conversation</code></td><td>A 1:1 or group thread</td><td><code>conversation_id</code>, <code>type</code> (1:1/group), <code>member_ids</code></td></tr>
+<tr><td><code>Message</code></td><td>One sent message</td><td><code>message_id</code>, <code>conversation_id</code>, <code>sender_id</code>, <code>seq_num</code> (O), <code>content</code> (ciphertext under S), <code>created_at</code></td></tr>
+<tr><td><code>DeliveryStatus</code></td><td>Per-recipient status of one message</td><td><code>message_id</code>, <code>recipient_id</code>, <code>status</code> (sent/delivered/read), <code>updated_at</code></td></tr>
+<tr><td><code>Session</code> (ephemeral)</td><td>Which connection server a user is currently attached to</td><td><code>user_id</code>, <code>server_id</code>, <code>connected_at</code> — lives in a fast shared store (N), never durable (K)</td></tr>
+</table>
+
+<h3 id="p4-i">I. API Design</h3>
+<pre><code>WebSocket events (bidirectional, over a persistent connection):
+  CLIENT -> SERVER: send_message { conversation_id, client_msg_id, content }
+  SERVER -> CLIENT: message_ack { client_msg_id, message_id, seq_num }
+  SERVER -> CLIENT: new_message { message_id, conversation_id, sender_id, seq_num, content }
+  CLIENT -> SERVER: ack_delivered { message_id }
+  CLIENT -> SERVER: ack_read { message_id }
+  SERVER -> CLIENT: status_update { message_id, status }
+
+REST (non-real-time concerns):
+  POST /v1/conversations           { member_ids } -> { conversation_id }
+  GET  /v1/conversations/{id}/history?cursor=&limit=
+</code></pre>
+<p><strong>Why a separate <code>client_msg_id</code> from the server-assigned <code>message_id</code>:</strong> the client generates its own ID before the network round-trip completes, so it can optimistically render the message as "sending" immediately and later reconcile it with the server's authoritative ID and sequence number — the same idempotency-key pattern used to make retries safe elsewhere in distributed systems (a client that doesn't hear back and retries the send won't create a duplicate message, because the server can dedupe on <code>client_msg_id</code>).</p>
+
+<h3 id="p4-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies real-time delivery in isolation: clients hold a persistent WebSocket to a single connection server; that server looks up the recipient's connection <em>on itself</em> and pushes the message directly.</p>
+<div class="mermaid diagram">
+flowchart LR
+  A(["User A"]) -- "WebSocket" --> S1["Connection Server"]
+  B(["User B"]) -- "WebSocket" --> S1
+  S1 -- "A sends to B, same server: works" --> B
+</div>
+<p class="diagram-caption">V1 — works only when sender and recipient happen to be connected to the exact same server.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> at any real scale there are ~150 connection servers (G), and a message's sender and recipient are connected to two <em>different</em> servers almost every single time — there is no shared state telling Server 1 that User B is actually attached to Server 47. This is the WhatsApp-specific version of Rate Limiter's V1 problem: correctness that silently depends on "only one server exists" is not a simplification, it's a design that doesn't function at all once a second server is added — the exact motivation for the routing layer in N.</p>
+
+<h3 id="p4-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Messages/conversations:</strong> a wide-column store (Cassandra-class), partitioned by <code>conversation_id</code> and clustered by <code>seq_num</code>/timestamp — this access pattern ("give me this conversation's messages in order") is exactly what a wide-column store's partition+clustering-key model is built for, at the write throughput (G) a relational single-instance store would struggle to sustain.</p>
+<p><strong>Session/routing state (<code>Session</code>):</strong> Redis or ZooKeeper — small, ephemeral, extremely hot-path data (looked up on every single message send) that must be shared across every connection server; losing it on a restart is recoverable (the client simply reconnects and re-registers), so it doesn't need durability guarantees, mirroring the ephemeral <code>Counter</code> reasoning from Rate Limiter's data model.</p>
+
+<h3 id="p4-l">L. End-to-End Flow — 1:1 Message, Both Users Online</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant A as User A
+  participant S1 as Connection Server 1
+  participant Route as Session/Routing Store
+  participant MQ as Message Broker
+  participant S2 as Connection Server 2
+  participant B as User B
+  A->>S1: send_message(conversation_id, content)
+  S1->>S1: persist message (K), assign seq_num (O)
+  S1-->>A: message_ack
+  S1->>Route: lookup session(B)
+  Route-->>S1: {server_id: S2}
+  S1->>MQ: publish to S2's channel
+  MQ->>S2: deliver
+  S2->>B: new_message (push)
+  B->>S2: ack_delivered
+  S2->>S1: status_update(delivered)
+  S1-->>A: status_update(delivered)
+</div>
+
+<h3 id="p4-m">M. Deep Dive 1 — Connection Management at Scale</h3>
+<p><strong>Requirement this addresses:</strong> the concurrent-connection NFR from D and G — 150M simultaneous long-lived connections is the foundational constraint everything else builds on.</p>
+<p><strong>Why WebSockets, not HTTP polling or long-polling:</strong> polling means every idle client repeatedly asks "anything new?", burning connections and server cycles on empty answers — the inverse of what a &lt;100ms real-time NFR needs. A WebSocket is a single persistent, bidirectional connection: the server can push the instant a message arrives, with zero polling overhead. Long-polling is a middle ground (better than plain polling) but still re-establishes a connection per round-trip; a full WebSocket avoids that entirely.</p>
+<p><strong>Why connection servers must be a distinct tier from stateless API/business-logic servers:</strong> a WebSocket connection is <em>stateful</em> — it lives on one specific machine for its entire duration, unlike a stateless HTTP request that any server can handle. This single fact is why a load balancer in front of connection servers must support <strong>sticky sessions or connection-aware routing</strong> (a plain round-robin LB would silently break an in-progress WebSocket), and it's why connection servers are event-loop-based (handling many thousands of idle connections cheaply) rather than thread-per-connection.</p>
+
+<h3 id="p4-n">N. Deep Dive 2 — The Routing Problem</h3>
+<p><strong>Requirement this addresses:</strong> directly fixes V1's fatal flaw (J) — this is the single idea that makes the whole system work past one server.</p>
+<div class="mermaid diagram">
+flowchart TB
+  A(["User A"]) --> S1["Connection Server 1"]
+  B(["User B"]) --> S47["Connection Server 47"]
+  S1 -- "1. lookup B's server" --> Route[("Session Store<br/>user_id -> server_id")]
+  Route -- "2. {server_id: 47}" --> S1
+  S1 -- "3. route via broker" --> Broker["Message Broker /<br/>Pub-Sub"]
+  Broker -- "4. deliver" --> S47
+  S47 --> B
+</div>
+<p class="diagram-caption">Every connection server registers/deregisters itself in the shared Session Store on connect/disconnect — the routing layer is what V1 was missing entirely.</p>
+<p><strong>Why a shared session store, not server-to-server broadcast:</strong> the naive alternative to a lookup table is for Server 1 to ask <em>every other server</em> "do you have User B?" — an O(N) broadcast per message that gets worse as the fleet grows, exactly backwards. A shared, fast key-value lookup (<code>user_id → server_id</code>) turns routing into O(1) regardless of fleet size — the same "look it up, don't ask everyone" principle behind consistent hashing in Rate Limiter, just for connection ownership instead of counter shards.</p>
+<p><strong>Why a message broker/pub-sub layer between connection servers, not a direct server-to-server call:</strong> connection servers come and go (deploys, crashes, scaling events); a pub-sub layer (Redis Pub/Sub, or Kafka for durability) decouples "which server has User B right now" from "how do I get a message to that server," and gives the delivery attempt a natural retry/redelivery point if the target server was mid-restart.</p>
+
+<h3 id="p4-o">O. Deep Dive 3 — Message Ordering</h3>
+<p><strong>Requirement this addresses:</strong> the strict per-conversation ordering NFR (D) — network delivery alone gives no ordering guarantee once messages can take different paths through different servers.</p>
+<p class="callout"><strong>Why wall-clock timestamps aren't sufficient on their own:</strong> clock drift between servers (the identical problem named in Rate Limiter's atomicity deep dive) can make two messages sent moments apart appear out of order if each is timestamped by a different connection server's local clock.</p>
+<p><strong>The fix — a per-conversation monotonic sequence number, assigned at the point of persistence (not by the sending client):</strong> when a message is written to the source-of-truth store (K), it's assigned the next <code>seq_num</code> for that <code>conversation_id</code>, atomically (an auto-incrementing counter scoped to the conversation, analogous to the atomic counter reasoning in URL Shortener's ID-generation deep dive). Clients then order and render messages by <code>seq_num</code>, never by arrival time or local timestamp — arrival order across a distributed system is not delivery order, and delivery order is not send order, but <code>seq_num</code> pins down a single authoritative order regardless of network path.</p>
+
+<h3 id="p4-p">P. Deep Dive 4 — Delivery Guarantees (Sent / Delivered / Read)</h3>
+<p><strong>Requirement this addresses:</strong> the "no message loss" NFR (D) plus the specific three-state status UX in the functional requirements.</p>
+<table>
+<tr><th>Status</th><th>Set When</th><th>Mechanism</th></tr>
+<tr><td><strong>Sent</strong></td><td>The server has durably persisted the message (K)</td><td>Server acks the client immediately after the write — this is the point at which "no message loss" starts being guaranteed, not before</td></tr>
+<tr><td><strong>Delivered</strong></td><td>The recipient's device has received it over the WebSocket</td><td>Recipient's client sends an explicit <code>ack_delivered</code> — receiving the push alone isn't proof, since the push could be sent right as the connection drops</td></tr>
+<tr><td><strong>Read</strong></td><td>The recipient has opened/viewed the message</td><td>A separate, later <code>ack_read</code> — deliberately decoupled from delivered, since "received" and "seen" are genuinely different events at different times</td></tr>
+</table>
+<p><strong>Why explicit client acks, not server-side inference:</strong> the server pushing a message is not proof the client received it — the WebSocket could close in the exact window between the server's write and the client's actual receipt. Each status transition requires an explicit signal <em>from the receiving side</em>, the only party that actually knows the true state — the same "don't infer completion, confirm it" principle behind any at-least-once delivery system's ack protocol.</p>
+
+<h3 id="p4-q">Q. Deep Dive 5 — Group Chat Fanout</h3>
+<p><strong>Requirement this addresses:</strong> the group-messaging functional requirement (D) — structurally similar to the News Feed problem's fanout question, but under much stricter latency/ordering constraints.</p>
+<p><strong>Why fanout-on-write is the only real option here (unlike News Feed's hybrid):</strong> News Feed could defer celebrity fanout to read time because a feed read tolerates a live merge; a group chat message must be pushed to every member's active connection immediately to hit the &lt;100ms real-time NFR — there's no equivalent of "read-time merge" for a live conversation. On send, the message is persisted once (K), then the routing lookup (N) is repeated once per group member, each resolved to its own connection server independently.</p>
+<p><strong>Why this doesn't need News Feed's celebrity carve-out:</strong> group sizes are bounded (E's clarifying question 2 — typically capped in the hundreds, not millions of members), so the fanout width is naturally small; the unbounded-fanout problem that forced News Feed's hybrid design simply doesn't arise here at realistic group sizes. A group with an unusually large member cap would reintroduce that exact problem and warrant revisiting the same hybrid pattern.</p>
+
+<h3 id="p4-r">R. Deep Dive 6 — Offline Delivery (Store-and-Forward)</h3>
+<p><strong>Requirement this addresses:</strong> the offline-delivery functional requirement (D) — the routing lookup in N fails cleanly (no session found) when the recipient isn't connected at all, and this deep dive is what happens next.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Send["Message send"] --> Lookup{"Session lookup (N):<br/>recipient online?"}
+  Lookup -- "yes" --> Push["Push via connection server"]
+  Lookup -- "no" --> Queue[("Per-recipient offline queue")]
+  Queue -.-> Reconnect["Recipient reconnects"]
+  Reconnect --> Drain["Drain queued messages<br/>in seq_num order (O)"]
+  Drain --> Push
+</div>
+<p><strong>Why a per-recipient queue, not just relying on the message store (K) alone:</strong> the message table already durably has every message (K) — but "durably stored somewhere" and "the client knows to fetch it" are different problems. On reconnect, the client (or server, on its behalf) needs an efficient way to ask "what's new since I was last online," which a per-recipient offline/undelivered-message index answers directly, without scanning every conversation's full history.</p>
+<p><strong>Bounding retention:</strong> undelivered messages are retained for a finite window (E's clarifying question 5 — WhatsApp's own real-world limit is illustrative here, on the order of weeks) before being dropped from the offline queue, bounding its storage; the message itself may still exist in the durable store for the sender's own history even after the offline-delivery attempt is abandoned.</p>
+
+<h3 id="p4-s">S. Deep Dive 7 — End-to-End Encryption &amp; Multi-Device</h3>
+<p class="callout">This is the hardest, most differentiating extension in this problem — analogous to Rate Limiter's multi-region deep dive in that it's genuinely open-ended and worth reasoning through explicitly rather than asserting a pat answer.</p>
+<p><strong>What E2E encryption changes structurally:</strong> once content is encrypted client-side before it ever reaches the server, the server can route, order, and store <code>ciphertext</code> — but can no longer read content, meaning server-side search, content-based moderation, and rich previews all become impossible or must move entirely to the client. This is a direct trade-off against product features, not a pure security upgrade with no cost.</p>
+<p><strong>The Signal Protocol, at a level relevant to this interview:</strong></p>
+<ul>
+<li><strong>X3DH (Extended Triple Diffie-Hellman)</strong> — establishes an initial shared secret between two users' devices <em>without requiring both to be online at the same time</em>, using pre-published one-time and signed pre-keys — directly solves "how do I encrypt a message to someone who's currently offline," which is essential given R's store-and-forward requirement.</li>
+<li><strong>Double Ratchet</strong> — derives a new encryption key for every single message from the previous one, so compromising one message's key doesn't expose past or future messages (forward secrecy) — the server never sees any of this key material; it only ever transports ciphertext.</li>
+<li><strong>Sesame (multi-device session management)</strong> — since each of a user's devices has its own identity keys, a sender must actually encrypt a separate copy of the message per recipient device, not one ciphertext that magically works everywhere. This directly means multi-device support multiplies fanout width by the recipient's device count, on top of Q's group fanout — a very concrete architectural cost of the encryption decision.</li>
+</ul>
+<p><strong>Why this belongs in the deep dive and not the base design (F):</strong> designing this correctly from scratch in an interview is unrealistic in the time available; the strong signal is knowing that this is what real systems (WhatsApp/Signal) actually do, why store-and-forward (R) and multi-device both get materially harder under E2E, and being able to reason about the trade-off — not deriving the Double Ratchet algorithm live.</p>
+
+<h3 id="p4-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  A(["User A<br/>(sender)"]) -- "WebSocket" --> S1["Connection Server 1 (M)"]
+  B(["User B<br/>(recipient)"]) -- "WebSocket" --> S47["Connection Server 47 (M)"]
+
+  S1 --> Persist[("Message Store (K)<br/>assigns seq_num (O)")]
+  S1 -- "lookup" --> Route[("Session/Routing Store (N)")]
+  Route -. "server_id: 47" .-> S1
+
+  subgraph BROKER [" Pub-Sub / Message Broker (N) "]
+    direction LR
+    MQ["Delivery channels per connection server"]
+  end
+  S1 --> BROKER
+  BROKER --> S47
+  S47 --> B
+
+  B -- "ack_delivered / ack_read (P)" --> S47
+  S47 -.-> S1
+
+  Persist -.-> Offline[("Offline Queue (R)<br/>if recipient not connected")]
+  Offline -.-> S47
+
+  A -. "content encrypted client-side (S)" .-> S1
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p4-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — single connection server, direct local lookup (J):</strong> broken the moment a second server exists.</li>
+<li><strong>V2 — shared session/routing store + pub-sub broker:</strong> fixes cross-server delivery (N).</li>
+<li><strong>V3 — per-conversation seq_num assigned at persistence:</strong> fixes ordering across arbitrary network paths (O).</li>
+<li><strong>V4 — explicit client-side acks for delivered/read:</strong> makes the three-state status trustworthy (P).</li>
+<li><strong>V5 — per-member fanout for groups:</strong> extends delivery to group conversations (Q).</li>
+<li><strong>V6 — per-recipient offline queue:</strong> handles the disconnected-recipient case without message loss (R).</li>
+<li><strong>V7 — client-side E2E encryption + per-device fanout:</strong> the final, hardest layer, changing what the server is even allowed to see (S).</li>
+</ul>
+<p><strong>What stays stable throughout:</strong> the WebSocket event contract from I (<code>send_message</code>/<code>new_message</code>/status events) — every version underneath changes without the client protocol needing to change.</p>
+
+<h3 id="p4-v">V. Consistency Model</h3>
+<p>Ordering (O) and delivery (P/R) require much stronger guarantees than either previous problem's "approximate is fine" stance — a chat message that's silently dropped, duplicated, or shown out of order is immediately visible and confusing to the user, unlike a rate limiter briefly over-counting or a feed appearing a few seconds late. The per-conversation <code>seq_num</code> is a genuine strong-ordering guarantee, not an approximation; delivery is effectively <strong>at-least-once with client-side dedup</strong> (via <code>client_msg_id</code>, I) rather than exactly-once, which is the pragmatic, honest target — true exactly-once delivery across an unreliable network is not achievable without the receiver doing dedup work regardless, so the design leans into that instead of chasing an unachievable guarantee.</p>
+
+<h3 id="p4-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>A connection server crashes:</strong> all its connected clients get dropped and reconnect (typically to a different server via the LB); each client's session re-registers in the shared store on reconnect (N); any messages sent to that user in the gap are queued (R) until the new registration lands.</li>
+<li><strong>The message broker/pub-sub layer is briefly unavailable:</strong> sender-side persistence (K) already succeeded and was acked as "sent" — delivery is simply delayed, not lost, since the offline-queue path (R) acts as a natural fallback once the recipient's session re-resolves.</li>
+<li><strong>Two messages in the same conversation are persisted by two different servers concurrently:</strong> the atomic per-conversation sequence assignment (O) — not the sending server's local view — is what prevents a race from producing two messages with the same or out-of-order <code>seq_num</code>.</li>
+<li><strong>A client retries a send after not hearing an ack in time:</strong> the server dedups on <code>client_msg_id</code> (I), so the retry doesn't create a duplicate visible message.</li>
+<li><strong>A recipient's device count grows (multi-device) mid-conversation:</strong> new device registration under Sesame (S) requires re-establishing per-device encrypted sessions — a real operational event, not a silent no-op.</li>
+</ul>
+
+<h3 id="p4-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 single-server routing</td><td>No cross-server delivery at all — broken with &gt;1 server</td><td>Shared session store + broker (N)</td></tr>
+<tr><td>Cross-server delivery, no seq numbers</td><td>Ordering not guaranteed across servers/network paths</td><td>Per-conversation atomic seq_num (O)</td></tr>
+<tr><td>Ordered delivery, single-device</td><td>Group fanout width and per-device fanout under encryption both multiply message-send cost</td><td>Bounded group size (Q) + accepted fanout cost under E2E (S)</td></tr>
+<tr><td>Fully online-only design</td><td>Message loss when the recipient is offline</td><td>Offline queue / store-and-forward (R)</td></tr>
+</table>
+
+<h3 id="p4-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Transport</td><td>HTTP polling/long-polling</td><td>WebSockets (chosen)</td><td>Polling is simpler infra but structurally can't meet the real-time latency NFR; WebSockets meet it at the cost of stateful, sticky connections</td></tr>
+<tr><td>Ordering</td><td>Client/wall-clock timestamps</td><td>Server-assigned seq_num (chosen)</td><td>Timestamps are simpler but vulnerable to clock drift; seq_num is authoritative at the cost of one atomic counter step per message</td></tr>
+<tr><td>Delivery guarantee</td><td>Exactly-once (attempted)</td><td>At-least-once + client dedup (chosen)</td><td>True exactly-once across an unreliable network is not practically achievable; at-least-once with idempotent client dedup is the honest, achievable target</td></tr>
+<tr><td>Group fanout</td><td>Hybrid (News-Feed-style)</td><td>Uniform fanout-on-write (chosen)</td><td>Hybrid solves an unbounded-fanout problem that doesn't exist here given bounded group sizes — added complexity with no matching benefit</td></tr>
+<tr><td>Encryption</td><td>Server-side plaintext</td><td>Client-side E2E (chosen per F)</td><td>Plaintext enables server-side search/moderation/previews; E2E removes server visibility entirely, at the cost of multi-device fanout complexity</td></tr>
+</table>
+
+<h3 id="p4-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>HTTP polling for "real-time" messaging.</strong> Technically delivers messages eventually, but fails the actual latency NFR and wastes enormous server capacity on empty poll responses — the most common mistake specifically on this problem.</li>
+<li><strong>No shared routing/session state</strong> — assuming a message can just be delivered directly by whichever server received it, with no lookup for where the recipient actually is (V1's exact flaw, J).</li>
+<li><strong>Relying on arrival timestamps for ordering</strong> instead of a per-conversation authoritative sequence number — silently breaks under clock drift or out-of-order network delivery (O).</li>
+<li><strong>Treating "delivered" as inferred from "server sent it"</strong> rather than an explicit client acknowledgment — produces a status that's wrong exactly in the failure cases it exists to report on (P).</li>
+<li><strong>Designing E2E encryption as an afterthought bolted onto a plaintext design</strong> — multi-device and store-and-forward both need to be designed with encryption's constraints in mind from the start, not patched in later (S).</li>
+</ul>
+
+<h3 id="p4-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"How do you know a connection server is still alive?"</td><td>Heartbeat/ping-pong over the WebSocket; session store entries expire (TTL) if not refreshed</td><td>Session store (N) gains a liveness/TTL mechanism</td><td>Routing, ordering, delivery logic</td></tr>
+<tr><td>"Support 'typing...' indicators."</td><td>A separate, best-effort, non-persisted event type over the same WebSocket — deliberately not durable, unlike real messages</td><td>New lightweight event type only</td><td>Message store, ordering, delivery guarantees</td></tr>
+<tr><td>"What if a user is in 50 groups and each gets busy at once?"</td><td>Per-user delivery is naturally rate-smoothed by the connection server's own send queue; no special-case needed beyond Q's existing fanout</td><td>None structurally new</td><td>Everything</td></tr>
+<tr><td>"Add message search."</td><td>Same lesson as News Feed's search deep dive — but critically constrained by S: if E2E, search must happen client-side over locally-decrypted content, not server-side</td><td>Client-side index (if E2E) or server-side index (if not)</td><td>Routing, ordering, delivery</td></tr>
+<tr><td>"A user reports messages arriving out of order."</td><td>Debug via seq_num vs. arrival time — was this a genuine ordering bug, or just a display/reconnect artifact</td><td>None — this is why O's explicit seq_num exists</td><td>Everything</td></tr>
+</table>
+
+<h3 id="p4-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes HTTP polling or a single-server design with no routing/session concept; no mention of ordering or delivery guarantees at all.</li>
+<li><strong>Mid-level:</strong> correctly picks WebSockets and identifies that messages need to be routed across servers, but hand-waves the routing mechanism itself.</li>
+<li><strong>Senior:</strong> proactively designs the shared session/routing store and pub-sub broker; introduces a server-assigned sequence number unprompted; distinguishes sent/delivered/read as three genuinely separate, explicitly-acked events.</li>
+<li><strong>Staff+:</strong> reasons about offline delivery and group fanout as related-but-distinct problems from 1:1 delivery; discusses E2E encryption's real structural impact (search/moderation loss, multi-device fanout cost) rather than treating "add encryption" as a checkbox.</li>
+</ul>
+
+<h3 id="p4-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a chat system like WhatsApp — 1:1 messaging, group chat, offline delivery, and read receipts.</div>
+<div class="dialog"><span class="who">Candidate:</span> The first decision is the transport. Polling can't hit real-time latency without wasting a huge amount of capacity on empty checks, so I'd use persistent WebSocket connections between each client and a connection server.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Fine. User A sends a message to User B — walk me through it.</div>
+<div class="dialog"><span class="who">Candidate:</span> A's message hits whichever connection server A is attached to. That server persists the message and assigns it a sequence number for ordering. Then it needs to find out which connection server User B is actually attached to — that's not something A's server knows on its own, so I'd keep a shared session store, essentially a map from user ID to connection-server ID, updated whenever someone connects or disconnects.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Why not just have A's server ask every other server directly?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's an O(N) broadcast per message, and it gets worse as the fleet grows — a shared lookup makes it O(1) regardless of how many connection servers exist.</div>
+<div class="dialog"><span class="who">Interviewer:</span> User B is offline. What happens?</div>
+<div class="dialog"><span class="who">Candidate:</span> The session lookup comes back empty, so instead of pushing immediately, the message goes into a per-recipient offline queue. When B reconnects and re-registers in the session store, the server drains that queue to them in sequence-number order.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do delivered and read status actually work?</div>
+<div class="dialog"><span class="who">Candidate:</span> Both are explicit acknowledgments from the recipient's client, not something the server infers. "Delivered" fires when B's client confirms it received the push; "read" fires later, separately, when B actually opens it. The server pushing a message isn't proof B got it — the connection could drop in exactly that window — so I don't want to report a status the server can't actually verify.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last one — what if this needs to be end-to-end encrypted?</div>
+<div class="dialog"><span class="who">Candidate:</span> That changes what the server is allowed to do with the content — it can still route and order ciphertext, but it can no longer search it or generate previews from it. I'd point to something like the Signal Protocol: X3DH to establish keys even with an offline recipient, which matters a lot given the offline-queue requirement, and a Double Ratchet so each message gets its own derived key. The real complication is multi-device — each device has its own keys, so the sender actually has to encrypt and send a separate copy per recipient device, which multiplies the fanout cost on top of group chat's own fanout.</div>
+
+<h3 id="p4-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/whatsapp" target="_blank">Hello Interview</a></td><td>WebSocket + routing-layer framing, explicit "which server owns this connection" problem statement, staff-level encryption discussion</td><td>Clearest articulation of the routing problem as the central idea, exactly as used in N</td><td>Lighter on the specific Signal Protocol sub-components than a security-focused source would be</td><td>The requirements-driven framing of routing as the make-or-break idea, adopted for this whole section</td></tr>
+<tr><td><a href="https://bytebytego.com/courses/system-design-interview/design-a-chat-system" target="_blank">ByteByteGo</a></td><td>Detailed connection-server sizing, message-sync/queue design for multi-device, sequence-number ordering</td><td>Most concrete numeric grounding for connections-per-server used in G</td><td>Treats encryption more briefly than the routing/ordering mechanics</td><td>The connections-per-server sizing figure and the sync-queue framing reused in M and R</td></tr>
+<tr><td><a href="https://github.com/dilipkumar2k6/messaging-chat-app-system-design" target="_blank">dilipkumar2k6/messaging-chat-app-system-design (GitHub)</a></td><td>Concrete worked numbers for connection counts, message throughput, and storage sizing specific to a chat system</td><td>The most detailed openly-available numeric capacity-planning example found for this problem</td><td>Less rigorous on the encryption/multi-device angle</td><td>Cross-checking the capacity estimation numbers in G against an independently-worked example</td></tr>
+<tr><td>Signal's own protocol documentation (X3DH, Double Ratchet, Sesame)</td><td>The actual, real-world cryptographic protocol WhatsApp's encryption is built on</td><td>The only source that's the actual ground truth for S rather than a system-design summary of it</td><td>Written for a security audience, not a system-design-interview audience — needs translation, which S provides</td><td>Understanding X3DH's async-key-exchange property is precisely why offline delivery and E2E encryption aren't in conflict</td></tr>
+</table>
+
+<h3 id="p4-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Chat System (WhatsApp)</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced (no simple naive V1 — the transport choice is itself advanced)</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>1:1 + group real-time messaging; offline delivery; sent/delivered/read status; 500M DAU, ~150M concurrent connections, &lt;100ms delivery, strict per-conversation ordering</td></tr>
+<tr><td><strong>Central decision</strong></td><td>WebSockets (not polling) + a shared session/routing store to solve "which server holds this user's connection"</td></tr>
+<tr><td><strong>Ordering fix</strong></td><td>Server-assigned, per-conversation monotonic sequence number — never client timestamps</td></tr>
+<tr><td><strong>Delivery guarantee</strong></td><td>At-least-once + client-side dedup via client_msg_id — honest target, not attempted exactly-once</td></tr>
+<tr><td><strong>Offline handling</strong></td><td>Per-recipient offline queue, drained in seq_num order on reconnect, bounded retention window</td></tr>
+<tr><td><strong>Group chat</strong></td><td>Uniform fanout-on-write — bounded group size means no celebrity-style carve-out needed</td></tr>
+<tr><td><strong>Encryption</strong></td><td>Signal Protocol (X3DH + Double Ratchet + Sesame) — server routes/stores ciphertext only; multi-device multiplies fanout per recipient device</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Polling instead of WebSockets; no shared routing state; timestamp-based ordering; inferred (not acked) delivery status</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Deriving the Double Ratchet algorithm from scratch — name the protocol and its properties, don't design a cipher live</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p3.html">&larr; 3. Twitter / News Feed</a><a class="prevnext-link next" href="p5.html">5. Ride-Sharing (Uber) &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

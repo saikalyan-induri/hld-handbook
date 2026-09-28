@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>18. Distributed Key-Value Store (Dynamo-style) — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">18. Distributed Key-Value Store (Dynamo-style) <span class="badge">Advanced + Tunable Consistency (PACELC)</span></h1>
+
+<div class="section-toc">
+<a href="#p18-a">A. Interview Prompt</a><a href="#p18-b">B. Difficulty</a><a href="#p18-c">C. What It Tests</a>
+<a href="#p18-d">D. Requirements</a><a href="#p18-e">E. Clarifying Questions</a><a href="#p18-f">F. Assumptions</a>
+<a href="#p18-g">G. Capacity Estimation</a><a href="#p18-h">H. Core Entities</a><a href="#p18-i">I. API Design</a>
+<a href="#p18-j">J. Basic Design (V1)</a><a href="#p18-k">K. Data Model &amp; Store Choice</a><a href="#p18-l">L. End-to-End Flow</a>
+<a href="#p18-m">M. Deep Dive 1: Consistent Hashing for Partitioning</a><a href="#p18-n">N. Deep Dive 2: Replication Across Nodes</a><a href="#p18-o">O. Deep Dive 3: Quorum Reads/Writes</a>
+<a href="#p18-p">P. Deep Dive 4: Vector Clocks</a><a href="#p18-q">Q. Deep Dive 5: Conflict Resolution</a><a href="#p18-r">R. Deep Dive 6: Hinted Handoff &amp; Read Repair</a>
+<a href="#p18-s">S. Deep Dive 7: Anti-Entropy via Merkle Trees</a><a href="#p18-t">T. Full Solution at Scale</a><a href="#p18-u">U. Design Evolution</a>
+<a href="#p18-v">V. Consistency Model</a><a href="#p18-w">W. Failure Scenarios</a><a href="#p18-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p18-y">Y. Trade-Offs</a><a href="#p18-z">Z. Common Bad Designs</a><a href="#p18-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p18-ab">AB. Interviewer Evaluation</a><a href="#p18-ac">AC. Interview Simulation</a><a href="#p18-ad">AD. Source Comparison</a>
+<a href="#p18-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p18">Jump to section:</label><select id="jump-p18" class="jump-select" data-jump-select><option value="p18-a">A. Realistic Interview Prompt</option><option value="p18-b">B. Difficulty</option><option value="p18-c">C. What This Problem Tests</option><option value="p18-d">D. Requirements</option><option value="p18-e">E. Clarifying Questions</option><option value="p18-f">F. Assumptions</option><option value="p18-g">G. Capacity Estimation</option><option value="p18-h">H. Core Entities</option><option value="p18-i">I. API Design</option><option value="p18-j">J. Basic / Naive High-Level Design (V1)</option><option value="p18-k">K. Data Model &amp; Store Choice</option><option value="p18-l">L. End-to-End Flow — A Client Writes With W=2, Then Reads Back With R=2</option><option value="p18-m">M. Deep Dive 1 — Consistent Hashing for Data Partitioning</option><option value="p18-n">N. Deep Dive 2 — Replication Across Nodes</option><option value="p18-o">O. Deep Dive 3 — Quorum Reads/Writes</option><option value="p18-p">P. Deep Dive 4 — Conflict Detection with Vector Clocks</option><option value="p18-q">Q. Deep Dive 5 — Conflict Resolution Strategies</option><option value="p18-r">R. Deep Dive 6 — Hinted Handoff &amp; Read Repair</option><option value="p18-s">S. Deep Dive 7 — Anti-Entropy via Merkle Trees</option><option value="p18-t">T. Full Solution at Scale — Final Architecture</option><option value="p18-u">U. Design Evolution</option><option value="p18-v">V. Consistency Model</option><option value="p18-w">W. Failure Scenarios</option><option value="p18-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p18-y">Y. Design Trade-Offs</option><option value="p18-z">Z. Common Bad Designs</option><option value="p18-aa">AA. Interviewer Follow-Ups</option><option value="p18-ab">AB. Interviewer Evaluation Rubric</option><option value="p18-ac">AC. Interview Simulation</option><option value="p18-ad">AD. Online Solution Comparison</option><option value="p18-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p18-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a distributed key-value store like Amazon's Dynamo: a simple <code>put(key, value)</code> / <code>get(key)</code> interface, backing something like a shopping cart service, that must accept writes and serve reads even during network partitions or node failures, scale horizontally across commodity hardware with no single point of failure, and let the operator tune — per table, per use-case — how much consistency they're willing to trade for latency and availability."</div>
+<p>Almost every other problem in this document reaches for a distributed key-value store as a supporting component and moves on (Distributed Cache, <a href="#p11">P11</a>, is the closest cousin, but it's explicitly disposable — losing data on a crash is acceptable because the real source of truth lives elsewhere). This problem is the one place the store itself <em>is</em> the source of truth, and that single fact changes everything downstream: a crashed node can no longer just shrug off the data it held, because there may be no other copy of record anywhere else. The central technical decision this design is built around is a tightly coupled set of five mechanisms, each one covering for what the others can't: <strong>a consistent-hashing ring with virtual nodes for partitioning; a configurable replication factor N with tunable quorum reads (R) and writes (W) so an operator can pick a deliberate point on the PACELC spectrum per use-case; vector clocks to detect when two writes to the same key are genuinely concurrent rather than one superseding the other; and, covering the gaps quorum-and-vector-clocks alone leave open, hinted handoff for temporarily-unreachable replicas, read repair to fix staleness opportunistically at read time, and Merkle trees to reconcile replicas efficiently in the background.</strong> No other problem in this handbook makes the consistency/latency/availability trade-off this explicit, this tunable, or this central to the whole design — that is deliberately the point of this problem.</p>
+
+<h3 id="p18-b">B. Difficulty</h3>
+<p><strong>Advanced, and specifically PACELC-heavy rather than merely "distributed-systems-heavy" in the generic sense</strong> — the individual mechanisms (consistent hashing, quorum, vector clocks) are each independently well-known, and a candidate who has seen Distributed Cache (<a href="#p11">P11</a>) already has the ring and replication half-built. What makes this problem hard is that none of these mechanisms is optional or independent: quorum math only makes sense once replication is fixed, vector clocks only matter because quorum writes can legitimately diverge, and anti-entropy only exists to clean up what quorum and vector clocks alone can't fully resolve. A strong answer treats all five as one integrated consistency story, not five separate trivia facts to recite in sequence.</p>
+
+<h3 id="p18-c">C. What This Problem Tests</h3>
+<ul>
+<li>Whether a candidate can extend consistent hashing (<a href="#prereq-j">Prerequisites J</a>, deepened for a cache in <a href="#p11-n">P11-N</a>) from "which single node owns this key" to "which <em>set</em> of N nodes replicate this key" — a genuinely harder version of the same ring mechanism, not a repeat of it</li>
+<li>Real, quantitative comfort with the PACELC trade-off (<a href="#prereq-l">Prerequisites L</a>) — not just naming CAP, but being able to say precisely what changes in the system's behavior as R and W move, and being able to defend a specific (N, R, W) choice for a specific workload</li>
+<li>Understanding why a single "latest timestamp wins" strategy silently loses data the moment two clients write concurrently without having seen each other's write, and why vector clocks are the mechanism that makes that loss <em>detectable</em> instead of invisible</li>
+<li>Recognizing that conflict <em>detection</em> and conflict <em>resolution</em> are two separate problems, and that a generic, semantics-agnostic key-value store can solve the first completely but only ever solve the second partially — the honest limit that distinguishes this system from an application-aware CRDT (<a href="#p9-n">P9-N</a>)</li>
+<li>Judgment about the unglamorous but load-bearing background machinery (hinted handoff, read repair, Merkle-tree anti-entropy) that keeps an eventually-consistent system from actually staying inconsistent forever in practice</li>
+</ul>
+
+<h3 id="p18-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li><code>PUT(key, value)</code> — write a value for a key; the caller may optionally supply the version/context it last read, so the store can detect whether this write is based on the latest state or is concurrent with another write</li>
+<li><code>GET(key)</code> — read a value for a key; if replicas disagree and the disagreement is a genuine conflict (not simple staleness), return all conflicting versions rather than silently picking one</li>
+<li><code>DELETE(key)</code> — remove a key (internally, this is itself just a special write, per K)</li>
+<li>The system remains available for both reads and writes to a given key even when some — but not all — of that key's replica nodes are unreachable</li>
+<li>The replication factor, and the read/write quorum sizes, are configurable per deployment (illustratively, per keyspace/table), not hardcoded platform-wide</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Always writable</strong> — a <code>PUT</code> should succeed even during a partition or node failure whenever the operator has configured the system to prioritize availability over strict consistency; "the store rejected my write" is treated as a failure of the design, not an acceptable outcome, unless the operator has deliberately configured otherwise</li>
+<li><strong>No single point of failure, and no single point of coordination</strong> — every node is structurally equivalent (a peer, <a href="#prereq-c">Prerequisites C</a>'s contrast with leader-follower replication); there is no master node whose failure takes down writes or reads for the whole keyspace</li>
+<li><strong>Horizontal scalability</strong> — adding a node increases total capacity roughly linearly and requires moving only a small fraction of existing keys, never a full reshuffle</li>
+<li><strong>Tunable consistency</strong> — the single defining NFR of this problem: an operator can trade latency and availability for consistency, and vice versa, per use-case, rather than the system enforcing one fixed policy for every key (the direct contrast with Payment System's fixed, non-negotiable strong consistency, <a href="#p15-v">P15-V</a>, revisited fully in V)</li>
+<li><strong>No multi-key transactions and no query language</strong> — the interface is deliberately minimal (I); anything requiring cross-key atomicity or ad hoc querying is explicitly out of scope</li>
+</ul>
+<p><strong>Out of scope:</strong> secondary indexes or range queries (a pure key-value <code>get</code>/<code>put</code>/<code>delete</code> interface only); multi-key or cross-partition transactions; a query planner or SQL-like layer; client-side application logic for merging conflicting versions (mentioned in Q, but the actual merge function is the calling application's problem, not this store's).</p>
+
+<h3 id="p18-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Does every key need the same consistency guarantee, or can different use-cases tolerate different trade-offs?</td><td>Determines whether N/R/W is one fixed platform-wide constant or a per-keyspace configuration knob</td><td>Deep Dive 3 (O), Consistency Model (V)</td></tr>
+<tr><td>2</td><td>When a write is genuinely concurrent with another write to the same key, who resolves the conflict — the store automatically, or the calling application?</td><td>Determines whether last-write-wins (with its silent data loss) or application-level merge is the default</td><td>Deep Dive 4 (P), Deep Dive 5 (Q)</td></tr>
+<tr><td>3</td><td>Is a brief window where a <code>GET</code> can return stale (but not corrupted) data acceptable?</td><td>Confirms this is an AP-leaning (available, partition-tolerant) system rather than a CP one by default</td><td>Deep Dive 3 (O), Consistency Model (V)</td></tr>
+<tr><td>4</td><td>What's the expected key and value size, and is this workload read-heavy, write-heavy, or balanced?</td><td>Drives replication factor, per-node capacity math, and how aggressively read-repair/anti-entropy needs to run</td><td>Capacity Estimation (G)</td></tr>
+<tr><td>5</td><td>Do clients talk to any node and get transparently routed, or do they need ring-topology awareness themselves?</td><td>Determines whether a coordinator role is implicit in every node (peer-to-peer) or a separate routing tier is introduced</td><td>API Design (I), Deep Dive 1 (M)</td></tr>
+</table>
+
+<h3 id="p18-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> a minimal <code>put</code>/<code>get</code>/<code>delete</code> interface, configurable replication factor and quorum sizes, always-writable as the default posture.</li>
+<li><strong>Assumption:</strong> consistency requirements vary by use-case (E's clarifying question 1) — this system is built as a general-purpose substrate whose N/R/W is tuned per keyspace, exactly the framing that makes V's PACELC discussion the payoff of the whole design rather than a single fixed answer.</li>
+<li><strong>Assumption:</strong> the calling application, not the store, ultimately resolves genuine semantic conflicts (E's clarifying question 2) — the store's job is limited to detecting a conflict reliably (P) and exposing it; it deliberately does not attempt automatic, semantics-aware merging the way a CRDT (<a href="#p9-n">P9-N</a>) can, because a generic key-value store has no idea what a given value actually means.</li>
+<li><strong>Assumption:</strong> brief read staleness is acceptable by default (E's clarifying question 3) — this is an AP-leaning system out of the box, with the option to move toward CP-like behavior per keyspace via quorum tuning (O), not a system that is strongly consistent by default.</li>
+<li><strong>Assumption:</strong> values are opaque, relatively small blobs (illustratively under a few hundred KB — think a session, a cart, a user preference set), and the workload is read-heavy but with a non-trivial, bursty write rate (E's clarifying question 4) — the same shape the original Dynamo paper (<a href="#p18-ad">AD</a>) was built for.</li>
+<li><strong>Assumption:</strong> clients use a topology-aware client library, resolving the correct preference list themselves (E's clarifying question 5, mirroring Distributed Cache's smart-client assumption, <a href="#p11-i">P11-I</a>) rather than adding a routing-tier hop to every request — any node can also act as a fallback coordinator for a client without ring awareness, at the cost of one extra internal hop.</li>
+</ul>
+
+<h3 id="p18-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Total logical dataset size</td><td>Illustratively, 10 TB of key-value data before replication</td><td>The raw keyspace size the ring (M) must partition across nodes</td></tr>
+<tr><td>Replication factor N</td><td>N = 3 (a common Dynamo-style default)</td><td>Total stored bytes across the cluster ≈ 3x the logical dataset — 30 TB actually persisted, the direct storage cost of availability</td></tr>
+<tr><td>Usable storage per node</td><td>~2 TB usable per node after headroom</td><td>30 TB / 2 TB ≈ 15 physical nodes' worth of primary+replica data at this illustrative scale — the number the ring (M) actually has to spread virtual nodes across</td></tr>
+<tr><td>Peak throughput</td><td>Illustratively 200K ops/sec cluster-wide, ~80% reads / 20% writes</td><td>Confirms this is a latency-and-availability problem first — every <code>PUT</code>/<code>GET</code> fans out to multiple replicas (N, O), so cluster-wide throughput is materially higher than client-visible throughput</td></tr>
+<tr><td>Average value size</td><td>~5 KB (illustrative, per F's assumption of small opaque blobs)</td><td>Confirms per-key metadata overhead — a vector clock (P) and version history — is non-trivial relative to the value itself, and bounded pruning of that metadata (P) matters</td></tr>
+<tr><td>Virtual nodes per physical node</td><td>Illustratively 100-256 (M)</td><td>15 physical nodes × ~150 virtual nodes ≈ ~2,250 points on the ring — enough to keep both load and rebalancing-arc size smooth, discussed quantitatively in M</td></tr>
+</table>
+
+<h3 id="p18-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>KeyValueRecord</code></td><td>One stored value for one key, on one replica — the atomic unit every mechanism in this design ultimately operates on</td><td><code>key</code>, <code>value</code> (opaque bytes), <code>vector_clock</code> (P), <code>written_at</code></td></tr>
+<tr><td><code>PreferenceList</code></td><td>The ordered list of physical nodes responsible for replicating a given key, derived by walking the ring clockwise from the key's position (N)</td><td><code>key</code>, <code>ordered_node_ids</code> (length ≥ N, to allow for skip-on-failure)</td></tr>
+<tr><td><code>VirtualNode</code></td><td>One of many ring positions owned by a single physical node — the mechanism that keeps ring load balanced (M)</td><td><code>virtual_node_id</code>, <code>ring_position</code> (hash value), <code>owning_physical_node_id</code></td></tr>
+<tr><td><code>HintedHandoffEntry</code></td><td>A write temporarily stashed on a substitute node on behalf of an unreachable intended replica, pending delivery once that replica recovers (R)</td><td><code>intended_node_id</code>, <code>key</code>, <code>value</code>, <code>vector_clock</code>, <code>stashed_at</code></td></tr>
+<tr><td><code>MerkleTreeNode</code></td><td>One node in a per-key-range hash tree used to efficiently diff two replicas' contents during background anti-entropy (S)</td><td><code>range_start</code>, <code>range_end</code>, <code>subtree_hash</code>, <code>is_leaf</code></td></tr>
+</table>
+
+<h3 id="p18-i">I. API Design</h3>
+<pre><code>PUT   /keys/{key}    { value, context }  -&gt; { context }   -- context carries the vector clock (P) the client last observed
+GET   /keys/{key}                        -&gt; { values: [ { value, context } ] }  -- more than one entry only on a genuine unresolved conflict (Q)
+DELETE /keys/{key}   { context }         -&gt; 200                                 -- itself just a special-cased write internally (K)
+-- internal, cluster-facing, not client-facing:
+(gossip) ring-membership + node-liveness propagation                 (M)
+(replication) coordinator -&gt; N replicas, fanned out per write        (N)
+(hinted handoff) substitute node -&gt; recovered intended replica       (R)
+(anti-entropy) periodic Merkle-tree exchange between replica pairs   (S)
+</code></pre>
+<p><strong>Why the API returns a <code>context</code> alongside every value, not just the raw value:</strong> the <code>context</code> opaquely carries the vector clock (P) the store attached to that value. A client that reads a value, then writes a new one, is expected to pass that same context back on the write — this is what lets the store distinguish "this write knows about, and supersedes, everything I've seen so far" from "this write is based on stale information and might conflict with something else in flight" (P). A client that ignores the context and always writes blind is implicitly opting into last-write-wins semantics (Q) — a legitimate choice, but one the API makes visible rather than silent.</p>
+<p><strong>Why <code>GET</code> can return a list, not always a single value:</strong> this is the one place the API surface directly exposes this system's central trade-off — most reads return exactly one reconciled value, but a genuine, still-unresolved conflict (P) is returned as multiple sibling versions rather than the store silently guessing which one is "right" (Q).</p>
+
+<h3 id="p18-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: a single coordinator node holds a range-partitioning table (key ranges A-M on node 1, N-Z on node 2, and so on) and routes every request to the one node that owns the relevant range; that node stores its slice of the keyspace in a plain in-memory or on-disk hash map, with no replication at all.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Client1["Client"] --> Coord["Coordinator<br/>(static range table)"]
+  Client2["Client"] --> Coord
+  Coord -- "key in A-M" --> NodeA[("Node 1<br/>owns range A-M, no replica")]
+  Coord -- "key in N-Z" --> NodeB[("Node 2<br/>owns range N-Z, no replica")]
+</div>
+<p class="diagram-caption">V1 — a single coordinator statically maps key ranges to owning nodes; each range lives on exactly one node with no replication. Simple to reason about, and broken in two independent ways at once.</p>
+<p class="callout"><strong>Why this breaks in two separate ways, not just one:</strong> first, the coordinator itself is a single point of failure and a routing bottleneck — every single request, cluster-wide, passes through it, and its crash takes down the entire store, the same structural flaw Rate Limiter's naive single-instance design and Distributed Cache's V1 (<a href="#p11-j">P11-J</a>) both name. Second, and more specific to this problem: because each key range lives on exactly one node with zero replication, that node's crash doesn't just cause a brief unavailability blip — it <em>permanently loses</em> every key in its range, since (unlike Distributed Cache) there is no other copy anywhere and no downstream source of truth to fall back on. Static range-based sharding compounds this: adding a node to relieve a hot range requires manually repartitioning the range table and physically migrating a large contiguous slice of data, an operator-driven, error-prone, and disruptive process — the identical "almost everything has to move" failure <a href="#prereq-j">Prerequisites J</a> names for naive <code>hash(key) % N</code> sharding, just expressed as manual range surgery instead of a hash recompute.</p>
+
+<h3 id="p18-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Each node runs its own local, pluggable storage engine — an implementation detail below the replication layer, not a distributed database in itself:</strong> a log-structured merge-tree (LSM-tree) style engine is the natural fit, since the workload (per F) is write-heavy-enough and access is exclusively by exact key, never a range scan or join — the same "match the store to the access pattern" instinct <a href="#prereq-b">Prerequisites B</a> names generally, and the same choice Dynamo itself makes pluggable (local BDB, MySQL, or an in-memory table with persistent backing, per the actual paper, <a href="#p18-ad">AD</a>).</p>
+<p><strong>Every stored record carries its vector clock as first-class metadata, not a side table:</strong> a <code>KeyValueRecord</code> (H) is <code>(key, value, vector_clock)</code>, and the vector clock travels with the value through every replication, read-repair (R), and anti-entropy (S) operation — it is not something reconstructed after the fact, because reconstructing causality after the fact is exactly the problem vector clocks exist to avoid (P).</p>
+<p><strong>A <code>DELETE</code> is implemented as a tombstone write, not an immediate physical removal:</strong> deleting a key writes a special tombstone value (still carrying a vector clock) rather than immediately erasing the record — otherwise a tombstone that hasn't yet propagated to every replica could be "resurrected" by a stale replica's still-present old value during read repair or anti-entropy (S). Tombstones are physically garbage-collected only after they're old enough that every replica has almost certainly seen them, mirroring how Cassandra's own <code>gc_grace_seconds</code> works in practice (<a href="#p18-ad">AD</a>).</p>
+<p><strong>No cross-key structure of any kind:</strong> unlike a relational store, there is no foreign key, no join, and no secondary index — a deliberate simplification (D) that's exactly what makes the partitioning (M) and replication (N) mechanisms tractable: every operation is scoped to exactly one key, and one key's <code>PreferenceList</code> (H) is entirely independent of every other key's.</p>
+
+<h3 id="p18-l">L. End-to-End Flow — A Client Writes With W=2, Then Reads Back With R=2</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant C as Client
+  participant Coord as Coordinator Node
+  participant N1 as Replica 1
+  participant N2 as Replica 2
+  participant N3 as Replica 3
+  C->>Coord: PUT key=cart-42, value=v1, context=(vector clock from last read)
+  Coord->>Coord: compute preference list for cart-42 (M, N)
+  par fan out write
+    Coord->>N1: store (v1, incremented vector clock)
+    Coord->>N2: store (v1, incremented vector clock)
+    Coord->>N3: store (v1, incremented vector clock)
+  end
+  N1-->>Coord: ack
+  N2-->>Coord: ack
+  Note over Coord: W=2 satisfied — 2 of 3 acks received, N3's ack not required to succeed
+  Coord-->>C: write success, new context
+  C->>Coord: GET key=cart-42
+  par fan out read
+    Coord->>N1: read
+    Coord->>N2: read
+    Coord->>N3: read
+  end
+  N1-->>Coord: (v1, clock)
+  N2-->>Coord: (v1, clock)
+  Note over Coord: R=2 satisfied — 2 of 3 responses received, both agree, no conflict, no repair needed
+  Coord-->>C: v1
+</div>
+<p class="diagram-caption">W=2 and R=2 out of N=3: the write returns as soon as any 2 replicas ack, and the read returns as soon as any 2 replicas respond and agree — the third replica's slower response is simply never waited on. If the two read responses had disagreed, the coordinator would reconcile via vector clocks (P) and trigger read repair (R) before returning.</p>
+
+<h3 id="p18-m">M. Deep Dive 1 — Consistent Hashing for Data Partitioning</h3>
+<p><strong>Requirement this addresses:</strong> horizontal scalability and no-single-point-of-failure (D) — directly fixes V1's static-range-table flaw (J), and this deep dive assumes the ring-plus-virtual-nodes mechanism itself is already understood from <a href="#prereq-j">Prerequisites J</a> and its first application in Distributed Cache (<a href="#p11-n">P11-N</a>); the point here is to go further than either of those, specifically for a key-value store's own concerns.</p>
+<p><strong>What's genuinely new here, versus the cache's version of this same ring:</strong> Distributed Cache's ring answers "which single node owns this key" — losing that node loses the key, an acceptable cost for a disposable cache. This system's ring has to answer a harder question: "which node owns this key <em>and</em> which N-1 other nodes replicate it," because this store has no downstream source of truth to fall back on if a node's data is gone. That harder question is N's subject; M is only about getting the base partitioning — where a key's <em>primary</em> ring position lands — right, which N then builds a preference list on top of.</p>
+<p><strong>Virtual node count is a real tuning knob, not an arbitrary constant — the trade-off, quantified:</strong></p>
+<table>
+<tr><th>Virtual Nodes Per Physical Node</th><th>Load-Balance Quality</th><th>Rebalancing Cost on Membership Change</th><th>Per-Node Bookkeeping Overhead</th></tr>
+<tr><td>Very few (e.g. 1)</td><td>Poor — pure hash luck can give one physical node a disproportionately large or small arc, exactly the failure <a href="#prereq-j">Prerequisites J</a> warns virtual nodes exist to prevent</td><td>Low overhead per event, but each rebalance moves a large, lumpy chunk of keys at once (a small number of large arcs)</td><td>Minimal — a handful of ring entries to track per node</td></tr>
+<tr><td>Moderate (e.g. 100-200, the common real-world default)</td><td>Good — load smooths out close to proportional to each physical node's actual capacity, since bad luck on any one arc is averaged out over many arcs</td><td>Balanced — a node join/leave moves many small, evenly-sized slices instead of one big one, spreading migration bandwidth across many source/destination pairs simultaneously</td><td>Moderate — a few hundred ring entries per node, trivial to gossip and store</td></tr>
+<tr><td>Very many (e.g. tens of thousands)</td><td>Marginally better balance than the moderate case, with rapidly diminishing returns</td><td>Same total data moves, but each individual rebalancing operation is smaller and more numerous — more bookkeeping churn for little additional benefit</td><td>Real — gossiping and persisting a much larger ring-membership table on every node, and more per-request lookup overhead walking a larger ring</td></tr>
+</table>
+<p><strong>Why the rebalancing-cost column matters more for this problem than it did for the cache:</strong> Distributed Cache's rebalance is "move some cached entries, and if a couple are lost in transit, they're just cache misses" — low stakes. This system's rebalance is moving the <em>only</em> (or one of only N) durable copies of a key's actual data — a rebalance that's too coarse-grained (too few virtual nodes) creates a longer window where a large slice of the keyspace has only N-1 or fewer live replicas while migration catches up, a real, if temporary, availability and durability risk this design has to account for, not just an inconvenience.</p>
+<p><strong>How the ring stays current:</strong> exactly as in <a href="#p11-n">P11-N</a> — nodes gossip ring-membership changes to each other, and topology-aware client libraries hold a periodically-refreshed copy, with a redirect (mirroring Dynamo's/Cassandra's own node-forwarding behavior) handling any request that transiently lands on a node mid-rebalance rather than serving it incorrectly.</p>
+
+<h3 id="p18-n">N. Deep Dive 2 — Replication Across Nodes</h3>
+<p><strong>Requirement this addresses:</strong> no single point of failure and no data loss on a single node crash (D) — M alone only ever identifies one primary owner per key; without this deep dive, that owner going down still means that key is gone.</p>
+<p><strong>The preference list: N nodes, not one, walked clockwise from a key's ring position:</strong> for a given key, the system computes its coordinator (the first node clockwise on the ring from the key's hash, exactly as in M) and then continues walking clockwise, collecting the next N-1 <em>distinct physical nodes</em> it encounters — skipping over any virtual node that belongs to a physical node already in the list. This last detail matters: because a single physical node owns many virtual-node points (M), naively taking the next N points on the ring could land multiple replicas on the same physical machine, which defeats the entire point of replication the moment that one machine fails.</p>
+<p><strong>Every node in a key's preference list can act as coordinator for that key, symmetrically:</strong> unlike Distributed Cache's leader-follower-per-shard model (<a href="#p11-o">P11-O</a>), there is no single designated leader that all writes must funnel through — whichever node in the preference list a request happens to land on (directly, or via a topology-aware client) acts as coordinator for that one request, fans the write or read out to the other N-1 replicas, and assembles the result. This symmetric, peer-to-peer replication model (<a href="#prereq-c">Prerequisites C</a>'s explicit alternative to leader-follower) is precisely what removes the leader-election machinery, and the leader-crash failover window, that <a href="#p11-o">P11-O</a> needed — at the direct cost of the write-ordering ambiguity that makes vector clocks (P) necessary in the first place, since without one authoritative leader deciding a global write order, two coordinators really can accept two concurrent writes to the same key at the same time.</p>
+<p><strong>Why replication factor N is a per-keyspace configuration, not a platform-wide constant:</strong> a higher N buys more durability and more tolerance for simultaneous node failures, at the direct cost of more storage and more replication bandwidth per write (G already prices this at 3x for N=3); a use-case with cheap-to-regenerate data might reasonably run N=2, while one with genuinely irreplaceable data might run N=5 — the same "not every key needs the same guarantee" framing D's tunable-consistency NFR states as a top-level requirement, applied here to durability specifically rather than read/write consistency (O's subject).</p>
+
+<h3 id="p18-o">O. Deep Dive 3 — Quorum Reads/Writes</h3>
+<p><strong>Requirement this addresses:</strong> the tunable-consistency NFR (D) — this is the deep dive where the PACELC framing (<a href="#prereq-l">Prerequisites L</a>) becomes a literal, numeric knob instead of an abstract concept, and the single most load-bearing deep dive in this entire problem.</p>
+<p class="callout"><strong>The mechanism, stated precisely:</strong> a write is acknowledged to the client once <strong>W</strong> out of N replicas confirm it, not all N; a read is answered once <strong>R</strong> out of N replicas respond, not all N. Neither W nor R needs to equal N — the coordinator simply doesn't wait for the stragglers once it has enough responses to satisfy the configured threshold. This single mechanism is what makes both the write and read paths tolerant of up to (N − W) or (N − R) simultaneously slow or unreachable replicas without the client-visible operation failing or even necessarily slowing down.</p>
+<table>
+<tr><th>Configuration</th><th>What It Guarantees</th><th>PACELC Position</th></tr>
+<tr><td><strong>R + W &gt; N</strong> (e.g. N=3, R=2, W=2)</td><td>Every read quorum and every write quorum must share at least one overlapping replica — a read is guaranteed to see the most recent completed write, because there's no way to pick R and W replicas out of N without at least one node appearing in both sets</td><td>PC/EC-leaning: during a partition, prioritizes consistency over availability (a quorum might not be reachable, and the operation blocks or fails rather than proceeding on stale data); even without a partition, latency is bounded by the slower of the two thresholds, not the fastest single replica</td></tr>
+<tr><td><strong>R + W ≤ N</strong> (e.g. N=3, R=1, W=1)</td><td>No overlap is guaranteed between a read quorum and a write quorum — a read can legitimately return a value that predates the most recently acknowledged write, because it may have queried only replicas that haven't received that write yet</td><td>PA/EL-leaning: maximizes availability and minimizes latency, in both the partition case (an operation only needs to reach one live replica) and the normal case (no waiting on a second confirmation) — at the direct, honest cost of a real, non-hypothetical staleness window</td></tr>
+</table>
+<p><strong>Why this is more precise than simply saying "AP or CP" the way CAP alone frames it:</strong> R and W are two independent dials, not one binary switch — a keyspace can be tuned to (N=3, R=3, W=1): expensive, maximally-consistent reads (every replica must agree) paired with cheap, always-fast, best-effort writes, or the mirror image, or anywhere in between. This is exactly the more granular PACELC framing <a href="#prereq-l">Prerequisites L</a> introduces over CAP's coarser Consistency-vs-Availability framing, made concrete as literal integers a candidate can pick and defend in an interview, rather than an abstract stance to gesture at.</p>
+<p><strong>Latency, not just availability, is the other half of every one of these choices — the "L" in PACELC, explicitly:</strong> even with no partition at all, W=3 always waits for the slowest of three replicas to ack, where W=1 returns as soon as the single fastest one does; a candidate who only discusses the partition-time (CAP) behavior of a given (N, R, W) choice and never mentions its everyday, no-partition latency impact is leaving out exactly the half of PACELC that makes this framework more complete than CAP alone — and exactly the reasoning this problem is built to surface.</p>
+
+<h3 id="p18-p">P. Deep Dive 4 — Conflict Detection with Vector Clocks</h3>
+<p><strong>Requirement this addresses:</strong> D's requirement that a concurrent write never be silently, invisibly lost — the direct consequence of N's peer-to-peer replication model allowing two different coordinators to accept two writes to the same key without either one knowing about the other.</p>
+<p class="callout"><strong>Why a plain "last write wins" (highest timestamp) is actively dangerous, not just imprecise:</strong> imagine two clients each read the same cart (value: {milk}), and, unaware of each other, one adds {eggs} and the other adds {bread} — both writes are individually valid, based on the same prior state, and happen within milliseconds of each other on different coordinators. A timestamp-based last-write-wins policy keeps whichever write happens to carry the later clock value and <strong>silently, permanently discards the other one</strong> — the user who added bread simply finds it missing later, with no error, no warning, and no way to know a conflict ever happened. This isn't a rare edge case in a system with N-way peer replication under real network conditions; it is the expected, routine outcome of two clients writing around the same time, and a design that treats it as "good enough" is quietly losing data by construction.</p>
+<p><strong>How a vector clock actually detects this, mechanically:</strong> each <code>KeyValueRecord</code> (H, K) carries a vector clock — a map from <code>node_id → counter</code>. Whenever a coordinator node handles a write, it increments its own entry in the clock it's about to store. Comparing two vector clocks A and B against each other yields exactly one of three outcomes: <strong>A dominates B</strong> (every counter in A is ≥ the corresponding counter in B, and at least one is strictly greater) — meaning A's write causally descends from B's, so B is simply stale and safely discardable; <strong>B dominates A</strong> — the mirror image; or <strong>neither dominates the other</strong> (each clock has at least one counter strictly greater than the other's) — which is the mathematically precise definition of "these two writes are concurrent, and neither one is aware of the other." Only in that third case is there a genuine, real conflict — the first two cases are just ordinary version history, resolved automatically and correctly with no data loss and no ambiguity at all.</p>
+<p><strong>Why this is a strictly better tool than a scalar timestamp for exactly this decision:</strong> a timestamp only ever encodes "when," which says nothing about causality — two independent writes can easily have close, even out-of-order-by-clock-skew timestamps despite genuinely conflicting, and a single later write can easily have an earlier timestamp than an unrelated, already-superseded one due to ordinary clock drift between machines. A vector clock encodes "does this write know about that write," which is precisely the question that determines whether one write safely supersedes another or the two are in real, unresolved conflict — the right question, answered exactly, rather than a proxy question (elapsed wall-clock time) answered approximately.</p>
+
+<h3 id="p18-q">Q. Deep Dive 5 — Conflict Resolution Strategies</h3>
+<p><strong>Requirement this addresses:</strong> once P has correctly <em>detected</em> a genuine conflict, something still has to decide what value the next <code>GET</code> actually returns — detection and resolution are two separate problems, and this deep dive is entirely about the second one.</p>
+<table>
+<tr><th>Strategy</th><th>How</th><th>Trade-off</th></tr>
+<tr><td>Last-write-wins (scalar timestamp)</td><td>Discard detection entirely; always keep whichever write has the latest wall-clock timestamp</td><td>Simplest possible policy and always converges to a single value with no client-side work at all — but, per P, this is the policy that <em>silently loses data</em> on genuine concurrent writes, which is exactly why it's named here as an option, not the default</td></tr>
+<tr><td><strong>Return all conflicting versions to the client (chosen default)</strong></td><td>When P detects that two or more stored versions are genuinely concurrent, <code>GET</code> returns every sibling version (I) rather than picking one; the calling application — which alone understands what the value actually <em>means</em> — merges them (e.g. a shopping cart's conflicting versions are unioned into one cart containing both items) and writes back a single new version whose vector clock dominates all the siblings it resolved</td><td>Never silently loses data — the honest, general-purpose answer for a store with no idea what its values mean — but pushes real merge-logic work onto every application built on top of it, and a client that doesn't bother to merge (and just keeps writing blind) never actually resolves the conflict, leaving it to accumulate as more siblings on the next write</td></tr>
+</table>
+<p><strong>The direct callback this deep dive exists to make explicit: why this store can't just do what Google Docs's CRDT does.</strong> Google Docs's CRDT-based approach (discussed as the peer-to-peer alternative to central-server OT, <a href="#p9-n">P9-N</a>) resolves concurrent edits <em>automatically and correctly</em>, with no application-level merge step at all — but it can only do that because it knows, deeply and specifically, what its data actually <em>is</em>: an ordered sequence of characters, where "merge two concurrent inserts" has one obviously correct, generic answer (keep both characters, in a consistent relative order). A generic key-value store has no such luxury — the <code>value</code> field is opaque bytes (K), and "merge two concurrent versions of an opaque blob" has no universally correct answer, because a cart's conflicting versions merge by union, a counter's merge by sum, and a user-profile-edit's merge might require actual human judgment. This is the honest, structural reason a Dynamo-style store returns siblings to the application instead of attempting Google Docs's fully-automatic path — not a missing feature, but a correct recognition of where automatic merging stops being possible without semantic knowledge the store was never given.</p>
+<p><strong>Why returning siblings, imperfect as it is, is still strictly better than the alternative of picking one arbitrarily:</strong> a client that never merges siblings pays a real, visible cost (an app that has to handle a list instead of a single value, and duplicate-looking conflicting entries lingering until someone resolves them) — but that cost is fully recoverable, and no information is ever discarded without the application's knowledge. Last-write-wins' cost — a genuinely lost write, with zero visibility that it happened — is not recoverable at all. The comparison is deliberately "an honest, sometimes-annoying problem" versus "a silent, invisible data-loss bug," and framed that way, returning siblings is the correct default even though it's more work.</p>
+
+<h3 id="p18-r">R. Deep Dive 6 — Hinted Handoff &amp; Read Repair</h3>
+<p><strong>Requirement this addresses:</strong> always-writable, and no lasting inconsistency after a temporary node failure (D) — the two gaps quorum writes (O) and vector clocks (P) alone still leave open: a temporarily-unreachable replica that should have gotten a write but didn't, and a replica whose stored value has quietly fallen behind its peers.</p>
+<p><strong>Hinted handoff — what happens when one of a key's intended replicas is down at write time:</strong> if W=2 of N=3 is satisfiable using the two live replicas, the write shouldn't have to fail or block just because the third, temporarily-unreachable replica can't be reached — instead, the coordinator writes the value to a substitute node (typically the next node further along the ring past the preference list) along with a hint recording which node it was actually intended for (H's <code>HintedHandoffEntry</code>). Once the intended replica rejoins the cluster (detected via the same gossip/heartbeat mechanism as <a href="#p11-o">P11-O</a>'s failover detection), the substitute node forwards the stashed write to it and clears the hint — the write ends up exactly where it belongs, just later than it would have arrived under normal conditions, and the client's original write was never blocked or failed waiting for that to happen.</p>
+<p><strong>Read repair — fixing staleness opportunistically, at the moment it's actually observed:</strong> when a read quorum (O) queries R replicas and their responses disagree — one replica's stored vector clock is strictly dominated by another's (P), meaning it's simply behind, not genuinely conflicting — the coordinator returns the correct, up-to-date value to the client immediately, but <em>also</em> asynchronously pushes that up-to-date value back to whichever replica responded with the stale one. The next read of that same key, whether or not it happens to query that particular replica again, is now one step closer to fully consistent, entirely as a side effect of an ordinary read that would have happened anyway — no dedicated repair job, no extra request from the client, and no cost added to the read's own latency, since the repair push happens after the client has already been answered.</p>
+<p><strong>Why both mechanisms matter, and why neither one alone is sufficient:</strong> hinted handoff fixes the "a replica missed a write entirely because it was down" case; read repair fixes the "a replica has some, but not all, of the writes it should" case for whichever keys actually get read. Read repair alone would leave a genuinely never-read-again key permanently stale on its lagging replica — which is exactly the gap S's Merkle-tree anti-entropy exists to close for keys that read repair's read-triggered nature can't reach on its own.</p>
+
+<h3 id="p18-s">S. Deep Dive 7 — Anti-Entropy via Merkle Trees</h3>
+<p><strong>Requirement this addresses:</strong> the residual gap R leaves open — replicas can still drift apart on keys nobody happens to read for a long time, and this system needs a background mechanism that reconciles them without anyone having to ask.</p>
+<p><strong>The naive approach, and why it's too expensive to actually run continuously:</strong> the obvious way for two replicas to find out where they differ is to compare every single key-value pair they each hold, directly — correct, but for a large key range this means transferring and diffing potentially gigabytes of data just to find what might be a handful of actually-differing keys, a cost that scales with total data size rather than with how much they actually disagree, and one no cluster could afford to run as routine background hygiene.</p>
+<p><strong>How a Merkle tree turns that into a cheap, logarithmic comparison instead:</strong> each replica independently builds a tree of hashes over its own key range (H's <code>MerkleTreeNode</code>) — each leaf is the hash of a small sub-range of keys, and each internal node is the hash of its children's hashes combined, all the way up to a single root hash summarizing the entire range. Two replicas comparing their trees start at the root: <strong>if the root hashes match, the two replicas agree on every key in that entire range, full stop — the comparison ends immediately, in one hash comparison, with zero data transferred.</strong> If the roots differ, the replicas recurse into the children whose hashes disagree, discarding (without ever even looking at) every subtree whose hash already matched — repeating down the tree until the actual differing leaf ranges, and only those, are identified, at which point just the specific keys in those small ranges are exchanged and reconciled (via the same vector-clock comparison from P).</p>
+<p><strong>Why this specifically pays off for a mostly-agreeing pair of replicas — which is the overwhelmingly common case:</strong> two replicas that agree on 99.99% of their key range terminate the comparison almost immediately, at whichever level of the tree the disagreement first appears, rather than paying a cost proportional to the full dataset regardless of how much they actually differ — the comparison's cost tracks the <em>size of the disagreement</em>, not the size of the dataset, which is precisely what makes it viable to run this as continuous, low-priority background hygiene between every pair of replicas rather than an expensive, rarely-run maintenance job.</p>
+<p><strong>Why this needs to exist at all given read repair (R) already fixes staleness on read:</strong> read repair only ever touches keys someone actually reads — a key written once and never read again (a stale, abandoned cart; a write that landed just before a node failure and was never subsequently queried) would stay permanently inconsistent across replicas with read repair alone. Background Merkle-tree anti-entropy is the mechanism that reconciles <em>every</em> key eventually, independent of whether the application ever reads it again — the completeness guarantee neither quorum writes, vector clocks, nor read repair individually provide.</p>
+
+<h3 id="p18-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  Client(["Client / Topology-Aware Library"]) -- "PUT/GET, computes preference list (M, N)" --> Coord["Coordinator<br/>(any node in the preference list)"]
+
+  Coord -- "fan out write, W of N ack (O)" --> R1[("Replica 1")]
+  Coord -- "fan out write, W of N ack (O)" --> R2[("Replica 2")]
+  Coord -- "fan out write, W of N ack (O)" --> R3[("Replica 3")]
+
+  R3 -. "unreachable at write time" .-> Hint["Hinted Handoff Entry<br/>on substitute node (R)"]
+  Hint -- "delivered once R3 recovers" --> R3
+
+  Coord -- "fan out read, R of N respond (O)" --> R1
+  Coord -- "fan out read, R of N respond (O)" --> R2
+  Coord -- "compare vector clocks (P)" --> Coord
+  Coord -- "disagreement found: push correct value back (R)" --> R2
+
+  R1 <-. "periodic Merkle-tree diff, background (S)" .-> R2
+  R2 <-. "periodic Merkle-tree diff, background (S)" .-> R3
+
+  Ring[("Ring Membership<br/>gossiped virtual-node map, M")] -.-> Coord
+  Ring -.-> R1
+  Ring -.-> R2
+  Ring -.-> R3
+</div>
+<p class="diagram-caption">Every node is structurally the same — any of them can coordinate, replicate, hand off, repair, or anti-entropy-reconcile with any other. There is no leader, no single coordinator role, and no component whose failure takes the rest of the cluster down with it.</p>
+
+<h3 id="p18-u">U. Design Evolution</h3>
+<table>
+<tr><th>Version</th><th>What Changed</th><th>Why</th></tr>
+<tr><td>V1</td><td>A single coordinator statically maps key ranges to nodes, with no replication (J)</td><td>Simplest possible thing that satisfies the functional requirement in isolation</td></tr>
+<tr><td>V2</td><td>Static range table replaced with a consistent-hashing ring plus virtual nodes</td><td>Closes V1's coordinator-bottleneck and manual-resharding flaws; adding a node moves only a small, bounded slice of the keyspace (M)</td></tr>
+<tr><td>V3</td><td>Each key is replicated to N nodes via a preference list, not stored on just one</td><td>A single node's crash no longer permanently loses that node's slice of the keyspace outright (N)</td></tr>
+<tr><td>V4</td><td>Writes and reads succeed on W-of-N and R-of-N responses, not all N</td><td>Removes the slowest or temporarily-unreachable replica from the critical path of every operation, and exposes R/W as an explicit, tunable PACELC dial (O)</td></tr>
+<tr><td>V5</td><td>Vector clocks replace scalar timestamps for versioning every stored value</td><td>Scalar last-write-wins silently discards genuinely concurrent writes; vector clocks make that condition detectable rather than invisible (P)</td></tr>
+<tr><td>V6</td><td>A detected conflict returns all sibling versions to the client instead of the store guessing a winner</td><td>A generic store has no semantic knowledge of what a value means, and can't safely auto-merge the way an application (or a purpose-built CRDT) can (Q)</td></tr>
+<tr><td>V7</td><td>Hinted handoff and read repair added as opportunistic self-healing on the write and read paths</td><td>Closes the gap between "quorum was satisfied" and "every intended replica actually has the data," without a dedicated always-on repair process (R)</td></tr>
+<tr><td>V8</td><td>Background Merkle-tree anti-entropy runs continuously between replica pairs</td><td>Read repair alone never reaches keys nobody reads again; this closes that residual gap for every key, not just actively-read ones (S)</td></tr>
+</table>
+<p><strong>What stays stable throughout:</strong> the minimal <code>put</code>/<code>get</code>/<code>delete</code> contract from I — every refinement underneath changes how many replicas are involved, how conflicts are detected and surfaced, and how staleness is repaired, never the basic shape of what a caller actually invokes.</p>
+
+<h3 id="p18-v">V. Consistency Model</h3>
+<p><strong>This is the single most explicitly PACELC-driven design in this entire document, and that's the deliberate point of the problem, not an incidental detail.</strong> Every other system in this handbook picks one point on the consistency/latency/availability spectrum and defends it as a fixed property of that system (Ticketmaster's strongly-consistent seat state, <a href="#p8-v">P8-V</a>; Payment System's non-negotiable ledger-commit consistency, <a href="#p15-v">P15-V</a>; Yelp's deliberately loose, minutes-to-hours staleness tolerance, <a href="#p17-v">P17-V</a>). This system instead exposes the spectrum itself, as a first-class, per-keyspace configuration surface — N, R, and W are not implementation details buried inside the design, they are the product. Moving R+W above N moves a given keyspace toward the PC/EC corner of PACELC: a write, once acknowledged, is guaranteed visible to the next quorum read, at the direct cost of both operations blocking on a slower quorum and genuinely failing outright during a severe enough partition. Moving R+W to N or below moves that same keyspace toward the PA/EL corner: both operations return fast and stay available even when a majority of replicas are unreachable, at the direct, honest cost of a read that can legitimately return a value that's already been superseded.</p>
+<p><strong>The sharpest possible contrast against Payment System (<a href="#p15">P15</a>):</strong> P15 made one fixed, non-negotiable choice — the ledger commit itself is always, unconditionally strongly consistent, because a financial balance being briefly wrong is categorically unacceptable, full stop, for every single transaction the system ever processes. This system makes the opposite structural choice: there is no keyspace-wide default that's correct for every use-case, because a distributed key-value store's very reason for existing is to serve wildly different workloads — a session store that can tolerate a stale read fine, and an inventory counter that genuinely can't — from the same underlying substrate. P15's strength is that it never has to ask "how consistent does this need to be" because the answer is always the same, always maximal; this system's strength is that it can be asked that question per keyspace, and answer differently every time, which is precisely what a general-purpose storage substrate has to be able to do that a purpose-built financial ledger does not.</p>
+<p><strong>Vector clocks (P) and anti-entropy (R, S) are what make loosening R+W below N a genuinely safe choice, not a reckless one:</strong> a system that only tuned quorum sizes without any of this problem's other machinery would, at low R+W, simply lose concurrent writes silently and drift apart forever — the exact two failure modes P and S exist specifically to close. Tunable consistency is only actually safe to offer because conflict detection and background reconciliation are always running underneath it, regardless of where any given keyspace's R and W happen to be set — the PACELC dial changes how fast and how available the system is, never whether writes get silently lost or replicas stay permanently diverged.</p>
+
+<h3 id="p18-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>One of a key's N replicas is unreachable at write time:</strong> as long as W of the remaining live replicas ack, the write still succeeds; the unreachable replica's copy is stashed via hinted handoff (R) and delivered once it recovers — never a blocked or failed write just because one of several replicas is briefly down.</li>
+<li><strong>Two clients write concurrently to the same key without seeing each other's write:</strong> both writes succeed independently (peer coordinators, N); the resulting vector clocks (P) are mutually non-dominating, so the next <code>GET</code> surfaces both versions as siblings (Q) rather than either write silently vanishing.</li>
+<li><strong>A read quorum's replicas disagree because one has fallen behind:</strong> the coordinator resolves via vector-clock dominance (P), returns the correct value immediately, and read-repairs (R) the stale replica in the background — the client is never blocked waiting on the repair itself.</li>
+<li><strong>A node is down long enough that it's stashed hints and Merkle-tree drift both accumulate significantly:</strong> on recovery, pending hinted-handoff entries (R) replay first for the freshest recent writes, and background anti-entropy (S) closes the remaining gap for everything else — a longer outage means a longer catch-up, not a lost or permanently divergent replica.</li>
+<li><strong>A partition splits the cluster such that no quorum is reachable for a strongly-tuned keyspace (R+W &gt; N):</strong> per that keyspace's own PACELC configuration (O, V), the operation correctly fails rather than proceeding on an unverifiable quorum — a deliberate, configured choice to prioritize consistency over availability for that specific keyspace, not a bug.</li>
+</ul>
+
+<h3 id="p18-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1's single coordinator and static range table</td><td>Every request funnels through one node, and rebalancing requires manual, disruptive range surgery</td><td>Consistent-hashing ring with virtual nodes, symmetric peer coordination (M, N)</td></tr>
+<tr><td>Single-copy-per-key storage</td><td>Any one node's crash permanently loses its entire slice of the keyspace, with no recovery path</td><td>Replication factor N with a preference list spanning distinct physical nodes (N)</td></tr>
+<tr><td>Waiting on all N replicas for every operation</td><td>The slowest single replica sets the latency floor for every write and read, cluster-wide, all the time</td><td>Quorum reads/writes (R and W less than N) remove the straggler from the critical path (O)</td></tr>
+<tr><td>Scalar-timestamp versioning under peer-to-peer concurrent writes</td><td>Genuinely concurrent writes silently overwrite one another with no detection at all</td><td>Vector clocks make concurrency a detectable, structural property of two versions rather than an invisible race (P)</td></tr>
+<tr><td>Read-repair as the only reconciliation mechanism</td><td>Rarely-read keys can drift permanently inconsistent across replicas with nothing to catch it</td><td>Background Merkle-tree anti-entropy reconciles every key eventually, independent of read traffic (S)</td></tr>
+</table>
+
+<h3 id="p18-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Replication topology</td><td>Leader-follower per shard (Distributed Cache's model, <a href="#p11-o">P11-O</a>)</td><td>Symmetric peer-to-peer replication, chosen</td><td>Leader-follower gives a single, unambiguous write-order authority (no vector clocks needed) at the cost of leader-election machinery and a failover window; peer-to-peer removes both, at the direct cost of needing vector clocks (P) to detect the concurrent writes it now permits</td></tr>
+<tr><td>Conflict handling</td><td>Last-write-wins by timestamp</td><td>Vector clocks + return siblings to client, chosen</td><td>LWW is simpler and needs no client-side merge logic, but silently discards genuinely concurrent writes (P); the chosen approach never loses data, at the cost of pushing real merge-logic work onto every application built on top of the store</td></tr>
+<tr><td>Quorum sizing</td><td>R + W &gt; N (strong-leaning)</td><td>R + W ≤ N (available-leaning)</td><td>Neither is universally "correct" — this is a genuine, per-keyspace PACELC choice (O, V), not a default either way</td></tr>
+<tr><td>Anti-entropy mechanism</td><td>Full dataset comparison between replica pairs</td><td>Merkle-tree hash comparison, chosen</td><td>Full comparison is conceptually simpler but transfers data proportional to total dataset size regardless of actual disagreement; Merkle trees cost only proportional to the size of the actual divergence, at the cost of the bookkeeping needed to build and maintain the tree (S)</td></tr>
+<tr><td>Virtual nodes per physical node</td><td>Few (coarse-grained)</td><td>Moderate, ~100-200, chosen</td><td>Few virtual nodes means fewer, larger rebalancing chunks and a longer window of reduced replica count during migration; a moderate count balances load smoothly and spreads rebalancing across many smaller, faster-to-migrate slices, at a small, easily-affordable bookkeeping cost (M)</td></tr>
+</table>
+
+<h3 id="p18-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>A single coordinator with a static, manually-maintained range table and no replication.</strong> A single point of failure for routing, and a single point of permanent data loss per range on any one node's crash — the defining mistake on this problem, and a more consequential version of the same static-sharding flaw <a href="#prereq-j">Prerequisites J</a> names generically (J).</li>
+<li><strong>Reaching for leader-follower replication reflexively, without asking whether a single write-order authority is actually wanted here.</strong> Solves ordering cleanly, but reintroduces leader-election machinery and a failover window this problem's symmetric peer model is specifically built to avoid, and misses the fact that peer-to-peer replication is exactly what the vector-clock and quorum machinery in this problem exists to make safe (N).</li>
+<li><strong>Last-write-wins by wall-clock timestamp, with no conflict detection at all.</strong> Converges to a single value with zero client-side complexity, but silently and permanently discards genuinely concurrent writes with no error, no warning, and no way to recover the lost one (P).</li>
+<li><strong>Treating R+W&gt;N as the only "correct" quorum configuration, universally.</strong> Ignores that this system's entire value proposition is a tunable, per-keyspace point on the PACELC spectrum — always requiring a strong quorum defeats half the reason to build this kind of store instead of just using a strongly-consistent relational database directly (O, V).</li>
+<li><strong>Running anti-entropy as a full, brute-force dataset comparison between replicas on a schedule.</strong> Technically reconciles everything eventually, but at a bandwidth and CPU cost that scales with total dataset size rather than actual disagreement, making it impractical to run as continuous background hygiene at any real scale (S).</li>
+</ul>
+
+<h3 id="p18-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"What if the workload needs range queries or secondary indexes, not just exact-key lookups?"</td><td>Acknowledge this is a fundamental mismatch with a pure consistent-hashing partitioning scheme — a range query would need to scatter-gather across every node, since consistent hashing deliberately destroys key ordering (M); a range-partitioned, order-preserving scheme (closer to Bigtable/HBase) would be a better foundation for that requirement, at the cost of the elastic, low-cost rebalancing this design's ring provides</td><td>Partitioning scheme (M)</td><td>Vector clocks, quorum mechanics, anti-entropy — none of these are inherently tied to hash-ordered partitioning</td></tr>
+<tr><td>"How would you support multi-key transactions across two keys that happen to live on different nodes?"</td><td>Name this as genuinely out of scope for this design's model (D) — a real cross-shard transaction needs a coordination protocol (two-phase commit, or a saga akin to Payment System's, <a href="#p15-p">P15-P</a>) layered on top, which reintroduces exactly the coordination overhead and availability cost this design was built to avoid for the single-key case</td><td>A new, separate transaction-coordination layer, if added at all</td><td>The core single-key put/get/delete path, partitioning, and replication</td></tr>
+<tr><td>"A specific key is receiving wildly disproportionate traffic — what happens?"</td><td>The same hot-key problem Distributed Cache names explicitly (<a href="#p11-p">P11-P</a>) — consistent hashing balances key <em>count</em>, not traffic; the same fixes apply directly (client-side caching of the hot key, key splitting across derived physical keys)</td><td>An added caching or key-splitting layer for identified hot keys</td><td>The ring, replication, quorum, and conflict-resolution machinery for every other key</td></tr>
+<tr><td>"How would you reduce the client-visible cost of always sending a full vector clock on every read/write?"</td><td>Prune the vector clock's stored history to a bounded number of the most recent (node, counter) entries once it grows past a threshold, accepting that an extremely old, rarely-updated clock entry might occasionally be dropped — a small, deliberate accuracy trade in exchange for bounding metadata size, mirroring how Dynamo's own paper handles clock truncation (<a href="#p18-ad">AD</a>)</td><td>Vector clock storage and comparison logic (P)</td><td>Partitioning, replication, quorum sizing</td></tr>
+</table>
+
+<h3 id="p18-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes a single coordinator with static range-based sharding and no replication at all; reaches for last-write-wins by timestamp without recognizing it silently loses data.</li>
+<li><strong>Mid-level:</strong> correctly names consistent hashing and replication by term, but treats N/R/W as fixed platform constants rather than a genuine per-keyspace tuning decision, and can't precisely explain what changes, quantitatively, as R and W move.</li>
+<li><strong>Senior:</strong> proactively distinguishes conflict detection (vector clocks) from conflict resolution (siblings vs. LWW); correctly explains R+W&gt;N versus R+W≤N in explicit PACELC terms, including the latency cost even absent a partition; names hinted handoff and read repair as two separate, complementary self-healing mechanisms rather than conflating them.</li>
+<li><strong>Staff+:</strong> frames the entire design around the tunability of the consistency/latency/availability trade-off as the actual product, not an implementation detail, and can defend why a generic key-value store must hand conflicting versions back to the application rather than auto-merging the way a domain-aware CRDT can; explains why Merkle-tree anti-entropy is still necessary even with read repair in place, and reasons quantitatively about virtual-node count as a real rebalancing-cost trade-off rather than an arbitrary constant.</li>
+</ul>
+
+<h3 id="p18-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a distributed key-value store, like Amazon's Dynamo — a simple put/get interface that stays available even during failures.</div>
+<div class="dialog"><span class="who">Candidate:</span> The core partitioning problem is the same one behind consistent hashing anywhere in this space — I'd put every node and every key on a hash ring, with each physical node owning many virtual points so load stays balanced and adding or removing a node only moves a small slice of keys. But the harder part of this specific problem is that, unlike a cache, this store has no fallback source of truth — so a key can't just live on one node. I'd replicate every key to N nodes, walking clockwise from its ring position and skipping virtual nodes that belong to a physical node already in the list.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do writes and reads actually work against those N replicas?</div>
+<div class="dialog"><span class="who">Candidate:</span> This is where I'd make the consistency trade-off explicit rather than picking one fixed answer. A write succeeds once W of the N replicas acknowledge it, and a read succeeds once R of them respond — neither has to be all N. If R plus W is greater than N, every read quorum is guaranteed to overlap with every write quorum, so a read always sees the latest write — but both operations pay the latency of waiting on more replicas, and can fail outright during a bad enough partition. If R plus W is less than or equal to N, both operations are fast and stay available even if most replicas are unreachable, at the cost of a read that can legitimately return something slightly stale. I'd make this configurable per keyspace, because different data genuinely needs different points on that trade-off.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What happens if two clients write to the same key at nearly the same time, on two different coordinators?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's exactly the scenario a plain last-write-wins timestamp handles badly — it would just silently keep one write and discard the other, with no way to know it happened. I'd use vector clocks instead: each write increments the coordinating node's own counter in a clock attached to the value. Comparing two clocks either shows one cleanly supersedes the other — which is just normal version history — or shows neither dominates the other, which is the precise, detectable signature of a genuine concurrent write. In that second case, I wouldn't have the store guess a winner — I'd return both conflicting versions to the client on the next read, and let the application, which actually understands what the value means, merge them.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Why not just resolve that automatically, the way a CRDT would?</div>
+<div class="dialog"><span class="who">Candidate:</span> A CRDT can auto-merge because it's built for one specific data type with one well-defined merge rule — Google Docs's character sequence CRDT, for instance, always has an obvious answer for "keep both concurrent inserts." A generic key-value store's value is just an opaque blob — merging two conflicting carts is a union, but merging two conflicting counters is a sum, and there's no single rule that's correct for every possible value. So detecting the conflict is something the store can do generically and correctly; resolving it requires knowing what the data means, which only the application actually knows.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last one — what if a replica is temporarily down when a write comes in, or falls behind and nobody happens to read that key again?</div>
+<div class="dialog"><span class="who">Candidate:</span> Two separate mechanisms for two separate gaps. If a replica is down at write time but quorum is still satisfied by the others, I'd stash that write on a substitute node as a hinted handoff, and forward it once the real replica recovers — the write never fails just because one of several replicas is briefly unreachable. For staleness that read traffic never happens to touch, I'd run continuous background reconciliation between replica pairs using Merkle trees — comparing hash trees of each replica's key range top-down means two replicas that agree almost everywhere can confirm that in one hash comparison and only exchange the small ranges where they actually differ, instead of transferring the whole dataset just to find a handful of stale keys.</div>
+
+<h3 id="p18-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf" target="_blank">DeCandia et al. — "Dynamo: Amazon's Highly Available Key-value Store" (SOSP 2007, original paper)</a></td><td>The original source for essentially every mechanism in this problem — consistent hashing with virtual nodes, replication via preference lists, sloppy quorums, vector clocks, hinted handoff, read repair, and Merkle-tree anti-entropy, all as one integrated system built for Amazon's shopping-cart-style always-writable workloads</td><td>The definitive, first-party account of why each mechanism exists and how they interlock — this section's structure follows the paper's own reasoning closely, deliberately</td><td>Dense, academic, and describes internal Amazon infrastructure circa 2007 rather than a polished, publicly-runnable product</td><td>The single most important source for this entire problem — every deep dive here (M through S) traces directly back to a specific section of this paper</td></tr>
+<tr><td><a href="https://cassandra.apache.org/doc/latest/cassandra/architecture/dynamo.html" target="_blank">Apache Cassandra — official documentation, "Dynamo" architecture &amp; tunable consistency levels</a></td><td>A real, widely-deployed, open-source descendant of Dynamo's design, exposing tunable consistency (<code>ONE</code>, <code>QUORUM</code>, <code>ALL</code>, and others) as literal, named per-query consistency levels rather than an abstract concept</td><td>Concrete, production proof that per-operation tunable R/W-style consistency (this section's O) is a real, load-bearing, widely-used feature in production systems today, not a theoretical construct</td><td>Cassandra diverges from Dynamo in real ways (a fixed, gossip-based ring without dynamic virtual-node reassignment identical to Dynamo's, and its own tombstone/compaction specifics) — details worth not assuming transfer 1:1</td><td>The clearest, most direct evidence that tunable quorum consistency (this section's central idea) is genuinely how a real, mainstream distributed database works today, not just an academic idea</td></tr>
+<tr><td><a href="https://docs.riak.com/riak/kv/latest/learn/concepts/causal-context/" target="_blank">Riak KV — official documentation, "Vector Clocks" / causal context</a></td><td>A real, production key-value store that implements vector-clock-based conflict detection and returns sibling values to the client on unresolved conflicts almost exactly as described in this section's P and Q</td><td>Direct, first-party confirmation that "detect via vector clock, resolve by returning siblings to the application" (this section's Q) is a real, documented, shipped design decision, not an interview simplification</td><td>Riak's own docs are candid that vector-clock metadata size and sibling explosion under heavy concurrent-write conflict are genuine, non-trivial operational concerns in practice</td><td>The concrete, real-world evidence for exactly this section's Q — including the honest operational costs of the chosen-default conflict-resolution strategy</td></tr>
+</table>
+
+<h3 id="p18-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Distributed Key-Value Store (Dynamo-style)</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced + Tunable Consistency (PACELC) — the individual mechanisms are each familiar, but reasoning about them as one integrated, tunable consistency story is the real test</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Minimal put/get/delete interface; always-writable by default; no single point of failure; configurable replication factor and quorum sizes per keyspace — ~10TB logical data, N=3 replication, ~200K ops/sec cluster-wide</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Consistent-hashing ring with virtual nodes for partitioning, N-way replication via preference lists, tunable quorum reads/writes (R, W), vector clocks for conflict detection, and hinted handoff + read repair + Merkle-tree anti-entropy for background self-healing</td></tr>
+<tr><td><strong>Partitioning</strong></td><td>Ring + virtual nodes, extended from a single-owner lookup (<a href="#p11-n">P11-N</a>) to a full N-node preference list; virtual-node count trades load-balance smoothness against rebalancing granularity (M)</td></tr>
+<tr><td><strong>PACELC, made literal</strong></td><td>R+W&gt;N leans PC/EC (consistent, slower, can fail during a partition); R+W≤N leans PA/EL (available, fast, can return stale reads) — tunable per keyspace, not fixed platform-wide (O, V)</td></tr>
+<tr><td><strong>Conflict detection</strong></td><td>Vector clocks distinguish "this write causally supersedes that one" from "these two writes are genuinely concurrent" — a scalar timestamp can't make that distinction and silently loses data (P)</td></tr>
+<tr><td><strong>Conflict resolution</strong></td><td>Return all conflicting sibling versions to the client rather than auto-merging — a generic store doesn't know what a value means, unlike a domain-aware CRDT (<a href="#p9-n">P9-N</a>) (Q)</td></tr>
+<tr><td><strong>Self-healing</strong></td><td>Hinted handoff covers a replica down at write time; read repair opportunistically fixes staleness found during a read; Merkle-tree anti-entropy reconciles every key in the background, including ones nobody reads (R, S)</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Static single-coordinator range sharding with no replication; last-write-wins with no conflict detection; treating R+W&gt;N as universally correct; brute-force full-dataset anti-entropy instead of Merkle trees</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Multi-key transactions, secondary indexes, or range queries — this store is deliberately a minimal, single-key, exact-lookup substrate, not a general-purpose database</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p17.html">&larr; 17. Yelp / Nearby Places Search</a><a class="prevnext-link next" href="p19.html">19. Real-Time Leaderboard &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

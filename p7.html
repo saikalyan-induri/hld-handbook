@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>7. Video Streaming (YouTube) — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">7. Video Streaming (YouTube) <span class="badge">Advanced</span></h1>
+
+<div class="section-toc">
+<a href="#p7-a">A. Interview Prompt</a><a href="#p7-b">B. Difficulty</a><a href="#p7-c">C. What It Tests</a>
+<a href="#p7-d">D. Requirements</a><a href="#p7-e">E. Clarifying Questions</a><a href="#p7-f">F. Assumptions</a>
+<a href="#p7-g">G. Capacity Estimation</a><a href="#p7-h">H. Core Entities</a><a href="#p7-i">I. API Design</a>
+<a href="#p7-j">J. Basic Design (V1)</a><a href="#p7-k">K. Data Model &amp; Store Choice</a><a href="#p7-l">L. End-to-End Flow</a>
+<a href="#p7-m">M. Deep Dive 1: Upload Pipeline</a><a href="#p7-n">N. Deep Dive 2: Transcoding</a><a href="#p7-o">O. Deep Dive 3: Adaptive Bitrate</a>
+<a href="#p7-p">P. Deep Dive 4: CDN Delivery</a><a href="#p7-q">Q. Deep Dive 5: Metadata &amp; Search</a><a href="#p7-r">R. Deep Dive 6: View Counting</a>
+<a href="#p7-s">S. Deep Dive 7: Recommendations</a><a href="#p7-t">T. Full Solution at Scale</a><a href="#p7-u">U. Design Evolution</a>
+<a href="#p7-v">V. Consistency Model</a><a href="#p7-w">W. Failure Scenarios</a><a href="#p7-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p7-y">Y. Trade-Offs</a><a href="#p7-z">Z. Common Bad Designs</a><a href="#p7-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p7-ab">AB. Interviewer Evaluation</a><a href="#p7-ac">AC. Interview Simulation</a><a href="#p7-ad">AD. Source Comparison</a>
+<a href="#p7-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p7">Jump to section:</label><select id="jump-p7" class="jump-select" data-jump-select><option value="p7-a">A. Realistic Interview Prompt</option><option value="p7-b">B. Difficulty</option><option value="p7-c">C. What This Problem Tests</option><option value="p7-d">D. Requirements</option><option value="p7-e">E. Clarifying Questions</option><option value="p7-f">F. Assumptions</option><option value="p7-g">G. Capacity Estimation</option><option value="p7-h">H. Core Entities</option><option value="p7-i">I. API Design</option><option value="p7-j">J. Basic / Naive High-Level Design (V1)</option><option value="p7-k">K. Data Model &amp; Store Choice</option><option value="p7-l">L. End-to-End Flow — Upload to Watchable</option><option value="p7-m">M. Deep Dive 1 — The Upload Pipeline</option><option value="p7-n">N. Deep Dive 2 — The Transcoding Pipeline</option><option value="p7-o">O. Deep Dive 3 — Adaptive Bitrate Streaming</option><option value="p7-p">P. Deep Dive 4 — CDN Delivery at Scale</option><option value="p7-q">Q. Deep Dive 5 — Metadata &amp; Search</option><option value="p7-r">R. Deep Dive 6 — View Counting at Scale</option><option value="p7-s">S. Deep Dive 7 — Recommendations (Conceptual)</option><option value="p7-t">T. Full Solution at Scale — Final Architecture</option><option value="p7-u">U. Design Evolution</option><option value="p7-v">V. Consistency Model</option><option value="p7-w">W. Failure Scenarios</option><option value="p7-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p7-y">Y. Design Trade-Offs</option><option value="p7-z">Z. Common Bad Designs</option><option value="p7-aa">AA. Interviewer Follow-Ups</option><option value="p7-ab">AB. Interviewer Evaluation Rubric</option><option value="p7-ac">AC. Interview Simulation</option><option value="p7-ad">AD. Online Solution Comparison</option><option value="p7-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p7-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a video streaming platform like YouTube: users upload videos, the platform processes and stores them, and other users can watch them smoothly regardless of device or network conditions."</div>
+<p>The defining shape of this problem is that <strong>upload and playback are almost entirely separate systems</strong> sharing only a video ID — upload is a slow, resource-intensive, asynchronous pipeline (transcoding into many formats can take longer than the video's own runtime); playback is a latency-critical, massively-fanned-out read path that must adapt to wildly varying device and network conditions. Conflating the two into one synchronous flow is the single most common mistake.</p>
+
+<h3 id="p7-b">B. Difficulty</h3>
+<p><strong>Advanced</strong> — there's a simple-sounding naive answer ("store the file, serve the file"), but it fails for a reason most candidates haven't personally encountered (files formatted for one device stutter or fail entirely on another), making the core insight — adaptive bitrate streaming — genuinely non-obvious rather than a scale-driven afterthought like most of this document's other V1-to-V2 transitions.</p>
+
+<h3 id="p7-c">C. What This Problem Tests</h3>
+<ul>
+<li>Understanding that "upload" and "watch" are different systems with different latency/throughput/consistency needs, sharing only an identifier</li>
+<li>Knowledge of adaptive bitrate streaming (HLS/DASH) as the actual real-world answer to "smooth playback across devices and networks," not just "serve a video file"</li>
+<li>Judgment about what work belongs in a synchronous upload-acknowledgment path versus an asynchronous post-processing pipeline (transcoding) — the same async-decoupling instinct tested in prior problems, applied to a much heavier per-item workload</li>
+<li>CDN/edge-caching reasoning at a scale where the "hot" content (viral videos) and "cold" content (the long tail) have wildly different serving economics</li>
+<li>Comfort treating view-counting and recommendations as separable, approximate systems layered on the core storage/delivery pipeline, not part of its critical path</li>
+</ul>
+
+<h3 id="p7-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Users can upload a video; the platform processes it into a form suitable for streaming</li>
+<li>Users can watch any processed video, with playback quality adapting to their device and network conditions</li>
+<li>Users can search for videos by title/metadata and see basic engagement info (view count)</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Massive read-heavy scale</strong> — this document uses <strong>500 hours of video uploaded per minute and 5 billion video views per day</strong> as the standard illustrative input, the same order of magnitude widely cited for YouTube's own real-world scale</li>
+<li><strong>Smooth playback across heterogeneous devices/networks</strong> — buffering/stalling is the core failure mode this system exists to avoid, more than any specific latency number</li>
+<li><strong>High upload durability</strong> — losing a user's uploaded video is a far worse failure than a delay in it becoming watchable</li>
+<li><strong>Global low-latency delivery</strong> — a viewer anywhere in the world should get near-local playback latency, which a single-origin server structurally cannot provide</li>
+</ul>
+<p><strong>Out of scope:</strong> live streaming (a materially different, lower-latency real-time pipeline), monetization/ads, detailed content moderation.</p>
+
+<h3 id="p7-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Is live streaming in scope, or only pre-recorded, on-demand video?</td><td>Live streaming has fundamentally different (much lower) latency tolerances and can't use the same batch-transcoding pipeline</td><td>Assumptions (F)</td></tr>
+<tr><td>2</td><td>How quickly must a video become watchable after upload?</td><td>Directly bounds how much transcoding must complete before "publish," versus continuing in the background for additional quality levels</td><td>Deep Dive 2 (N)</td></tr>
+<tr><td>3</td><td>Do we need exact view counts in real time, or is an approximate, slightly-delayed count acceptable?</td><td>Exact real-time counting at billions of views/day is a much harder problem than approximate, batched counting</td><td>Deep Dive 6 (R)</td></tr>
+<tr><td>4</td><td>Is personalized recommendation in scope, or just search/browse?</td><td>A recommendation engine is effectively its own large ML system</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>5</td><td>What's the range of target devices/networks — mobile on cellular, desktop on fiber, both?</td><td>Confirms adaptive bitrate streaming (multiple quality levels) is necessary, not optional</td><td>Deep Dive 3 (O)</td></tr>
+</table>
+
+<h3 id="p7-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> upload, processing, on-demand playback with adaptive quality, search, and view counts are the core functional loop.</li>
+<li><strong>Assumption:</strong> on-demand (pre-recorded) video only — live streaming is explicitly out of scope (E's clarifying question 1), since it requires a fundamentally different low-latency pipeline that would double the scope of this document's treatment.</li>
+<li><strong>Assumption:</strong> a video becomes watchable once a baseline quality level finishes transcoding, with higher-quality levels continuing to process in the background — the standard, most-cited approach to the "how fast must upload-to-watchable be" trade-off.</li>
+<li><strong>Assumption:</strong> approximate, slightly-delayed view counts are acceptable (E's clarifying question 3) — this single assumption is what makes the view-counting deep dive tractable without a heavyweight strongly-consistent counter.</li>
+<li><strong>Assumption:</strong> a full personalized recommendation engine is named as a real-world extension (S) but not designed as a complete ML system — mirrors how ranking was treated in the News Feed problem.</li>
+</ul>
+
+<h3 id="p7-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Video uploaded/minute</td><td>500 hours/minute (illustrative, YouTube-scale)</td><td>Base input for the upload/transcoding pipeline's throughput requirement</td></tr>
+<tr><td>Views/day</td><td>5 billion</td><td>Base input for playback/delivery scale — dwarfs upload volume by orders of magnitude, confirming this is a read-optimize-first problem</td></tr>
+<tr><td>Views/sec (average)</td><td>5B ÷ 86,400s ≈ <strong>~58,000/sec</strong> (peak several hundred thousand/sec)</td><td>Sets the scale the CDN/delivery layer must sustain — far beyond what any origin server fleet alone could serve directly</td></tr>
+<tr><td>Raw upload storage/day</td><td>500 hours/min × 60 × 24 ≈ 720,000 hours/day of raw footage; at ~1GB/hour (compressed source) ≈ <strong>~720TB/day of raw uploads</strong></td><td>Confirms a blob store, not a database, is mandatory for raw video (K)</td></tr>
+<tr><td>Post-transcode storage multiplier</td><td>Each video is re-encoded into ~5-10 quality levels/resolutions (O) — roughly a <strong>5-10× storage multiplier</strong> over the raw upload</td><td>The real, often-underestimated storage cost of adaptive bitrate streaming — a direct, quantified consequence of the O deep dive</td></tr>
+<tr><td>CDN cache-hit requirement</td><td>To sustain ~58,000+ views/sec, the overwhelming majority must be served from edge caches, not origin</td><td>Directly motivates the CDN deep dive (P) — origin-only serving cannot come close to this throughput</td></tr>
+</table>
+
+<h3 id="p7-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>Video</code></td><td>A logical video, independent of any specific encoded format</td><td><code>video_id</code>, <code>uploader_id</code>, <code>title</code>, <code>status</code> (uploading/processing/ready), <code>created_at</code></td></tr>
+<tr><td><code>VideoVariant</code></td><td>One transcoded rendition (a specific resolution/bitrate)</td><td><code>video_id</code>, <code>resolution</code>, <code>bitrate</code>, <code>storage_ref</code>, <code>codec</code></td></tr>
+<tr><td><code>Manifest</code></td><td>The adaptive-streaming index listing all available variants/segments for a video</td><td><code>video_id</code>, list of <code>VideoVariant</code> references + segment URLs (O)</td></tr>
+<tr><td><code>ViewEvent</code> (ephemeral/aggregated)</td><td>Raw signal feeding the view-count pipeline</td><td><code>video_id</code>, <code>viewer_id</code>, <code>timestamp</code> — aggregated asynchronously (R), never read directly at serve time</td></tr>
+</table>
+
+<h3 id="p7-i">I. API Design</h3>
+<pre><code>POST /v1/videos/upload-url        -> { upload_url, video_id }   (pre-signed direct-to-blob-store URL, M)
+POST /v1/videos/{id}/complete     -> triggers transcoding pipeline (N)
+GET  /v1/videos/{id}/manifest     -> { variants: [...], segment_urls: [...] }  (O)
+GET  /v1/videos/{id}               -> { title, view_count (approx), status }
+GET  /v1/search?q=                -> [{ video_id, title, ... }]
+</code></pre>
+<p><strong>Why a pre-signed upload URL directly to blob storage, not through the application server:</strong> a video file can be gigabytes; routing that entire payload through an application server adds a slow, expensive hop for zero benefit — a pre-signed URL lets the client upload directly to the blob store, with the application server only involved before (issuing the URL) and after (receiving a "complete" notification) the actual byte transfer. The same "don't put large binary payloads through your application tier" principle used for media in News Feed and Chat System, just applied to the upload direction instead of only the read/serve direction.</p>
+
+<h3 id="p7-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: store the uploaded file as-is, and serve that exact same file directly to every viewer on request.</p>
+<div class="mermaid diagram">
+flowchart LR
+  U(["Uploader"]) -- "raw video file" --> Server["App Server"]
+  Server --> Store[("Blob Storage<br/>one file per video")]
+  V(["Viewer"]) --> Server
+  Server -- "serves the same raw file<br/>to every viewer" --> Store
+</div>
+<p class="diagram-caption">V1 — one file, one format, served identically to every viewer regardless of device or connection.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> a single fixed-resolution, fixed-bitrate file cannot serve both a phone on a weak cellular connection and a desktop on fiber well — the phone will stall/buffer trying to download a high-bitrate file faster than its connection allows, or the desktop viewer gets an unnecessarily low-quality experience if the file was encoded low to accommodate weak connections. Unlike most of this document's other V1s (which work fine at small scale and degrade only under load), this V1 delivers a visibly broken experience for a large fraction of real-world viewers on day one, regardless of traffic volume — the core problem here is heterogeneity, not scale.</p>
+
+<h3 id="p7-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Raw uploads and transcoded variants:</strong> blob storage (S3-class object storage) — video files are large, write-once (per variant), and read via range requests during playback, exactly the access pattern object storage plus a CDN in front of it (P) is built for.</p>
+<p><strong>Video/variant/manifest metadata:</strong> a relational or wide-column store keyed by <code>video_id</code>, holding titles, status, and pointers to each variant's blob location — small, structured, frequently queried data that belongs in a proper database, kept entirely separate from the large binary payloads it points to, the same metadata/blob split used throughout this document (News Feed's media, Chat System's attachments, Web Crawler's page content).</p>
+
+<h3 id="p7-l">L. End-to-End Flow — Upload to Watchable</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant U as Uploader
+  participant API as API Server
+  participant Blob as Blob Store
+  participant MQ as Message Queue
+  participant TC as Transcoding Pipeline
+  participant CDN as CDN
+  U->>API: request upload URL
+  API-->>U: pre-signed URL + video_id
+  U->>Blob: direct upload (raw file)
+  U->>API: mark upload complete
+  API->>MQ: publish "process_video" event
+  MQ->>TC: consume event
+  TC->>TC: transcode into variants (N)
+  TC->>Blob: store each variant + generate manifest
+  TC->>API: mark video status = ready
+  Note over CDN: On first viewer request, variants populate into CDN edge caches (P)
+</div>
+
+<h3 id="p7-m">M. Deep Dive 1 — The Upload Pipeline</h3>
+<p><strong>Requirement this addresses:</strong> the upload-durability NFR (D) — this is the write path, and it must never lose a user's uploaded content even though the file is large and the subsequent processing is slow.</p>
+<p><strong>Why direct-to-blob-store upload via a pre-signed URL, not through the API server:</strong> already introduced in I — worth restating here as the actual mechanism, not just the API shape. The API server's only job is issuing a short-lived, scoped credential (the pre-signed URL) and later receiving a lightweight "upload finished" notification; the multi-gigabyte transfer itself never touches application-tier compute at all, meaning the upload path's scalability is entirely the blob store's problem, not the API fleet's.</p>
+<p><strong>Chunked/resumable upload:</strong> for large files over unreliable networks, the upload itself is typically chunked (multipart upload, a standard blob-store feature) so a dropped connection mid-upload only requires resuming the missing chunks, not restarting a multi-gigabyte transfer from zero — directly serving the durability NFR by making partial-failure recovery cheap.</p>
+
+<h3 id="p7-n">N. Deep Dive 2 — The Transcoding Pipeline</h3>
+<p><strong>Requirement this addresses:</strong> the adaptive-playback NFR (D) — a single uploaded file must become many device/network-appropriate variants before it's genuinely watchable everywhere.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Raw[("Raw upload")] --> Queue["Transcode Job Queue"]
+  Queue --> W1["Transcode Worker:<br/>360p"]
+  Queue --> W2["Transcode Worker:<br/>720p"]
+  Queue --> W3["Transcode Worker:<br/>1080p"]
+  Queue -.-> WN["... additional resolutions"]
+  W1 --> Manifest[("Manifest generation (O)")]
+  W2 --> Manifest
+  W3 --> Manifest
+</div>
+<p class="diagram-caption">Each resolution/bitrate variant is an independent, parallelizable transcoding job off the same raw source.</p>
+<p><strong>Why this must be async and queue-driven, not a synchronous step in the upload request:</strong> transcoding a video into multiple quality levels is CPU-intensive and can take longer than the video's own runtime — holding an upload request open for that duration is a non-starter, the same "never put slow, heavy work on the critical path of an acknowledgment" principle used for fanout in News Feed and Chat System, just applied to a far heavier per-item workload (minutes of compute per video, versus milliseconds per fanout write).</p>
+<p><strong>Why parallelizing across resolutions, not just across videos:</strong> each resolution/bitrate variant is an independent transcoding job over the same raw source, so a video's variants can all be processed concurrently by different workers rather than serially — directly shortening the time-to-first-watchable-quality, which matters because the lowest-resolution variant finishing first is typically what unblocks "publish" (F's assumption) while higher resolutions continue in the background.</p>
+
+<h3 id="p7-o">O. Deep Dive 3 — Adaptive Bitrate Streaming</h3>
+<p><strong>Requirement this addresses:</strong> directly fixes V1's fatal flaw (J) — this is the actual real-world mechanism (HLS/DASH) that makes smooth playback across heterogeneous devices and networks possible at all.</p>
+<p><strong>How it actually works:</strong> each transcoded variant (N) is further split into short segments (typically a few seconds each); a <strong>manifest file</strong> (H) lists every available variant and its segment URLs. The video player downloads the manifest first, then continuously monitors its own current network throughput and <strong>switches which variant it's pulling segments from, in real time, between segments</strong> — dropping to a lower-bitrate variant if the network degrades mid-playback, and stepping up if it improves — all without interrupting playback or requiring a page reload.</p>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant Player
+  participant CDN
+  Player->>CDN: GET manifest.m3u8
+  CDN-->>Player: list of variants + segments
+  Player->>CDN: GET segment_1 (720p, initial guess)
+  Note over Player: network throughput measured
+  alt network degrades
+    Player->>CDN: GET segment_2 (360p, adapts down)
+  else network improves
+    Player->>CDN: GET segment_2 (1080p, adapts up)
+  end
+</div>
+<p><strong>Why this is the actual answer, not just "compress the video better":</strong> no single fixed encoding can be simultaneously right for a phone on congested cellular and a desktop on fiber, and a viewer's network conditions can change mid-playback (walking out of WiFi range) — adaptive bitrate directly solves both the heterogeneous-audience problem and the changing-conditions-mid-session problem, which a single static file, no matter how well compressed, structurally cannot.</p>
+
+<h3 id="p7-p">P. Deep Dive 4 — CDN Delivery at Scale</h3>
+<p><strong>Requirement this addresses:</strong> the global low-latency delivery NFR (D) and the ~58,000+ views/sec throughput from G — no origin server fleet can serve this volume directly, and every viewer being served from one region would add unacceptable latency for everyone else.</p>
+<p><strong>Why a CDN, not scaling the origin fleet directly:</strong> video segments are immutable once transcoded (a given variant's given segment never changes) — precisely the profile a CDN's edge-caching model is built for. Once a segment is cached at an edge node near a viewer, that edge node can serve it directly with no origin round-trip at all, the same cache-aside-at-the-edge principle used for redirects in URL Shortener, just applied to video segments at a much larger payload size.</p>
+<p><strong>The long-tail problem this creates:</strong> a small number of viral videos get requested constantly (naturally staying hot in every relevant edge cache), while the vast majority of uploaded videos are watched rarely — meaning most content is effectively "cold" at most edges most of the time, and the first viewer in a given region for a given video always pays a real origin round-trip (a cache miss) before that segment becomes locally cached. This is an accepted, bounded cost — a design choice, not a flaw — since caching every video everywhere unconditionally would be a far worse trade than occasionally eating one origin round-trip for genuinely rare content.</p>
+
+<h3 id="p7-q">Q. Deep Dive 5 — Metadata &amp; Search</h3>
+<p><strong>Requirement this addresses:</strong> the search functional requirement (D) — a genuinely different access pattern (full-text over titles/descriptions) from the manifest/segment delivery path in O and P.</p>
+<p><strong>Why this is a separate system from video delivery, sharing only the <code>video_id</code>:</strong> the same reasoning as the Twitter/News Feed problem's search deep dive — an inverted index (Elasticsearch/OpenSearch-class) populated asynchronously off the same "video published" event already used to trigger notifications/availability, decoupled entirely from the manifest-serving path so a search-indexing lag never affects playback, and a playback issue never affects search.</p>
+
+<h3 id="p7-r">R. Deep Dive 6 — View Counting at Scale</h3>
+<p><strong>Requirement this addresses:</strong> the view-count functional requirement (D), under the approximate-counting assumption from F — 5 billion views/day (G) makes a strongly-consistent, exactly-accurate counter incremented synchronously on every single view an unnecessary and expensive goal.</p>
+<p><strong>Why counting can't happen synchronously on the playback path:</strong> incrementing a durable counter on every single segment/manifest request would add write load directly onto the hottest, most latency-sensitive path in the entire system — exactly backwards, mirroring the same "don't put expensive work on the highest-frequency path" lesson from URL Shortener's analytics deep dive and News Feed's fanout reasoning.</p>
+<p><strong>The fix:</strong> emit a lightweight <code>ViewEvent</code> (H) asynchronously (e.g. once playback crosses a minimum-watched threshold, to avoid counting accidental clicks) onto an event stream; a separate, async aggregation pipeline batches and periodically updates each video's displayed count. The displayed number is allowed to lag real-time by seconds-to-minutes — an explicitly accepted trade, not a bug, that removes counting entirely from the playback critical path.</p>
+
+<h3 id="p7-s">S. Deep Dive 7 — Recommendations (Conceptual)</h3>
+<p class="callout">Discussed at the level this interview typically expects, per F's assumption — the conceptual shape and how it plugs into the existing pipeline, not a full ML recommendation system derivation.</p>
+<p><strong>Why this is a layer on top of the existing metadata/view-event streams, not a new data-collection system:</strong> the same <code>ViewEvent</code> stream already powering R's approximate view counts is also the natural raw signal for a recommendation model (what did this viewer watch, for how long, after watching what else) — recommendations consume the same async event stream through a different, independent aggregation/model-serving path, rather than requiring new instrumentation. This mirrors how ranking was layered onto News Feed's existing fanout/store mechanism without changing its plumbing.</p>
+
+<h3 id="p7-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  U(["Uploader"]) -- "pre-signed URL (M)" --> Blob[("Blob Store — raw upload")]
+  U --> API["API Server"]
+  API --> MQ["Message Queue"]
+
+  subgraph TRANSCODE [" Transcoding Pipeline (N) "]
+    direction LR
+    W1["360p worker"]
+    W2["720p worker"]
+    W3["1080p worker"]
+  end
+  MQ --> TRANSCODE
+  TRANSCODE --> VariantStore[("Blob Store — variants + Manifest (O)")]
+
+  V(["Viewer"]) --> CDN["CDN Edge (P)"]
+  CDN -- "cache miss" --> VariantStore
+  CDN -- "adaptive segment requests (O)" --> V
+
+  API --> SearchIdx["Search Index (Q)"]
+  V -.-> ViewEvents["ViewEvent stream (R)"]
+  ViewEvents --> Aggregator["Async Count Aggregator"]
+  ViewEvents -.-> Recs["Recommendation Pipeline (S)"]
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p7-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — store and serve one raw file (J):</strong> broken for a large fraction of real devices/networks from day one, independent of scale.</li>
+<li><strong>V2 — direct-to-blob-store upload via pre-signed URLs:</strong> keeps large payloads off the application tier (M).</li>
+<li><strong>V3 — async, queued, parallelized transcoding into multiple variants:</strong> produces the multiple quality levels adaptive streaming needs (N).</li>
+<li><strong>V4 — manifest-driven adaptive bitrate playback:</strong> fixes the actual core problem — smooth playback across heterogeneous devices/networks (O).</li>
+<li><strong>V5 — CDN edge caching for segment delivery:</strong> the only way to sustain tens of thousands of views/sec globally with acceptable latency (P).</li>
+<li><strong>V6 — async search indexing off the publish event:</strong> adds discovery without coupling to the delivery path (Q).</li>
+<li><strong>V7 — async, threshold-based view-event aggregation:</strong> removes counting from the hot playback path entirely (R).</li>
+<li><strong>V8 — recommendation pipeline consuming the same event stream:</strong> layers personalization on existing infrastructure (S).</li>
+</ul>
+<p><strong>What stays stable throughout:</strong> the <code>video_id</code>-keyed manifest contract from I — every version underneath changes without the player needing to change how it fetches or plays a video.</p>
+
+<h3 id="p7-v">V. Consistency Model</h3>
+<p>Deliberately <strong>eventually consistent</strong> almost everywhere, matching the same overall posture as News Feed and Chat System's non-ordering-critical paths: view counts (R) lag real-time by design; search results (Q) lag publish by an indexing delay; CDN edge caches (P) can briefly serve a stale variant list until propagation completes. The one place closer-to-immediate correctness matters is <strong>upload durability itself (M)</strong> — once the platform acknowledges an upload as complete, that raw file must not be lost, since unlike a delayed view count, a lost upload is unrecoverable and directly visible to the user who created it.</p>
+
+<h3 id="p7-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>A transcoding worker crashes mid-job:</strong> the job is redelivered from the queue (M-Q's standard at-least-once redelivery pattern) and reprocessed from the still-intact raw upload — no data loss, just a delay in that variant becoming available (N).</li>
+<li><strong>A CDN edge node is cold for a requested segment:</strong> falls through to an origin round-trip (a cache miss), populating the edge for subsequent requests — graceful degradation to higher latency, not an outage (P).</li>
+<li><strong>The view-event aggregation pipeline falls behind:</strong> isolated entirely to the displayed count — playback is completely unaffected, since it's a fully independent consumer of the event stream (R).</li>
+<li><strong>An upload is interrupted mid-transfer:</strong> chunked/resumable upload (M) means only the missing chunks need to be retried, not the entire file.</li>
+<li><strong>A viewer's network degrades mid-playback:</strong> this isn't a failure at all in this design — it's the exact case adaptive bitrate streaming (O) is built to handle gracefully, by switching to a lower-bitrate variant without interrupting playback.</li>
+</ul>
+
+<h3 id="p7-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 single-file serving</td><td>Fundamentally wrong for heterogeneous devices/networks, independent of traffic volume</td><td>Adaptive bitrate streaming via manifest + variants (O)</td></tr>
+<tr><td>Synchronous transcoding on upload</td><td>Holds the upload request open for minutes of CPU-intensive work</td><td>Async, queued transcoding pipeline (N)</td></tr>
+<tr><td>Origin-only video serving</td><td>Cannot sustain tens of thousands of views/sec globally with acceptable latency</td><td>CDN edge caching (P)</td></tr>
+<tr><td>Synchronous view-count increments on the playback path</td><td>Adds write load directly onto the hottest, most latency-sensitive path</td><td>Async, threshold-based, batched view-event aggregation (R)</td></tr>
+</table>
+
+<h3 id="p7-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Playback format</td><td>Single fixed-quality file</td><td>Adaptive bitrate (manifest + variants, chosen)</td><td>Single file is simpler and cheaper to store; adaptive streaming is the only approach that actually serves heterogeneous devices/networks well, at a 5-10× storage multiplier</td></tr>
+<tr><td>Transcoding timing</td><td>Fully synchronous before publish</td><td>Baseline-quality-first, rest async (chosen)</td><td>Fully synchronous guarantees every quality level is ready before publish but delays time-to-watchable significantly; baseline-first gets content watchable sooner at the cost of a brief window with fewer quality options</td></tr>
+<tr><td>View counting</td><td>Synchronous, exact counter</td><td>Async, approximate, batched (chosen)</td><td>Synchronous is exact but adds load to the hottest path in the system; async trades a seconds-to-minutes lag for removing counting from the critical path entirely</td></tr>
+<tr><td>Delivery</td><td>Serve from origin directly</td><td>CDN edge caching (chosen)</td><td>Origin-only is simpler operationally but cannot approach the required global throughput/latency; CDN caching is mandatory at this scale, at the cost of cache-miss handling for cold/rare content</td></tr>
+<tr><td>Upload path</td><td>Through the application server</td><td>Direct-to-blob-store via pre-signed URL (chosen)</td><td>Routing through the app server is simpler to reason about but puts multi-gigabyte transfers on application-tier compute for no benefit; direct upload keeps that compute free entirely</td></tr>
+</table>
+
+<h3 id="p7-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Store-and-serve-one-file, with no adaptive streaming at all.</strong> Delivers a visibly broken experience for a large share of real devices/networks regardless of traffic volume — the most common and most fundamental mistake on this problem.</li>
+<li><strong>Synchronous transcoding held on the upload request's critical path.</strong> Ties up the acknowledgment for however long CPU-intensive multi-format encoding takes — the same async-decoupling lesson from every fanout-style problem in this document, ignored.</li>
+<li><strong>Serving video directly from origin with no CDN.</strong> Cannot approach the required global throughput or latency — a design that "works" only in a single-region demo.</li>
+<li><strong>Synchronous, exact view-count increments on every playback request.</strong> Adds unnecessary write load to the single hottest, most latency-sensitive path in the whole system for a number that doesn't need to be exact or instantaneous.</li>
+<li><strong>Treating recommendations as a day-one requirement</strong> instead of a layer consuming an event stream that already exists for other reasons (R) — leads to over-scoping the interview into ML model design instead of the delivery architecture that carries most of the signal.</li>
+</ul>
+
+<h3 id="p7-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"A video suddenly goes viral — what happens?"</td><td>Directly exercises P's CDN model — the video naturally becomes hot at every relevant edge, requiring no special-case handling</td><td>None — this is exactly what edge caching already handles</td><td>Everything</td></tr>
+<tr><td>"Support live streaming, not just on-demand."</td><td>A genuinely different, much lower-latency pipeline (segment durations shrink dramatically, no batch transcoding) — named as materially out of this design's scope (F)</td><td>Effectively a new, parallel system</td><td>On-demand upload/transcode/delivery for pre-recorded content</td></tr>
+<tr><td>"Reduce storage costs from all these transcoded variants."</td><td>Transcode less-popular resolutions lazily/on-demand instead of eagerly for every upload, or age out rarely-requested variants</td><td>Transcoding trigger policy (N)</td><td>Manifest format, CDN delivery mechanics</td></tr>
+<tr><td>"Add closed captions/subtitles."</td><td>An additional async processing job off the same publish event (speech-to-text), stored and served like another manifest track</td><td>New async pipeline consumer</td><td>Core transcoding, delivery, view counting</td></tr>
+<tr><td>"How would you personalize the homepage feed?"</td><td>Directly extends S's conceptual recommendation layer into an actual ranked feed — acknowledge it's a large ML system, describe the event-stream input, don't design the model live</td><td>New consumer of the existing ViewEvent stream</td><td>Delivery, transcoding, upload pipeline</td></tr>
+</table>
+
+<h3 id="p7-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> "store the video file, serve it on request" with no mention of device/network heterogeneity, no async processing, no CDN.</li>
+<li><strong>Mid-level:</strong> knows videos need to be transcoded into multiple resolutions and that a CDN is involved, but doesn't articulate the manifest-driven adaptive-switching mechanism itself.</li>
+<li><strong>Senior:</strong> proactively explains adaptive bitrate streaming (manifest + segments + real-time quality switching) as the actual mechanism, not just "compress it well"; separates the async transcoding pipeline from the synchronous upload-acknowledgment path unprompted.</li>
+<li><strong>Staff+:</strong> reasons about the long-tail cold-content cache-miss cost as an accepted trade rather than a flaw; treats view counting and recommendations as approximate, async layers on the same event stream rather than new synchronous systems; can quantify the storage multiplier from multi-variant transcoding (as in G).</li>
+</ul>
+
+<h3 id="p7-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a video platform like YouTube — upload, and smooth playback for anyone watching.</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd split this into two mostly-separate systems that share only a video ID: uploading and processing, and watching. They have very different requirements — upload cares about durability and can tolerate being slow; playback cares about latency and needs to work well across wildly different devices and network conditions.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Why can't you just store the uploaded file and serve that directly?</div>
+<div class="dialog"><span class="who">Candidate:</span> Because one fixed encoding can't serve both a phone on weak cellular and a desktop on fiber well — and a viewer's network can change mid-playback anyway. The real answer is adaptive bitrate streaming: transcode the video into several quality levels, split each into short segments, and have the player continuously monitor its own network throughput and switch which quality level it's pulling from, segment by segment, without interrupting playback.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Where does the transcoding happen, and when?</div>
+<div class="dialog"><span class="who">Candidate:</span> Asynchronously, off a queue, triggered right after the raw upload finishes — never on the upload request itself, since encoding multiple quality levels can take longer than the video's own runtime. I'd let the lowest quality level unblock "publish" so the video becomes watchable quickly, while higher resolutions keep processing in the background.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you serve this at real scale — tens of thousands of views a second globally?</div>
+<div class="dialog"><span class="who">Candidate:</span> Through a CDN, not the origin directly. Video segments are immutable once transcoded, so they're a great fit for edge caching — once a segment is cached near a viewer, there's no origin round-trip at all. The trade-off is that most videos aren't viral, so the first request for a rarely-watched video in a given region always eats one real origin round-trip before it's cached locally — that's an accepted cost, not a flaw.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last one — view counts. Does every playback request update a counter?</div>
+<div class="dialog"><span class="who">Candidate:</span> No — that would put write load directly on the hottest path in the system for a number that doesn't need to be exact or instant. I'd emit a lightweight event once playback crosses some minimum-watched threshold, and aggregate those asynchronously into the displayed count, accepting a small lag.</div>
+
+<h3 id="p7-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/youtube" target="_blank">Hello Interview</a></td><td>Upload/watch-path separation framing, explicit adaptive-bitrate-streaming-as-the-core-insight discussion, staff-level CDN/long-tail treatment</td><td>Clearest articulation of adaptive bitrate as the genuine non-obvious insight of this problem, not just a scale afterthought</td><td>Lighter on the specific view-counting pipeline mechanics</td><td>The upload/watch separation framing adopted as the structural spine of this whole section</td></tr>
+<tr><td><a href="https://bytebytego.com/courses/system-design-interview/design-youtube" target="_blank">ByteByteGo</a></td><td>Detailed transcoding-pipeline and CDN-architecture breakdown with concrete component diagrams</td><td>The most thorough treatment of the transcoding worker pool's internals of any source reviewed</td><td>Less depth on the recommendation-layer conceptual tie-in</td><td>The parallel-per-resolution transcoding worker pattern adapted into N</td></tr>
+<tr><td><a href="https://github.com/donnemartin/system-design-primer#design-youtube" target="_blank">donnemartin/system-design-primer (GitHub)</a></td><td>General large-scale media-serving architecture applicable directly to video, covering CDN and blob-storage patterns</td><td>Good grounding in the general "immutable large binary content behind a CDN" pattern reused throughout this section</td><td>Not video-specific — requires translating general media-serving advice into the adaptive-bitrate-streaming domain</td><td>The general CDN-cache-aside reasoning, consistent with the same pattern already established for URL Shortener redirects and News Feed media</td></tr>
+<tr><td>HLS / MPEG-DASH specifications (industry standards)</td><td>The actual real-world manifest+segment protocols underlying adaptive bitrate streaming</td><td>Ground-truth confirmation that the manifest/segment/adaptive-switching mechanism described in O is a real, deployed standard, not a hypothetical</td><td>Written as technical protocol specs, not interview-oriented walkthroughs — needs translation, which O provides</td><td>Understanding that "the manifest" and "adaptive switching" in O map directly onto real HLS <code>.m3u8</code>/DASH <code>.mpd</code> files used in production today</td></tr>
+</table>
+
+<h3 id="p7-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Video Streaming (YouTube)</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced (the core insight — adaptive streaming — is genuinely non-obvious, not just a scale-driven refinement)</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Upload + async processing, adaptive on-demand playback, search, approximate view counts; 500hrs/min uploaded, 5B views/day, ~58K views/sec</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Upload and playback are separate systems sharing only a video_id — different latency, throughput, and durability needs entirely</td></tr>
+<tr><td><strong>Core mechanism</strong></td><td>Adaptive bitrate streaming — manifest + segmented multi-quality variants, with the player switching quality in real time based on measured network throughput</td></tr>
+<tr><td><strong>Transcoding</strong></td><td>Async, queue-driven, parallelized per-resolution; baseline quality unblocks publish while higher resolutions finish in the background</td></tr>
+<tr><td><strong>Delivery</strong></td><td>CDN edge caching is mandatory at this scale — origin-only cannot approach the required global throughput/latency; long-tail cold content accepts occasional cache misses</td></tr>
+<tr><td><strong>View counting</strong></td><td>Async, threshold-based, batched aggregation — never a synchronous increment on the playback path</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Single fixed-quality file; synchronous transcoding on upload; origin-only serving; synchronous exact view counters; day-one full recommendation engine</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Live streaming's low-latency pipeline, or a full ML recommendation system — name both as separate/extension systems, don't design them in depth</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p6.html">&larr; 6. Web Crawler</a><a class="prevnext-link next" href="p8.html">8. Ticketmaster (Event Ticket Booking) &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

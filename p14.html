@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>14. Distributed File Storage (Dropbox) — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">14. Distributed File Storage (Dropbox) <span class="badge">Advanced + Storage &amp; Sync</span></h1>
+
+<div class="section-toc">
+<a href="#p14-a">A. Interview Prompt</a><a href="#p14-b">B. Difficulty</a><a href="#p14-c">C. What It Tests</a>
+<a href="#p14-d">D. Requirements</a><a href="#p14-e">E. Clarifying Questions</a><a href="#p14-f">F. Assumptions</a>
+<a href="#p14-g">G. Capacity Estimation</a><a href="#p14-h">H. Core Entities</a><a href="#p14-i">I. API Design</a>
+<a href="#p14-j">J. Basic Design (V1)</a><a href="#p14-k">K. Data Model &amp; Store Choice</a><a href="#p14-l">L. End-to-End Flow</a>
+<a href="#p14-m">M. Deep Dive 1: Chunking Large Files</a><a href="#p14-n">N. Deep Dive 2: Delta Sync</a><a href="#p14-o">O. Deep Dive 3: Metadata/Blob/Chunk Store Split</a>
+<a href="#p14-p">P. Deep Dive 4: Multi-Device Conflict Detection</a><a href="#p14-q">Q. Deep Dive 5: Conflict Resolution</a><a href="#p14-r">R. Deep Dive 6: Offline Edits</a>
+<a href="#p14-s">S. Deep Dive 7: Notifying Other Devices</a><a href="#p14-t">T. Full Solution at Scale</a><a href="#p14-u">U. Design Evolution</a>
+<a href="#p14-v">V. Consistency Model</a><a href="#p14-w">W. Failure Scenarios</a><a href="#p14-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p14-y">Y. Trade-Offs</a><a href="#p14-z">Z. Common Bad Designs</a><a href="#p14-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p14-ab">AB. Interviewer Evaluation</a><a href="#p14-ac">AC. Interview Simulation</a><a href="#p14-ad">AD. Source Comparison</a>
+<a href="#p14-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p14">Jump to section:</label><select id="jump-p14" class="jump-select" data-jump-select><option value="p14-a">A. Realistic Interview Prompt</option><option value="p14-b">B. Difficulty</option><option value="p14-c">C. What This Problem Tests</option><option value="p14-d">D. Requirements</option><option value="p14-e">E. Clarifying Questions</option><option value="p14-f">F. Assumptions</option><option value="p14-g">G. Capacity Estimation</option><option value="p14-h">H. Core Entities</option><option value="p14-i">I. API Design</option><option value="p14-j">J. Basic / Naive High-Level Design (V1)</option><option value="p14-k">K. Data Model &amp; Store Choice</option><option value="p14-l">L. End-to-End Flow — A User Edits a Large File on Device A; Only the Changed Chunks Sync to the Cloud, Then Down to Device B</option><option value="p14-m">M. Deep Dive 1 — Chunking Large Files</option><option value="p14-n">N. Deep Dive 2 — Delta Sync &amp; Chunk-Level Deduplication</option><option value="p14-o">O. Deep Dive 3 — Metadata / Blob Store Split, and the Chunk Store as Its Own Layer</option><option value="p14-p">P. Deep Dive 4 — Multi-Device Sync &amp; Conflict Detection</option><option value="p14-q">Q. Deep Dive 5 — Conflict Resolution: Why a Conflicted Copy, Not an Automatic Merge</option><option value="p14-r">R. Deep Dive 6 — Offline Edits Queued Locally, Synced on Reconnect</option><option value="p14-s">S. Deep Dive 7 — Notifying Other Devices of Changes</option><option value="p14-t">T. Full Solution at Scale — Final Architecture</option><option value="p14-u">U. Design Evolution</option><option value="p14-v">V. Consistency Model</option><option value="p14-w">W. Failure Scenarios</option><option value="p14-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p14-y">Y. Design Trade-Offs</option><option value="p14-z">Z. Common Bad Designs</option><option value="p14-aa">AA. Interviewer Follow-Ups</option><option value="p14-ab">AB. Interviewer Evaluation Rubric</option><option value="p14-ac">AC. Interview Simulation</option><option value="p14-ad">AD. Online Solution Comparison</option><option value="p14-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p14-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a cloud file storage and sync system like Dropbox: a user drops a file into a local folder on their laptop, and it should show up — correctly, completely, and without wasting bandwidth re-sending the whole file — on their phone and every other device they own, even if one of those devices was offline when the edit happened."</div>
+<p>The naive framing of this problem — "store files, sync them to other devices" — hides the one detail that actually makes it hard: files are often large, edits to them are usually small (a few paragraphs in a huge document, a handful of frames in a video project), and devices are not reliably connected at the same time. Re-sending an entire file for every tiny edit, from every device, is the honest failure mode this problem is built to test whether a candidate avoids. The load-bearing decision this design is built around is: <strong>split every file into content-defined chunks using a rolling hash, so an edit only changes the handful of chunks actually touched (surviving insertions and deletions, unlike naive fixed-size slicing); store those chunks in a global, content-addressable, deduplicating chunk store, separate from a small metadata service that tracks each file's version history as an ordered chunk list; detect concurrent edits across devices with per-device version vectors rather than a single always-online ordering authority; and — because arbitrary file content has no composable edit semantics the way text operations do — resolve genuine conflicts by keeping both versions as a "conflicted copy" instead of attempting to automatically merge them.</strong></p>
+
+<h3 id="p14-b">B. Difficulty</h3>
+<p><strong>Advanced</strong> — every individual mechanism (chunking, a metadata/blob split, version vectors) is independently well-understood, but the problem is genuinely hard to get right end to end because it demands recognizing what does <em>not</em> transfer from adjacent problems: the OT/CRDT machinery that solves concurrent editing for Google Docs (<a href="#p9">P9</a>) does not apply here, and a candidate who reaches for it anyway — without noticing <em>why</em> it doesn't apply — is the most common way this problem goes wrong at the senior level.</p>
+
+<h3 id="p14-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognizing that "sync the file" actually means "sync only the bytes that changed," and reaching for content-defined chunking rather than fixed-size slicing or whole-file transfer as the mechanism that makes that possible</li>
+<li>Applying the metadata/blob store split (<a href="#patterns-d">Patterns Playbook D</a>, <a href="#prereq-i">Prerequisites I</a>) a second time in this document with a twist: the "blob" here is itself further split into content-addressed chunks, which is what turns a metadata/blob split into a genuine deduplication mechanism rather than just a storage-cost optimization</li>
+<li>Detecting concurrent modification without a single, continuously-available ordering authority — the opposite structural assumption from Google Docs's per-document coordinating server (<a href="#p9">P9</a>, Deep Dive M) — because devices here are routinely and expectedly offline for hours or days, not just briefly disconnected</li>
+<li>Real judgment on <em>why</em> two adjacent-looking "collaborative state" problems (Google Docs's text edits, Dropbox's file edits) demand two fundamentally different conflict-resolution strategies, tied concretely to whether the underlying edits are composable or not — not just naming "OT" and "conflicted copy" as two options to pick between arbitrarily</li>
+<li>Treating offline editing as the normal case to design for from the start, not a rare edge case bolted on afterward, which reshapes the notification/sync path (S) and the conflict-detection mechanism (P) alike</li>
+</ul>
+
+<h3 id="p14-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>A user can upload, edit, delete, and organize files inside one or more synced folders</li>
+<li>Edits made on one device propagate to all of that user's other devices, without requiring the entire file to be re-transferred for a small edit</li>
+<li>A device that was offline when an edit happened correctly catches up once it reconnects</li>
+<li>If two devices edit the same file while both are disconnected from each other, the system detects that conflict rather than silently discarding one side</li>
+<li>(Extension, addressed in AA) shared folders across multiple users follow the same underlying mechanics as multiple devices for one user</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Bandwidth-efficient sync</strong> — the cost of syncing an edit should scale with the size of the edit, not the size of the file it was made to</li>
+<li><strong>Storage-efficient at rest</strong> — identical content, whether from repeated versions of the same file or entirely unrelated files across different users, should not be stored as duplicate bytes</li>
+<li><strong>Offline-tolerant by default</strong> — a device with no network connection must still let the user keep working locally, with sync resuming automatically and correctly on reconnect</li>
+<li><strong>No silent data loss</strong> — a legitimate edit from any device must never simply vanish because it collided with another edit; the honest failure mode when two edits genuinely conflict is surfacing the conflict, never discarding a side</li>
+<li><strong>Durable</strong> — once a device is told an edit has synced, that content must survive individual machine failures in the storage layer</li>
+</ul>
+<p><strong>Out of scope:</strong> real-time, keystroke-level collaborative co-editing of a single document's contents (that is Google Docs's problem, <a href="#p9">P9</a>, not this one); fine-grained sharing permissions and link-based public sharing; client-side end-to-end encryption key management.</p>
+
+<h3 id="p14-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Are we syncing arbitrary file types (binaries, videos, archives) or specifically structured documents we could parse and diff semantically?</td><td>Determines whether the sync layer can ever assume anything about a file's internal structure — if it must handle arbitrary bytes, chunking has to be content-agnostic</td><td>Deep Dive 1 (M), Deep Dive 5 (Q)</td></tr>
+<tr><td>2</td><td>How many devices does a typical user sync across, and are simultaneous edits from two devices to the same file expected to be common or rare?</td><td>Shapes how much weight the conflict-detection path (P) needs to carry versus being a rare-case safety net</td><td>Capacity Estimation (G), Deep Dive 4 (P)</td></tr>
+<tr><td>3</td><td>Must offline editing be a first-class supported case, or can we assume devices are usually connected?</td><td>If offline periods are expected to be routine and long, the sync/notification design (R, S) has to treat "device hasn't been heard from in days" as normal, not exceptional</td><td>Deep Dive 6 (R), Deep Dive 7 (S)</td></tr>
+<tr><td>4</td><td>Is cross-user deduplication (two unrelated users storing the same file) in scope, or only per-user version deduplication?</td><td>Determines whether the chunk store needs to be one global, shared, content-addressed space, or can be scoped per user</td><td>Deep Dive 2 (N), Deep Dive 3 (O)</td></tr>
+<tr><td>5</td><td>What's a realistic distribution of file sizes — mostly small documents, or do we need to design around large media/project files too?</td><td>Directly drives chunk size choice and whether large-file parallel transfer needs to be a first-class concern</td><td>Capacity Estimation (G), Deep Dive 1 (M)</td></tr>
+</table>
+
+<h3 id="p14-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> multi-device sync of arbitrary files, offline-tolerant, with conflicts surfaced rather than silently dropped.</li>
+<li><strong>Assumption:</strong> files are arbitrary, opaque byte sequences to the sync layer (E's clarifying question 1) — the sync engine never assumes it understands a file's internal structure, which is the assumption that makes content-defined chunking (M) content-agnostic and rules out semantic/text-aware merging (Q) as a general solution.</li>
+<li><strong>Assumption:</strong> a typical user syncs across a handful of devices (laptop, phone, tablet), and genuinely concurrent edits to the same file from two of them, while real, are the minority case rather than the common one (E's clarifying question 2) — conflict handling (P, Q) is designed to be correct and safe in that minority case, not optimized as if it were the dominant traffic pattern.</li>
+<li><strong>Assumption:</strong> offline editing is routine, not exceptional (E's clarifying question 3) — a laptop closed overnight or a phone with no signal for a day are both normal operating conditions this design must handle gracefully, not degraded edge cases.</li>
+<li><strong>Assumption:</strong> deduplication is global, across all users, not just across a single user's own file versions (E's clarifying question 4) — this is what makes the chunk store's content-addressing genuinely valuable at scale, versus being a narrower per-user optimization.</li>
+<li><strong>Assumption:</strong> file sizes span from small documents to multi-gigabyte project/media files (E's clarifying question 5) — large files are treated as a first-class case throughout, not an afterthought.</li>
+</ul>
+
+<h3 id="p14-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Registered users</td><td>Illustratively, ~500M</td><td>The baseline scale driver for every other row in this table</td></tr>
+<tr><td>Files per user, platform-wide total</td><td>~2,000 files/user average (F) → ~500M × 2,000 ≈ 1 trillion files</td><td>Sets the scale of the metadata layer — a trillion small records, not a trillion large ones</td></tr>
+<tr><td>Total logical data footprint</td><td>~1T files × ~2MB blended average size ≈ ~2 exabytes, before any deduplication</td><td>This is what users collectively believe they're storing — the number the chunk store's dedup (N) is measured against reducing</td></tr>
+<tr><td>Average chunk size (content-defined)</td><td>Target average ~4MB, allowed to range ~2-8MB depending on where content-defined boundaries actually fall (M)</td><td>Big enough to keep chunk-count and per-chunk metadata overhead manageable; small enough that a typical edit only invalidates a handful of chunks, not the whole file</td></tr>
+<tr><td>Unique chunks physically stored after cross-user dedup</td><td>~2EB / 4MB ≈ 500B chunk references logically, but common files (OS installers, shared templates, duplicate uploads) mean the physically unique bytes stored is meaningfully lower — illustratively, a 20-30% reduction, landing physical storage in the ~1.4-1.6EB range</td><td>The concrete number that makes global, cross-user content-addressed dedup (N) a real cost lever, not a hypothetical one</td></tr>
+<tr><td>Sync-triggering edits/day</td><td>~150M daily active users × ~15 save/autosave events/day ≈ ~2.25B sync commits/day ≈ ~26,000/sec average</td><td>The write volume the metadata/commit path (K, P) must sustain — orders of magnitude smaller than the chunk byte volume, reinforcing why metadata and chunk bytes are scaled completely separately (O)</td></tr>
+<tr><td>Metadata footprint</td><td>~1T files × ~3 retained versions avg × ~300 bytes/version row (manifest pointer + vector) ≈ roughly 900TB-1PB</td><td>Large in absolute terms, but three orders of magnitude smaller than the chunk-byte footprint — confirms metadata and chunk bytes need entirely different storage and scaling strategies (O)</td></tr>
+<tr><td>Per-sync latency budget</td><td>Low seconds, not sub-100ms — users expect sync to happen "in the background, soon," not at typing speed</td><td>A dramatically looser budget than Google Docs's ~150-200ms (<a href="#p9">P9</a>) or Autocomplete's sub-100ms (<a href="#p13">P13</a>) — this system is optimized for bandwidth and storage efficiency, not raw latency</td></tr>
+</table>
+
+<h3 id="p14-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>File</code></td><td>One logical file path owned by a user/workspace — the stable identity a device syncs against</td><td><code>file_id</code>, <code>owner_id</code>, <code>path</code>, <code>current_version_id</code>, <code>deleted</code></td></tr>
+<tr><td><code>FileVersion</code> (manifest)</td><td>One committed version of a file's content — the actual unit synced between devices (L, N)</td><td><code>version_id</code>, <code>file_id</code>, <code>chunk_hashes</code> (ordered list), <code>size</code>, <code>committing_device_id</code>, <code>version_vector</code>, <code>created_at</code></td></tr>
+<tr><td><code>Chunk</code></td><td>One content-addressed block of bytes, the smallest unit ever transferred or deduplicated (M, N)</td><td><code>chunk_hash</code> (primary key, a content hash), <code>size</code>, <code>ref_count</code></td></tr>
+<tr><td><code>Device</code></td><td>One registered client instance for a user, the unit sync state and notifications are tracked per (S)</td><td><code>device_id</code>, <code>user_id</code>, <code>last_synced_version</code> per watched file, <code>push_token</code>/poll endpoint</td></tr>
+<tr><td><code>ConflictedCopy</code></td><td>A derived <code>File</code>-like record created when two devices' version vectors are found to be genuinely concurrent (P, Q)</td><td><code>original_file_id</code>, <code>conflicted_version_id</code>, <code>created_by_device_id</code>, <code>resolved</code></td></tr>
+</table>
+
+<h3 id="p14-i">I. API Design</h3>
+<pre><code>-- client-facing:
+POST /files/{file_id}/sync-check { local_manifest_version }
+     -&gt; { needs_upload, needs_download, missing_chunk_hashes[] }              (L, N)
+PUT  /chunks/{chunk_hash}                          -&gt; 201 Created, or 204 if already known (dedup no-op)   (N)
+GET  /chunks/{chunk_hash}                          -&gt; chunk bytes                                          (N)
+POST /files/{file_id}/commit { chunk_hashes[], based_on_vector }
+     -&gt; { new_version_id, new_vector } | 409 Conflict                        (P, Q)
+GET  /files/{file_id}/manifest?version={id}        -&gt; ordered chunk_hash list                              (L)
+GET  /devices/{device_id}/changes  (long-poll)      -&gt; [{ file_id, new_version_id }]                        (S)
+-- internal, cluster-facing:
+(GC worker) periodic: chunk ref_count reaches 0 -&gt; reclaim chunk bytes                                      (O)
+(conflict resolver) on 409 -&gt; materializes ConflictedCopy + notifies the losing device                     (Q)
+</code></pre>
+<p><strong>Why chunk upload/download are separate endpoints from the metadata commit itself:</strong> the metadata service handling <code>sync-check</code> and <code>commit</code> only ever touches small JSON payloads — hashes, vectors, version IDs — while <code>PUT</code>/<code>GET /chunks/{hash}</code> carry the actual large byte payloads, and can be served through pre-signed, direct-to-blob-store URLs exactly the way Prerequisites I's pre-signed URL pattern keeps large transfers off the application tier in Video Streaming's upload pipeline (<a href="#prereq-i">Prerequisites I</a>). Keeping these paths separate is what lets the metadata service stay small, fast, and cheap to scale independently of raw chunk traffic (O).</p>
+<p><strong>Why <code>sync-check</code> exists as its own call rather than folding into <code>commit</code>:</strong> a device needs to know <em>which</em> chunk hashes the server has never seen before it uploads anything — uploading blindly and letting the server discard duplicates on arrival would still waste the exact bandwidth this whole design exists to save (N).</p>
+
+<h3 id="p14-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: whenever a file changes on any device, upload the entire file as one object, overwriting whatever was previously stored; every other device periodically checks whether the file's timestamp changed and, if so, downloads the entire new file in full.</p>
+<div class="mermaid diagram">
+flowchart LR
+  A(["Device A<br/>(saves file)"]) -- "entire file bytes" --> API["Sync API"]
+  API -- "overwrite whole object" --> Store[("Blob Store")]
+  B(["Device B<br/>(polls for changes)"]) -- "GET whole file" --> API
+  API -- "entire file bytes" --> B
+</div>
+<p class="diagram-caption">V1 — every save re-transfers the entire file, in both directions, regardless of how small the actual edit was.</p>
+<p class="callout"><strong>Why this breaks specifically as files get large or edits get frequent:</strong> a one-character edit to a 200-page document, or a single corrected frame in a 4GB video project file, re-uploads and re-downloads the entire object every single time — the sync cost is tied to file size, not edit size, which is exactly backwards for a system whose whole value proposition is "small edits sync quickly." Worse, this design stores and transfers duplicate bytes with no way to notice them: two devices with two near-identical copies of a large file, or two entirely unrelated users who happen to save the same installer or the same shared template, each pay the full storage and bandwidth cost independently, because nothing in this design has any concept of "have we already seen these exact bytes." The fix isn't a faster network or a bigger disk — it's never treating a file as one indivisible unit of transfer or storage in the first place.</p>
+
+<h3 id="p14-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Two structurally different stores for two structurally different access patterns, the same split named generally in <a href="#patterns-d">Patterns Playbook D</a> and <a href="#prereq-i">Prerequisites I</a>:</strong> a <strong>metadata service</strong> holds <code>File</code>, <code>FileVersion</code>, <code>Device</code>, and <code>ConflictedCopy</code> records — small, structured, and needing transactional, conditional-write guarantees (the version-vector compare-and-swap at commit time, P, is a textbook instance of <a href="#patterns-b">Patterns Playbook B</a>'s check-then-act race) — while a separate <strong>chunk store</strong> holds nothing but raw chunk bytes, keyed by content hash rather than an application-assigned ID.</p>
+<p><strong>Why the chunk store's key is a content hash, not a random ID — the detail that turns a blob split into deduplication:</strong> in every other metadata/blob split in this document (News Feed's media, Chat's attachments, Video Streaming's files, all in <a href="#prereq-i">Prerequisites I</a>), the blob key is an arbitrary, application-generated identifier — two identical images uploaded by two different users get two different keys and are stored twice. Here, the key <em>is</em> a hash of the content itself, so two identical chunks — whether from two versions of the same file, or two entirely unrelated files from two unrelated users — hash to the same key and are, by construction, the same stored object. Deduplication falls out of the storage layer's addressing scheme itself, not a separate lookup-and-skip step layered on top.</p>
+<p><strong>Sharding/routing the chunk store by chunk hash:</strong> because chunk hashes are already uniformly distributed, pseudo-random values, they land almost perfectly onto a consistent-hashing ring (<a href="#prereq-j">Prerequisites J</a>, generalized in <a href="#patterns-l">Patterns Playbook L</a>) with no further thought required about hot ranges the way Autocomplete's prefix-range sharding needed (<a href="#p13">P13-P</a>) — an unusually clean case of the pattern.</p>
+<p><strong>Why chunk bytes never live inside the metadata database:</strong> the same reasoning as Prerequisites I generally — bloating the metadata store's rows with megabytes of binary content would slow every backup, replica, and query touching that store, for the majority of records where nobody actually needs the bytes right now.</p>
+
+<h3 id="p14-l">L. End-to-End Flow — A User Edits a Large File on Device A; Only the Changed Chunks Sync to the Cloud, Then Down to Device B</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant A as Device A (local client)
+  participant Meta as Metadata Service
+  participant Chunks as Chunk Store
+  participant Notify as Change Notification (S)
+  participant B as Device B (local client)
+  A->>A: user saves file; re-chunk via rolling hash (M)
+  A->>A: diff new chunk list vs last-synced manifest
+  A->>Meta: sync-check(local_manifest_version)
+  Meta-->>A: which of these hashes are unknown to the server? (N)
+  A->>Chunks: upload only the missing chunk bytes
+  Chunks-->>A: ack
+  A->>Meta: commit(chunk_hashes[], based_on_vector)
+  Meta->>Meta: compare incoming vector vs stored vector (P)
+  Meta-->>A: new_version_id, new_vector (clean commit, no conflict)
+  Meta->>Notify: file X changed
+  Notify-->>B: "file X changed, go sync" (long-poll/push)
+  B->>Meta: GET manifest for file X, latest version
+  Meta-->>B: ordered chunk_hash list
+  B->>B: diff vs local manifest/cache; determine missing chunks
+  B->>Chunks: download only the missing chunks
+  Chunks-->>B: chunk bytes
+  B->>B: reassemble file locally from cached + newly fetched chunks
+</div>
+<p class="diagram-caption">The bytes that actually cross the network in either direction are exactly the chunks that changed — everything else, on both devices, is already sitting locally and is never re-transferred.</p>
+
+<h3 id="p14-m">M. Deep Dive 1 — Chunking Large Files</h3>
+<p><strong>Requirement this addresses:</strong> bandwidth-efficient sync (D) — directly fixing V1's core flaw (J), where sync cost scaled with file size instead of edit size.</p>
+<p><strong>Fixed-size chunking, the first thing most candidates propose, and why it mostly fails:</strong> slice a file into consecutive N-byte blocks by absolute offset — simple, and it does let an edit near the <em>end</em> of a file re-sync only the chunks after it. But a single byte inserted or deleted anywhere before the end of the file shifts the absolute file offset of every byte after it, which shifts every chunk boundary after that point, which means every single chunk from the edit onward hashes completely differently — even though almost none of their actual content changed. One inserted character near the start of a large file can defeat deduplication for the entire rest of the file. This is the "boundary-shift problem," and it's the specific reason fixed-size chunking, despite sounding like the obvious first move, is not the real answer.</p>
+<p><strong>Content-defined chunking with a rolling hash — the fix, and the same core idea rsync's algorithm popularized (<a href="#p14-ad">AD</a>):</strong> instead of cutting at fixed byte offsets, slide a rolling checksum (a Rabin fingerprint or similar) across a small window of bytes, and place a chunk boundary wherever that checksum satisfies a chosen condition (for example, its low N bits are all zero) — a condition that depends only on the local content under the window, never on the byte's absolute position in the file. An insertion or deletion shifts the bytes around it, but every stretch of content before and after the edit still contains the exact same byte sequences it always did, so the rolling hash finds the exact same boundary points around those unchanged stretches — re-producing the identical chunk boundaries, and therefore the identical chunk hashes, for everything the edit didn't actually touch. Only the chunk(s) immediately containing the edit differ.</p>
+<p><strong>Chunk size as a tunable trade-off, not a fixed constant:</strong> a smaller target chunk size means an edit invalidates fewer, smaller chunks (finer-grained dedup and delta sync, N) but increases the number of chunks — and therefore the size of the manifest and the per-chunk metadata overhead — for every file. A larger target chunk size does the opposite. The chosen average (~4MB, G) is a middle point, and a production system would reasonably vary it by observed file type (smaller chunks for frequently-small-edited documents, larger chunks for media files edited in bulk).</p>
+
+<h3 id="p14-n">N. Deep Dive 2 — Delta Sync &amp; Chunk-Level Deduplication</h3>
+<p><strong>Requirement this addresses:</strong> the second half of V1's flaw (J) — chunking (M) only produces the right <em>boundaries</em>; delta sync is what actually avoids re-transferring or re-storing content that hasn't changed.</p>
+<p><strong>Upload side:</strong> after re-chunking locally (M), a device computes the hash of every chunk and calls <code>sync-check</code> (I) to learn which of those hashes the server has never seen before. Only chunks the server doesn't already have get uploaded — a chunk the device already synced in a previous version, or a chunk that happens to be byte-identical to something <em>any other user</em> has ever uploaded, is never re-sent.</p>
+<p class="callout"><strong>Why cross-user dedup, not just per-user version dedup, is the bigger win:</strong> because the chunk store's key is a content hash rather than a scoped, per-user identifier (K), a chunk is deduplicated against the entire global chunk store, not just against one user's own file history. Two unrelated users independently saving the same conference-recording file, the same installer, or the same widely-shared template physically store those bytes exactly once, referenced by two completely independent <code>FileVersion</code> manifests. This is the concrete mechanism behind G's dedup-ratio estimate, and it's a strictly larger benefit than per-user dedup alone would ever produce.</p>
+<p><strong>Download side, symmetric to upload:</strong> a device fetching a newer <code>FileVersion</code> manifest diffs it against its own last-synced manifest (or, for a brand-new device, against whatever it already happens to have cached locally from other files) and downloads only the chunks it's actually missing — reassembling the file locally from a mix of previously-cached and newly-fetched chunks.</p>
+<p><strong>Garbage collection, the necessary counterpart to dedup:</strong> because one physical chunk can be referenced by many different <code>FileVersion</code> manifests across many files and users, a chunk's bytes can only be safely reclaimed once nothing anywhere references it — tracked via the <code>ref_count</code> field (H), decremented whenever a <code>FileVersion</code> that referenced it is superseded or deleted, with a periodic sweep reclaiming any chunk whose count reaches zero. This is the same deferred-cleanup discipline as reference counting in any shared-object system, applied here to keep the chunk store from accumulating orphaned bytes indefinitely.</p>
+
+<h3 id="p14-o">O. Deep Dive 3 — Metadata / Blob Store Split, and the Chunk Store as Its Own Layer</h3>
+<p><strong>Requirement this addresses:</strong> storage-efficient, cheaply-scalable data layout (D) — formalizing K's store choice into the concrete pattern this design directly reuses.</p>
+<p><strong>This is <a href="#patterns-d">Patterns Playbook D</a> and <a href="#prereq-i">Prerequisites I</a>, applied here with one extra layer:</strong> the general pattern is "small, frequently-queried metadata in a database; large payload bytes in blob storage," used elsewhere in this document for News Feed's media, Chat's attachments, and Video Streaming's files (all cataloged in <a href="#patterns-d">Patterns Playbook D</a>). This problem's metadata service plays the identical role — a <code>FileVersion</code> row is small, structured, and holds only a <em>list of chunk hashes</em>, never the bytes themselves. What's different here is that the "blob" side of the split isn't one object per file — it's the chunk store (K, N), itself a single, shared, content-addressed space that every file's manifest draws from. A <code>FileVersion</code> doesn't own its bytes the way a Chat attachment owns its one blob; it merely references a subset of a shared pool, which is exactly what makes cross-file, cross-user dedup (N) possible in the first place — the same metadata/blob split pattern, made more powerful by changing what the blob-store key means.</p>
+<p><strong>Why this split matters even more here than in its other appearances:</strong> G's capacity table showed metadata's footprint (roughly a petabyte) sitting three orders of magnitude below the chunk store's footprint (exabytes) — an even starker size gap than News Feed or Chat see, because file content genuinely dwarfs a chunk-hash list the way a photo dwarfs a post's caption, but more so. That gap is precisely why the two stores are scaled, replicated, and operated as entirely independent systems: the metadata service can run on fast, transactional, moderately-sized storage while the chunk store runs on cheap, massively-horizontal object storage tuned purely for durable byte throughput.</p>
+<p><strong>Why the chunk store still isn't "just" Prerequisites I's blob storage unchanged:</strong> ordinary blob storage (S3-style) is addressed by an arbitrary key chosen by whoever's writing; the chunk store here is addressed by a hash <em>of the content itself</em> (K), which is the one modification that turns a generic blob store into a deduplicating one. Worth being explicit about this distinction in an interview — it's a small change to the addressing scheme with an outsized effect on the system's actual storage economics.</p>
+
+<h3 id="p14-p">P. Deep Dive 4 — Multi-Device Sync &amp; Conflict Detection</h3>
+<p><strong>Requirement this addresses:</strong> detecting a genuine concurrent edit across devices (D) — without assuming any single device or server is continuously online to arbitrate order the moment it happens.</p>
+<p><strong>Version vectors, the mechanism:</strong> each <code>FileVersion</code> (H) carries a version vector — conceptually a map from <code>device_id</code> to a monotonically increasing counter representing how many times that specific device has committed an edit to this file. When Device A commits a new version, it increments its own entry in the vector it last saw and sends that as <code>based_on_vector</code> (I). The metadata service compares the incoming vector against the file's currently-stored vector: if the incoming vector is a strict descendant of the stored one (every entry is greater than or equal, and at least one is strictly greater, with no entry going backward) it's an ordinary sequential update. If neither vector is a descendant of the other — each has an entry the other lacks — the two edits happened concurrently, and the commit is rejected with a conflict (Q), rather than blindly accepted and overwriting the other side.</p>
+<p class="callout"><strong>Why this is the opposite structural assumption from Google Docs's ordering mechanism, and why that's the correct call here:</strong> Google Docs assigns a single, server-issued monotonic revision number per document (<a href="#p9-o">P9-O</a>), which works specifically because one always-online coordinating server sits in the loop for every single edit and can assign a strict, global order in real time. That assumption is simply false here — a laptop closed for a business trip, or a phone with no signal for a day, is normal, expected behavior (F), not a rare disconnection Google Docs's design tolerates as an exception (<a href="#p9-q">P9-Q</a>). Version vectors are the mechanism built for exactly this: they let two devices that have never been simultaneously online determine, purely by comparing two vectors <em>after the fact</em>, whether their edits were concurrent — no live arbiter required at the moment either edit was made.</p>
+<p><strong>Why this detects a conflict without needing to inspect file content at all:</strong> the comparison is pure metadata — two small vectors — so detecting "these two edits collided" costs nothing proportional to file size, and happens at commit time, before any large chunk transfer is even attempted for the losing side.</p>
+
+<h3 id="p14-q">Q. Deep Dive 5 — Conflict Resolution: Why a Conflicted Copy, Not an Automatic Merge</h3>
+<p><strong>Requirement this addresses:</strong> the no-silent-data-loss NFR (D) — once P detects a genuine conflict, something has to happen to both sides that isn't "discard one."</p>
+<p class="callout"><strong>The direct contrast with Google Docs (<a href="#p9">P9</a>), stated explicitly:</strong> Google Docs resolves a conflict by <em>merging</em> it — operational transformation (<a href="#p9-n">P9-N</a>) mathematically combines two concurrent text operations into one coherent document, because an "insert character X at position 10" operation has well-defined, composable semantics: given two such operations, there is a mechanical, correct way to transform one against the other and produce a single result nobody needs to review. A changed chunk carries no equivalent semantics. "Chunk 7's hash changed" says nothing about <em>what</em> changed inside it — whether a paragraph was added, a row was deleted from a spreadsheet, or a few bytes of a binary header were altered — and the sync layer, by design (F), never inspects file content closely enough to know. There is no general transformation function that takes two divergent versions of an arbitrary chunk and produces one correct merged chunk, because "correct" depends on semantics the sync layer deliberately doesn't have access to. Attempting to guess — interleaving bytes, or picking one side's chunk over the other — doesn't reconcile the conflict, it silently risks corrupting the file, which is a strictly worse outcome than admitting the conflict exists.</p>
+<p><strong>The fix — keep both, and let the human decide:</strong> whichever commit the metadata service accepts first (P) keeps the original <code>file_id</code> and path, and syncs out normally to every other device. The commit that lost the version-vector race is not discarded — it's materialized as a new <code>ConflictedCopy</code> record (H), written out at a derived path (<code>"report (Jamie's conflicted copy, 2024-06-01).xlsx"</code>), and synced down to every device just like any other new file. Nothing is lost; nothing is auto-merged; the two divergent versions simply become two separate, fully-preserved files, and reconciling the actual overlap becomes a manual decision made by a person looking at both, not a decision the system makes silently on their behalf.</p>
+<p><strong>Why this isn't a workaround or a lesser design than Google Docs's — it's the correct answer to a genuinely different data model:</strong> if the underlying content were guaranteed composable (structured text edits with known semantics), automatic merging would be strictly better and this design would be missing something by not doing it. But because file content here is arbitrary and opaque by design assumption (F), conflicted-copy resolution isn't a simplification of Google Docs's approach — it's the industry-wide answer every general-purpose file-sync product converges on for exactly this reason, independent of vendor.</p>
+
+<h3 id="p14-r">R. Deep Dive 6 — Offline Edits Queued Locally, Synced on Reconnect</h3>
+<p><strong>Requirement this addresses:</strong> the offline-tolerant NFR (D) — a device with no connectivity must keep working locally and catch up correctly later, treated as the normal case (F), not an exception.</p>
+<p><strong>Local-first editing, and a durable local write-ahead queue:</strong> a device re-chunks (M) and computes new manifests on every save regardless of network state, and continues serving the file to the user entirely from its own local chunk cache the whole time it's offline — there is no user-visible difference between "editing while connected" and "editing while disconnected" from the local client's point of view. Every pending chunk upload and the eventual commit intent are appended to a small, durable local queue (a write-ahead log on local disk, so an app crash or device reboot doesn't lose queued work), each entry tagged with a stable, client-generated operation ID — the same idempotency discipline named generally in <a href="#prereq-o">Prerequisites O</a> — so that a queue flush interrupted partway through and retried from the start never double-uploads a chunk or double-commits a version.</p>
+<p><strong>On reconnect:</strong> the client first flushes any queued chunk uploads (N), then replays its queued <code>commit</code> exactly as it would have sent it in real time, still carrying whatever vector it was originally based on (P). If that vector is still the file's current stored vector — nobody else edited the file in the meantime — the commit lands cleanly, no differently from an edit that was never delayed at all. If the stored vector has since moved forward because another device committed while this one was offline, the commit is rejected as concurrent, and resolved through Q's conflicted-copy path exactly as it would be for two devices editing milliseconds apart while both online.</p>
+<p><strong>Why offline editing isn't a separate mechanism, only a longer delay before the existing one runs:</strong> this deliberately mirrors how Google Docs's own offline deep dive (<a href="#p9-q">P9-Q</a>) reuses its online conflict machinery for a longer gap rather than inventing a new algorithm — the parallel stops there, though: Docs replays queued operations through OT and gets one merged document regardless of how long the gap was; this design replays queued commits through version-vector comparison and gets either a clean update or a conflicted copy, precisely because of Q's contrast between the two data models. A long offline period here doesn't change the mechanism, just the odds that the vector has moved on by the time reconnection happens.</p>
+
+<h3 id="p14-s">S. Deep Dive 7 — Notifying Other Devices of Changes</h3>
+<p><strong>Requirement this addresses:</strong> timely propagation (D) of "something changed, go sync" to a user's other devices — without paying for a resource commitment that doesn't match how those devices actually spend most of their time.</p>
+<table>
+<tr><th>Approach</th><th>How</th><th>Trade-off</th></tr>
+<tr><td>Periodic poll</td><td>Each device periodically asks the metadata service "has anything changed since my last check?"</td><td>Simplest to build and cheapest per idle connection, but adds up to a full poll interval's worth of propagation latency, and wastes a request on every poll that finds nothing new — at hundreds of millions of mostly-idle devices, that waste is real</td></tr>
+<tr><td>Persistent WebSocket (<a href="#prereq-k">Prerequisites K</a>) (chosen default for actively-open clients)</td><td>A true server-push channel, the same connection-management approach Chat System and Google Docs both reuse for their own real-time paths</td><td>Lowest possible latency, but requires holding a live connection per device — a materially heavier resource commitment here than in Chat or Docs, where the underlying assumption is a session actively being used <em>right now</em>; a large fraction of this system's registered devices are laptops that are closed or phones that are backgrounded for most of a day</td></tr>
+<tr><td>Long-polling (chosen default for the common case)</td><td>A device holds one HTTP request open against a "listen for changes" endpoint; the server holds that request open and only responds once something changes (or a timeout elapses), at which point the device immediately reopens another one</td><td>A genuine middle ground — near-push latency without committing to a permanently-held, always-provisioned connection the way a raw WebSocket does, and it's the actual mechanism Dropbox's own public API uses for this exact purpose (<a href="#p14-ad">AD</a>)</td></tr>
+</table>
+<p><strong>The chosen default, and why:</strong> long-polling as the primary channel for the ordinary "client running in the background, not being watched by a human waiting on a keystroke" case (D's much looser latency budget than Docs or Autocomplete, established in G) — with an optional upgrade to a platform-native push mechanism (mobile OS push notification services) for devices that are backgrounded or fully closed, rather than the client itself holding any connection open at all in that state. A persistent WebSocket is kept available for a client that's actively open and being watched, but isn't assumed as the default for every registered device simultaneously, unlike Chat System's connection fleet where a live connection <em>is</em> the normal state for an online user.</p>
+
+<h3 id="p14-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  DevA["Device A Client<br/>(local chunker + offline WAL, M, R)"] --> API["Sync API / Gateway"]
+  DevB["Device B Client"] -.->|"long-poll / push, S"| NotifySvc
+
+  API --> Meta["Metadata Service<br/>(files, versions, version vectors, P)"]
+  Meta --> MetaDB[("Metadata DB<br/>File, FileVersion manifests, O")]
+  Meta --> ConflictSvc["Conflict Detector<br/>(version vector comparison, P)"]
+  ConflictSvc -->|"concurrent edit detected"| ConflictHandler["Conflicted Copy Handler<br/>(Q)"]
+  ConflictHandler --> MetaDB
+
+  API --> ChunkRouter["Chunk Store Router<br/>(consistent hash by chunk hash, K, N)"]
+  ChunkRouter --> ChunkShard1[("Chunk Store Shard 1<br/>content-addressable, O")]
+  ChunkRouter --> ChunkShard2[("Chunk Store Shard 2")]
+  ChunkRouter --> ChunkShard3[("Chunk Store Shard 3")]
+
+  Meta --> NotifySvc["Change Notification Service<br/>(long-poll / push, S)"]
+  NotifySvc -.-> DevB
+
+  subgraph GC [" Background GC (N) "]
+    direction LR
+    RefCount["ref_count sweep"] --> Reclaim["Reclaim orphaned chunks"]
+  end
+  ChunkShard1 --> RefCount
+  ChunkShard2 --> RefCount
+  ChunkShard3 --> RefCount
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — chunking and delta sync keep byte transfer proportional to the edit, the metadata/chunk split keeps the two stores scaling independently, and version vectors plus conflicted copies handle the case where two devices genuinely collide.</p>
+
+<h3 id="p14-u">U. Design Evolution</h3>
+<table>
+<tr><th>Version</th><th>What Changed</th><th>Why</th></tr>
+<tr><td>V1</td><td>Whole-file upload/overwrite and whole-file download on every change, no dedup at all (J)</td><td>Simplest possible thing that satisfies the functional requirement in isolation</td></tr>
+<tr><td>V2</td><td>Fixed-size chunking replaces whole-file transfer</td><td>A first attempt at partial transfer — but the boundary-shift problem defeats dedup for most real edits (M)</td></tr>
+<tr><td>V3</td><td>Content-defined, rolling-hash chunking replaces fixed-size slicing</td><td>Chunk boundaries survive insertions and deletions, so an edit invalidates only the chunks it actually touches (M)</td></tr>
+<tr><td>V4</td><td>A global, content-addressed chunk store enables upload/download-side delta sync and cross-user dedup</td><td>Bandwidth and storage cost now scale with the edit, and with how much content is genuinely unique platform-wide, not with file size or user count (N)</td></tr>
+<tr><td>V5</td><td>Metadata service and chunk store formalized as two independently-scaled systems</td><td>A three-order-of-magnitude size gap between metadata and chunk bytes (G) makes shared scaling wasteful for both (O)</td></tr>
+<tr><td>V6</td><td>Per-file version vectors added to detect concurrent multi-device edits</td><td>Detects genuine conflicts without requiring a single, continuously-online ordering authority devices can't realistically always reach (P)</td></tr>
+<tr><td>V7</td><td>Conflicted-copy resolution replaces any notion of silent overwrite or automatic merge</td><td>Arbitrary file content has no composable merge semantics — surfacing the conflict is the only safe move, unlike Google Docs's mergeable text operations (Q)</td></tr>
+<tr><td>V8</td><td>A durable local write-ahead queue lets a device keep editing fully offline</td><td>Extends the same commit/conflict machinery to an arbitrarily long gap before reconnecting, without inventing a separate offline algorithm (R)</td></tr>
+<tr><td>V9</td><td>Long-polling (with optional platform push) notifies other devices that a sync is needed</td><td>Propagates changes promptly without assuming every registered device holds a permanently live connection (S)</td></tr>
+</table>
+<p><strong>What stays stable throughout:</strong> the small, chunk-hash-oriented <code>sync-check</code>/<code>commit</code> contract from I — every later refinement changes how chunks are produced, deduplicated, or reconciled, never the basic shape of what a device actually sends and receives.</p>
+
+<h3 id="p14-v">V. Consistency Model</h3>
+<p>This system is <strong>eventually consistent and explicitly offline-tolerant, with conflicts surfaced rather than silently merged or silently discarded</strong> — a third distinct consistency shape worth naming precisely, alongside the two most common shapes named elsewhere in this document. It is not Ticketmaster's narrow strong-consistency island (<a href="#patterns-j">Patterns Playbook J</a>): there is no single scarce resource being contended for here — no seat, no leader lock — so there's nothing to reject outright the way an oversold seat purchase must be. It is also not Google Docs's strong eventual consistency (<a href="#p9-v">P9-V</a>), where any two replicas that have seen the same operations are <em>guaranteed</em> to converge automatically to one identical state, regardless of arrival order. This design's version-vector compare-and-swap at commit time (P) is, mechanically, the same check-then-act race named in <a href="#patterns-b">Patterns Playbook B</a> — but where every other instance of that pattern in this document resolves a "losing" request by rejecting or blocking it, here the losing commit isn't rejected outright, it's forked into a conflicted copy (Q). Two replicas that genuinely raced do <em>not</em> silently converge to one shared state the way Docs's replicas do — they deliberately land on two distinct, both-preserved files, and a human closes the gap OT/CRDTs would have closed automatically. Every other consequence of eventual consistency here — a device that hasn't synced in days simply catching up once it reconnects (R), a notification arriving some seconds late (S) — costs nothing beyond delay; the one genuinely different case, a real concurrent edit, costs a visible fork rather than a silent loss, which is the entire point of choosing this shape over either of the other two.</p>
+
+<h3 id="p14-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>The metadata service is unavailable during a commit attempt:</strong> the device's edit is already sitting safely in its local offline queue (R) regardless of server availability — the commit simply retries once the service recovers, with no data at risk in the meantime, the same graceful degradation offline editing already has to handle as its normal case.</li>
+<li><strong>A chunk store shard becomes unavailable:</strong> devices whose manifests reference chunks on that shard see a partially-synced file (missing just those chunks) rather than a failed sync entirely — chunk bytes are replicated across multiple storage nodes/AZs as baseline durability, so a single shard's temporary unavailability, not permanent data loss, is the expected failure mode; sync completes once the shard (or its replica) recovers.</li>
+<li><strong>Two devices commit concurrently to the same file:</strong> this is the case the entire version-vector/conflicted-copy design exists for (P, Q) — not really a failure so much as the expected, correctly-handled outcome; both edits survive, as two separate files, and nothing is silently lost.</li>
+<li><strong>A device crashes mid-chunk-upload:</strong> a partially-uploaded chunk is never referenced by any committed <code>FileVersion</code> manifest, so it's simply inert, orphaned data cleaned up by the ref-count GC sweep (N) — on restart, the device's durable local queue (R) resumes the upload from wherever it left off, using its stable operation ID to avoid any duplicate effect.</li>
+<li><strong>A chunk is unrecoverable due to a rare storage failure, despite replication:</strong> the specific <code>FileVersion</code> referencing that chunk is flagged corrupted, and the affected device falls back to the most recent version whose full chunk set is verified present, rather than silently serving a file with a missing piece.</li>
+<li><strong>The change-notification service is down:</strong> other devices simply don't get a timely "go sync" nudge — no state is lost, discovery of "something changed" just degrades to whatever periodic fallback interval a device falls back to once its long-poll connection fails, the same soft-degradation shape as Autocomplete's trending-overlay outage (<a href="#p13-w">P13-W</a>).</li>
+</ul>
+
+<h3 id="p14-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 whole-file transfer</td><td>Bandwidth and storage cost scale with file size, not with how much actually changed</td><td>Content-defined chunking + delta sync (M, N)</td></tr>
+<tr><td>Fixed-size chunking</td><td>An insertion or deletion shifts every subsequent chunk boundary, defeating dedup for most of the file</td><td>Rolling-hash, content-defined chunk boundaries (M)</td></tr>
+<tr><td>Per-user-isolated storage</td><td>Identical bytes across unrelated users' files stored redundantly, with no way to notice the duplication</td><td>A single, global, content-addressed chunk store (K, N)</td></tr>
+<tr><td>Metadata and chunk bytes sharing one store</td><td>A three-order-of-magnitude size mismatch (G) forces the smaller, transactional metadata workload to scale alongside the much larger byte workload</td><td>Metadata/chunk store split, scaled and operated independently (O)</td></tr>
+<tr><td>Assuming a single always-online ordering authority</td><td>Devices are routinely offline for hours or days (F) — a live arbiter can't assume continuous connectivity from every participant</td><td>Version vectors compared after the fact, not a live-assigned sequence (P)</td></tr>
+<tr><td>Attempting automatic merge of arbitrary content</td><td>No general, safe way to combine two divergent versions of opaque bytes without risking silent corruption</td><td>Conflicted-copy resolution (Q)</td></tr>
+<tr><td>Every registered device holding a permanent connection</td><td>Resource cost for hundreds of millions of devices that are closed or backgrounded for most of a day</td><td>Long-polling as the default channel, with platform push for backgrounded devices (S)</td></tr>
+</table>
+
+<h3 id="p14-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Chunking strategy</td><td>Fixed-size, offset-based</td><td>Content-defined, rolling-hash (chosen)</td><td>Fixed-size is simpler to implement but any insertion/deletion defeats dedup for everything after it; content-defined survives edits at the cost of a variable, slightly less predictable chunk size distribution</td></tr>
+<tr><td>Deduplication scope</td><td>Per-user only</td><td>Global, cross-user, content-addressed (chosen)</td><td>Per-user dedup is simpler and has no cross-tenant data-boundary questions to reason about; global dedup captures a materially larger real-world storage win (G) at the cost of a shared chunk-store keyspace design</td></tr>
+<tr><td>Conflict resolution</td><td>Automatic merge (OT/CRDT-style)</td><td>Conflicted copy, human-resolved (chosen)</td><td>Automatic merge would be strictly better if content were reliably composable, but arbitrary file bytes aren't (Q) — attempting it risks silent corruption; a conflicted copy is less elegant but never wrong</td></tr>
+<tr><td>Conflict detection authority</td><td>Single always-online coordinating server (Google Docs's model)</td><td>Version vectors, compared after the fact (chosen)</td><td>A live authority gives a strict, real-time order but assumes continuous connectivity this system's devices don't have (F); version vectors work correctly across arbitrarily long offline gaps, at the cost of only detecting concurrency in hindsight rather than preventing it live</td></tr>
+<tr><td>Change notification channel</td><td>Persistent WebSocket for every device</td><td>Long-polling by default, push for backgrounded devices (chosen)</td><td>A WebSocket gives the lowest latency but assumes a live connection is the normal state, which doesn't match how most registered devices actually spend their time; long-polling/push matches the real usage pattern at a small latency cost</td></tr>
+</table>
+
+<h3 id="p14-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Uploading and downloading the entire file on every change.</strong> Ties bandwidth and storage cost to file size instead of edit size — the single most important mistake to avoid on this problem, and the one that looks fine in a small-file demo.</li>
+<li><strong>Fixed-size chunking, assumed sufficient for dedup.</strong> Looks like a real fix until a single insertion or deletion is tested, at which point it defeats dedup for the rest of the file.</li>
+<li><strong>Scoping deduplication to just one user's own files.</strong> Misses the larger, genuinely available win of global cross-user dedup, for no real benefit in exchange.</li>
+<li><strong>Reaching for operational transformation or a CRDT to "merge" conflicting file edits, because it worked for Google Docs.</strong> Arbitrary file bytes have no composable edit semantics — this is the single most common way a candidate who's studied Google Docs (<a href="#p9">P9</a>) gets this specific problem wrong.</li>
+<li><strong>"Last commit wins, silently discard the other."</strong> The same silent-data-loss failure mode as Google Docs's own V1 (<a href="#p9-j">P9-J</a>) — a legitimate edit vanishes with no warning, which is exactly what this design's no-silent-data-loss requirement (D) exists to prevent.</li>
+<li><strong>Assuming a single, continuously-online authority can sequence every device's edits in real time.</strong> A structurally false assumption once offline editing (F) is taken seriously — the entire reason version vectors (P), not a live sequence number, are the mechanism here.</li>
+</ul>
+
+<h3 id="p14-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"What about very large files — multi-gigabyte video project files?"</td><td>Parallelize chunk upload/download across multiple concurrent transfers, and make chunk size itself tunable per file type so a huge file's manifest doesn't explode in chunk count</td><td>Transfer layer, chunk-size tuning in M</td><td>Metadata model, version vectors, conflict resolution — none of it is file-size-dependent</td></tr>
+<tr><td>"How do shared folders across multiple users work?"</td><td>The version vector's key generalizes directly from <code>device_id</code> to <code>(user_id, device_id)</code>, and a conflicted copy's derived filename simply includes the other user's name instead of another of the same user's device names</td><td>Vector key shape, conflicted-copy naming (P, Q)</td><td>The chunking, delta sync, and chunk store mechanics — entirely unaffected by whether the two concurrent editors share an account</td></tr>
+<tr><td>"What if we actually wanted real-time collaborative editing on a specific file type, like a shared spreadsheet?"</td><td>That's a different, additional problem — Google Docs's OT/CRDT model (<a href="#p9">P9</a>) would be layered on top of a specific application understanding that file's structure, not solved by this file-sync layer, which stays deliberately content-agnostic (F)</td><td>A new, app-specific collaboration engine sits above this system</td><td>The chunked file-sync engine underneath stays exactly as designed — it becomes the storage substrate that engine's snapshots ultimately persist to</td></tr>
+<tr><td>"How do you keep a client from uploading or downloading someone else's chunks?"</td><td>Access control is checked at the metadata layer before a chunk hash or a pre-signed URL is ever handed to a client (<a href="#prereq-i">Prerequisites I</a>'s pre-signed URL pattern) — the chunk store itself stays a dumb, permission-agnostic byte store keyed only by content hash</td><td>A new authorization check in front of chunk address resolution</td><td>The chunk store's internals, its addressing scheme, and its dedup properties</td></tr>
+</table>
+
+<h3 id="p14-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes re-uploading/re-downloading the whole file on every change, with no concept of chunking or deduplication, and has no answer for why a small edit to a large file should be treated differently from uploading it fresh.</li>
+<li><strong>Mid-level:</strong> reaches for chunking correctly but proposes fixed-size chunks without noticing the boundary-shift problem, and treats "detect a conflict" and "resolve a conflict" as the same step rather than two genuinely distinct mechanisms.</li>
+<li><strong>Senior:</strong> proactively reaches for content-defined chunking and explains why it survives insertions/deletions where fixed-size chunking doesn't; separates the metadata service from the chunk store cleanly; reasons concretely about version vectors as a way to detect concurrency without a live arbiter.</li>
+<li><strong>Staff+:</strong> is unprompted and explicit about <em>why</em> this problem can't reuse Google Docs's OT/CRDT merge — tying the reasoning to composability of the underlying edit model, not just naming both mechanisms — and connects the metadata/chunk split explicitly to the same pattern used elsewhere in the document while correctly identifying what's genuinely different about it here (content-addressed keys enabling dedup, not just a size split).</li>
+</ul>
+
+<h3 id="p14-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a file storage and sync system like Dropbox — a file changes on one device, and it needs to show up correctly on the user's other devices.</div>
+<div class="dialog"><span class="who">Candidate:</span> The naive version — re-upload the whole file on every save, and have other devices re-download the whole thing — falls apart the moment files get large or edits get frequent, because the sync cost scales with file size instead of edit size. So the core idea is to split every file into chunks and only sync the chunks that actually changed. The tricky part is how you chunk: if you slice by fixed-size byte offsets, a single inserted character shifts every chunk boundary after it, so basically nothing dedupes anymore. The fix is content-defined chunking — a rolling hash finds boundaries based on the actual bytes nearby, not the absolute offset, so an edit only invalidates the chunks it actually touches.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Once you have chunks, how does the actual sync work?</div>
+<div class="dialog"><span class="who">Candidate:</span> Each file version is really just an ordered list of chunk hashes — a manifest. When a device saves, it re-chunks locally, computes hashes, and asks the server which of those hashes it's never seen before; only those get uploaded. And because the chunk store is addressed by a hash of the content itself, not an arbitrary ID, dedup happens automatically — even across two totally unrelated users who happen to save the same file. Downloading works the same way in reverse: a device diffs the new manifest against what it already has locally and only fetches what's missing.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What happens if two devices edit the same file while both are offline?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's the part I want to be careful about. I'd give each file a version vector — basically a counter per device — so the server can tell, just from comparing two vectors, whether one edit came strictly after the other, or whether they happened concurrently without either device knowing about the other's change. If it's concurrent, that's a real conflict.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you resolve that conflict? Doesn't Google Docs just merge concurrent edits automatically?</div>
+<div class="dialog"><span class="who">Candidate:</span> It does, but that only works because a text edit — insert this character at this position — has well-defined semantics you can mathematically transform against another edit and get one correct combined result. A file's bytes don't have that property. I don't know what changed inside a chunk just because its hash is different — it could be anything, and guessing how to merge two versions risks silently corrupting the file, which is worse than not merging at all. So instead of merging, I'd keep both: the version that commits first keeps the original filename, and the other becomes a conflicted copy at a new path, synced down to every device as its own file. It's less elegant than a merge, but it's never wrong, and that's the right trade for content the system can't safely interpret.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do other devices even find out something changed?</div>
+<div class="dialog"><span class="who">Candidate:</span> I wouldn't assume every device holds a permanent connection the way a chat app does — most devices in this system are closed or backgrounded most of the time. Long-polling is a good default: a device holds one request open, the server responds when something changes, and the device immediately reopens another. For devices that are fully backgrounded, I'd lean on the platform's own push notification service instead of holding a connection open at all.</div>
+
+<h3 id="p14-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://dropbox.tech/infrastructure/rewriting-the-heart-of-our-sync-engine" target="_blank">Dropbox Tech Blog — "Rewriting the heart of our sync engine" (official engineering blog)</a></td><td>Describes Dropbox's real production sync engine (Nucleus), built around block-level content addressing so that only the changed portions of a file are ever transferred or re-stored, plus the practical difficulty of correctly detecting and reconciling changes made across many devices and long offline periods</td><td>A direct, production confirmation that block/chunk-level content addressing and delta sync, not whole-file transfer, is the real mechanism behind Dropbox's actual sync behavior — and that offline/multi-device reconciliation is treated as a first-class, genuinely hard problem in production, not an interview simplification</td><td>The post focuses on engine architecture and migration rationale rather than publishing the exact chunking algorithm or conflict-resolution rules in full detail</td><td>Confirms that "chunk, dedupe, sync only the delta" is the real production answer at Dropbox's own scale, not a textbook simplification of what they actually do</td></tr>
+<tr><td><a href="https://rsync.samba.org/tech_report/" target="_blank">"The rsync algorithm" — Andrew Tridgell &amp; Paul Mackerras (original technical report, hosted on rsync.samba.org)</a></td><td>Describes rsync's rolling-checksum-based algorithm for efficiently transferring only the differing portions of two versions of a file over a slow link, without both sides needing to already have a shared prior version in the same place</td><td>The original, foundational description of exactly the rolling-hash, content-boundary-finding idea this design's chunking mechanism (M) is built on — a legitimate, decades-old, still-relevant algorithm, not an invented interview shortcut</td><td>rsync's specific algorithm compares two known endpoints directly rather than maintaining a persistent, globally shared, content-addressed store the way a multi-device sync product needs to — the core rolling-checksum idea transfers directly, but the surrounding system design doesn't</td><td>Confirms that rolling-checksum, content-defined boundary detection is a well-established, rigorously described technique — worth knowing its origin, not just its application here</td></tr>
+<tr><td><a href="https://git-scm.com/book/en/v2/Git-Internals-Git-Objects" target="_blank">Pro Git Book — "Git Internals: Git Objects" (official Git documentation)</a></td><td>Describes how Git stores every blob (file content) addressed by the SHA-1/SHA-256 hash of its own bytes — two files with identical content are, by construction, stored as the exact same object, and later commits reference deltas against these content-addressed objects rather than storing full copies each time</td><td>A different, extremely widely-used real system built on the identical core idea this design's chunk store relies on: content-addressed storage as the mechanism that makes deduplication automatic rather than a separately-implemented lookup step</td><td>Git's object model is optimized for a version-controlled repository's access patterns (diffing commits, history traversal), not for large binary media files or continuous multi-device background sync the way this problem requires</td><td>A clean, independent confirmation that "address storage by a hash of its own content" is a proven, general pattern for automatic deduplication — useful to cite as a second, very different domain reaching the same underlying design decision</td></tr>
+</table>
+
+<h3 id="p14-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Distributed File Storage / Sync (Dropbox)</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced — individually simple mechanisms, hard to compose correctly, and easy to mistakenly borrow Google Docs's merge model where it doesn't apply</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Multi-device file sync, bandwidth/storage efficient, offline-tolerant by default, no silent data loss on conflict</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Content-defined chunking + a global content-addressed chunk store for delta sync and dedup, a metadata/chunk store split, version vectors for conflict detection, conflicted copies (not merges) for conflict resolution</td></tr>
+<tr><td><strong>Why not whole-file transfer</strong></td><td>Sync cost scales with file size instead of edit size — exactly backwards for a system whose value proposition is syncing small edits quickly</td></tr>
+<tr><td><strong>Chunking</strong></td><td>Content-defined via a rolling hash, not fixed-size — survives insertions/deletions where fixed-size chunking's boundary-shift problem destroys dedup</td></tr>
+<tr><td><strong>Dedup scope</strong></td><td>Global and cross-user, via content-hash addressing — not scoped per user</td></tr>
+<tr><td><strong>Conflict handling</strong></td><td>Version vectors detect concurrency without a live arbiter; conflicted copies resolve it — deliberately not an automatic merge, because arbitrary file bytes aren't composable the way Google Docs's text operations are (<a href="#p9">P9</a>)</td></tr>
+<tr><td><strong>Consistency</strong></td><td>Eventually consistent and offline-tolerant, with conflicts explicitly surfaced as a fork rather than silently merged (Docs's model) or silently rejected (Ticketmaster's model)</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Whole-file re-transfer; fixed-size chunking; per-user-only dedup; reaching for OT/CRDT merge logic; silent last-write-wins; assuming a single always-online ordering authority</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>A general-purpose semantic merge engine for arbitrary file types — name the conflicted-copy approach as the deliberate, correct answer for opaque content (Q, Z), not a limitation to apologize for</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p13.html">&larr; 13. Search Autocomplete / Typeahead</a><a class="prevnext-link next" href="p15.html">15. Payment System (Stripe-like) &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

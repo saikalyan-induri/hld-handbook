@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>Home — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<div class="cover">
+<h1>High-Level Design (HLD) / System Design<br>Interview Preparation Handbook</h1>
+<p><strong>20 Problems, Full Depth</strong> &middot; each covering requirements, capacity estimation, API design, data modeling, deep dives, scaling, trade-offs, and more.</p>
+<p><a href="patterns.html">View Patterns Playbook &rarr;</a></p>
+</div>
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="All">All</button>
+  <button class="filter-btn" data-filter="Beginner">Beginner</button>
+  <button class="filter-btn" data-filter="Intermediate">Intermediate</button>
+  <button class="filter-btn" data-filter="Advanced">Advanced</button>
+</div>
+<div class="card-grid">
+<a class="problem-card" href="prereq.html" data-difficulty="Beginner">
+  <span class="card-num">0</span>
+  <span class="card-name">Prerequisites — Core Building Blocks</span>
+  <span class="badge">Read First If New to These Technologies</span>
+</a>
+<a class="problem-card" href="p1.html" data-difficulty="Beginner Advanced">
+  <span class="card-num">1</span>
+  <span class="card-name">URL Shortener (Bitly)</span>
+  <span class="badge">Beginner → Advanced+Scale</span>
+</a>
+<a class="problem-card" href="p2.html" data-difficulty="Beginner Advanced">
+  <span class="card-num">2</span>
+  <span class="card-name">Rate Limiter</span>
+  <span class="badge">Beginner → Advanced+Distributed</span>
+</a>
+<a class="problem-card" href="p3.html" data-difficulty="Intermediate Advanced">
+  <span class="card-num">3</span>
+  <span class="card-name">Twitter / News Feed</span>
+  <span class="badge">Intermediate → Advanced</span>
+</a>
+<a class="problem-card" href="p4.html" data-difficulty="Advanced">
+  <span class="card-num">4</span>
+  <span class="card-name">Chat System (WhatsApp)</span>
+  <span class="badge">Advanced</span>
+</a>
+<a class="problem-card" href="p5.html" data-difficulty="Advanced">
+  <span class="card-num">5</span>
+  <span class="card-name">Ride-Sharing (Uber)</span>
+  <span class="badge">Advanced + Geospatial</span>
+</a>
+<a class="problem-card" href="p6.html" data-difficulty="Intermediate Advanced">
+  <span class="card-num">6</span>
+  <span class="card-name">Web Crawler</span>
+  <span class="badge">Intermediate → Advanced</span>
+</a>
+<a class="problem-card" href="p7.html" data-difficulty="Advanced">
+  <span class="card-num">7</span>
+  <span class="card-name">Video Streaming (YouTube)</span>
+  <span class="badge">Advanced</span>
+</a>
+<a class="problem-card" href="p8.html" data-difficulty="Advanced">
+  <span class="card-num">8</span>
+  <span class="card-name">Ticketmaster (Event Ticket Booking)</span>
+  <span class="badge">Advanced + High-Contention</span>
+</a>
+<a class="problem-card" href="p9.html" data-difficulty="Advanced">
+  <span class="card-num">9</span>
+  <span class="card-name">Google Docs (Collaborative Editing)</span>
+  <span class="badge">Advanced</span>
+</a>
+<a class="problem-card" href="p10.html" data-difficulty="Advanced">
+  <span class="card-num">10</span>
+  <span class="card-name">Distributed Job Scheduler</span>
+  <span class="badge">Advanced + Distributed Systems</span>
+</a>
+<a class="problem-card" href="p11.html" data-difficulty="Advanced">
+  <span class="card-num">11</span>
+  <span class="card-name">Distributed Cache</span>
+  <span class="badge">Advanced + Distributed Systems</span>
+</a>
+<a class="problem-card" href="p12.html" data-difficulty="Intermediate Advanced">
+  <span class="card-num">12</span>
+  <span class="card-name">Notification System</span>
+  <span class="badge">Intermediate → Advanced</span>
+</a>
+<a class="problem-card" href="p13.html" data-difficulty="Intermediate Advanced">
+  <span class="card-num">13</span>
+  <span class="card-name">Search Autocomplete / Typeahead</span>
+  <span class="badge">Intermediate → Advanced</span>
+</a>
+<a class="problem-card" href="p14.html" data-difficulty="Advanced">
+  <span class="card-num">14</span>
+  <span class="card-name">Distributed File Storage (Dropbox)</span>
+  <span class="badge">Advanced + Storage &amp; Sync</span>
+</a>
+<a class="problem-card" href="p15.html" data-difficulty="Advanced">
+  <span class="card-num">15</span>
+  <span class="card-name">Payment System (Stripe-like)</span>
+  <span class="badge">Advanced + Financial Correctness</span>
+</a>
+<a class="problem-card" href="p16.html" data-difficulty="Advanced">
+  <span class="card-num">16</span>
+  <span class="card-name">Ad Click Aggregation</span>
+  <span class="badge">Advanced + High-Volume Stream Processing</span>
+</a>
+<a class="problem-card" href="p17.html" data-difficulty="Intermediate Advanced">
+  <span class="card-num">17</span>
+  <span class="card-name">Yelp / Nearby Places Search</span>
+  <span class="badge">Intermediate → Advanced + Geospatial Search</span>
+</a>
+<a class="problem-card" href="p18.html" data-difficulty="Advanced">
+  <span class="card-num">18</span>
+  <span class="card-name">Distributed Key-Value Store (Dynamo-style)</span>
+  <span class="badge">Advanced + Tunable Consistency (PACELC)</span>
+</a>
+<a class="problem-card" href="p19.html" data-difficulty="Intermediate Advanced">
+  <span class="card-num">19</span>
+  <span class="card-name">Real-Time Leaderboard</span>
+  <span class="badge">Intermediate &#8594; Advanced + Sorted-Set-Driven Scale-Out</span>
+</a>
+<a class="problem-card" href="p20.html" data-difficulty="Advanced">
+  <span class="card-num">20</span>
+  <span class="card-name">Distributed Message Queue (Build Kafka)</span>
+  <span class="badge">Advanced + Distributed Systems Capstone</span>
+</a>
+</div>
+
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

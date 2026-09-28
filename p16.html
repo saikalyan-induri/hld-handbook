@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>16. Ad Click Aggregation — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">16. Ad Click Aggregation <span class="badge">Advanced + High-Volume Stream Processing</span></h1>
+
+<div class="section-toc">
+<a href="#p16-a">A. Interview Prompt</a><a href="#p16-b">B. Difficulty</a><a href="#p16-c">C. What It Tests</a>
+<a href="#p16-d">D. Requirements</a><a href="#p16-e">E. Clarifying Questions</a><a href="#p16-f">F. Assumptions</a>
+<a href="#p16-g">G. Capacity Estimation</a><a href="#p16-h">H. Core Entities</a><a href="#p16-i">I. API Design</a>
+<a href="#p16-j">J. Basic Design (V1)</a><a href="#p16-k">K. Data Model &amp; Store Choice</a><a href="#p16-l">L. End-to-End Flow</a>
+<a href="#p16-m">M. Deep Dive 1: Ingesting at Scale via a Log</a><a href="#p16-n">N. Deep Dive 2: Deduplication</a><a href="#p16-o">O. Deep Dive 3: Windowed Aggregation</a>
+<a href="#p16-p">P. Deep Dive 4: Approximate Counting</a><a href="#p16-q">Q. Deep Dive 5: Late-Arriving Events</a><a href="#p16-r">R. Deep Dive 6: The Hot Ad Problem</a>
+<a href="#p16-s">S. Deep Dive 7: Fraud/Bot Filtering</a><a href="#p16-t">T. Full Solution at Scale</a><a href="#p16-u">U. Design Evolution</a>
+<a href="#p16-v">V. Consistency Model</a><a href="#p16-w">W. Failure Scenarios</a><a href="#p16-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p16-y">Y. Trade-Offs</a><a href="#p16-z">Z. Common Bad Designs</a><a href="#p16-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p16-ab">AB. Interviewer Evaluation</a><a href="#p16-ac">AC. Interview Simulation</a><a href="#p16-ad">AD. Source Comparison</a>
+<a href="#p16-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p16">Jump to section:</label><select id="jump-p16" class="jump-select" data-jump-select><option value="p16-a">A. Realistic Interview Prompt</option><option value="p16-b">B. Difficulty</option><option value="p16-c">C. What This Problem Tests</option><option value="p16-d">D. Requirements</option><option value="p16-e">E. Clarifying Questions</option><option value="p16-f">F. Assumptions</option><option value="p16-g">G. Capacity Estimation</option><option value="p16-h">H. Core Entities</option><option value="p16-i">I. API Design</option><option value="p16-j">J. Basic / Naive High-Level Design (V1)</option><option value="p16-k">K. Data Model &amp; Store Choice</option><option value="p16-l">L. End-to-End Flow — A User Clicks an Ad: Ingestion, Dedup, and Windowed Aggregation into a Queryable Rollup</option><option value="p16-m">M. Deep Dive 1 — Ingesting at Scale via a Log</option><option value="p16-n">N. Deep Dive 2 — Deduplication of Duplicate Click Events</option><option value="p16-o">O. Deep Dive 3 — Batched / Windowed Aggregation</option><option value="p16-p">P. Deep Dive 4 — Approximate Counting at Extreme Scale</option><option value="p16-q">Q. Deep Dive 5 — Handling Late-Arriving / Out-of-Order Events</option><option value="p16-r">R. Deep Dive 6 — The Hot Ad Problem</option><option value="p16-s">S. Deep Dive 7 — Fraud / Bot Click Filtering</option><option value="p16-t">T. Full Solution at Scale — Final Architecture</option><option value="p16-u">U. Design Evolution</option><option value="p16-v">V. Consistency Model</option><option value="p16-w">W. Failure Scenarios</option><option value="p16-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p16-y">Y. Design Trade-Offs</option><option value="p16-z">Z. Common Bad Designs</option><option value="p16-aa">AA. Interviewer Follow-Ups</option><option value="p16-ab">AB. Interviewer Evaluation Rubric</option><option value="p16-ac">AC. Interview Simulation</option><option value="p16-ad">AD. Online Solution Comparison</option><option value="p16-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p16-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design the ad click aggregation system behind an ad platform like Google Ads or Facebook Ads: every time a user clicks an ad, an event needs to be recorded, deduplicated, and rolled up into near-real-time counts — clicks per ad, per campaign, per minute and per hour — that advertisers see on a live dashboard and that ultimately determine how much they're billed. The system needs to survive hundreds of thousands of clicks per second at peak, including the case where a single ad unexpectedly goes viral."</div>
+<p>Every prior problem in this document that deals with high write volume (News Feed's fanout, Rate Limiter's counters) still, underneath, imagines a single logical event landing as a single logical write. This problem is the first one where that assumption itself has to be abandoned: at the volumes an ad network actually operates at, there is no database that will accept one row per click and still answer "how many clicks did ad X get in the last minute" fast enough to render a dashboard — and there is no way to count the number of <em>distinct</em> people who clicked an ad without an amount of memory that grows without bound, if you insist on an exact answer. The load-bearing decision this design is built around is: <strong>land every click into a durable, append-only log (Kafka) rather than writing it directly to a database; aggregate that log continuously through windowed stream processing rather than running periodic <code>COUNT(*)</code> queries over raw rows; deduplicate the inevitable stream of duplicate click events using an idempotency key established at click-generation time; and, for the specific question of how many <em>distinct</em> users clicked an ad, stop insisting on an exact answer altogether and use a probabilistic structure (HyperLogLog) that trades a small, known error rate for a fixed, tiny memory footprint per ad, no matter how large the true count actually is.</strong></p>
+
+<h3 id="p16-b">B. Difficulty</h3>
+<p><strong>Advanced</strong> — the individual building blocks (a log-based queue, a stream-processing window, a probabilistic counting structure) are each well-documented and not exotic in isolation, but a candidate who hasn't internalized just how much a naive per-event database write costs at this specific volume will reach for "just write it to Postgres and shard it" and burn most of the interview discovering, step by step, exactly why that doesn't work. The real signal here is recognizing, unprompted, that this is fundamentally a streaming/aggregation problem rather than a storage problem, and being comfortable stating out loud that the system's headline numbers — click counts, unique reach — are deliberately approximate, not as a shortcut but as the correct engineering answer at this scale.</p>
+
+<h3 id="p16-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognizing when raw event volume has crossed the threshold where a database is no longer the right place to absorb writes at all, and reaching for a durable log (<a href="#prereq-g">Prerequisites G</a>) as the ingestion point instead</li>
+<li>Distinguishing a per-event write-and-query architecture from a windowed stream-aggregation architecture, and knowing precisely why the former's cost grows with raw event volume while the latter's cost grows with the (far smaller) number of distinct aggregation keys</li>
+<li>Applying idempotency (<a href="#prereq-o">Prerequisites O</a>, <a href="#patterns-e">Patterns Playbook E</a>) to a context where the duplicate isn't a retried API call but a duplicate real-world event arriving through an at-least-once pipeline — and recognizing it's the identical underlying problem wearing different clothes</li>
+<li>Knowing when an exact answer is worth its cost (a billable click count) versus when a probabilistic approximation is the objectively correct engineering trade (a unique-reach estimate) — and being able to name a concrete probabilistic structure (HyperLogLog) and explain, precisely, how it differs from the other probabilistic structure this document already covers (a Bloom filter, <a href="#prereq-m">Prerequisites M</a>)</li>
+<li>Reasoning about event time versus processing time, and designing a system that behaves correctly — meaning: predictably, not perfectly — in the presence of events that legitimately arrive late</li>
+</ul>
+
+<h3 id="p16-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Every ad click is recorded, associated with the specific ad, campaign, and advertiser it belongs to</li>
+<li>An advertiser can view near-real-time aggregate click counts for their campaigns, broken down per ad and per time bucket (minute/hour/day)</li>
+<li>An advertiser can view an estimate of unique reach — the number of distinct users who clicked a given ad — for billing-adjacent reporting, separate from raw click volume</li>
+<li>A click that's billable (counts toward an advertiser's spend) is counted exactly once, even if the underlying event is delivered to the system more than once</li>
+<li>An eventual, fully-exact reconciled count is available for each time bucket after some bounded delay, for billing disputes and audits</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Extremely high write throughput</strong> — the ingestion path must sustain hundreds of thousands of click events per second at peak without falling behind or dropping events</li>
+<li><strong>Near-real-time aggregate visibility</strong> — an advertiser's dashboard should reflect a click within roughly a minute of it happening, not require a nightly batch job to appear at all</li>
+<li><strong>Billing-grade correctness for the exact count, on a delay</strong> — the number an advertiser is actually charged against must ultimately be exact and auditable, even though the number they see live is explicitly provisional</li>
+<li><strong>Resilient to one ad's traffic spiking disproportionately</strong> — a single viral ad must not be able to overwhelm the shard or partition it happens to land on and degrade every other ad sharing that resource</li>
+<li><strong>Resistant to inflated counts from fraudulent or bot-driven clicks</strong>, close enough to ingestion time that fraud doesn't silently drain an advertiser's daily budget before it's caught</li>
+</ul>
+<p><strong>Out of scope:</strong> ad serving/targeting/auction logic (assumed to already exist upstream and simply hand this system a rendered ad's click-through event); the advertiser-facing billing/invoicing system itself (this design produces the click counts that system consumes as an input); impression tracking (a related but separate, even higher-volume pipeline sharing much of this same architecture).</p>
+
+<h3 id="p16-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Does "click count" for billing need to be exact, or is a near-real-time approximation acceptable everywhere, including for spend calculations?</td><td>Determines whether there's a strongly-consistent, exact-counting requirement anywhere in the system at all, or whether every number can be provisional</td><td>Consistency Model (V), Deep Dive 4 (P)</td></tr>
+<tr><td>2</td><td>What's the acceptable end-to-end latency between a click happening and it showing up in an advertiser's dashboard?</td><td>Directly sets the aggregation window size and the watermark/lateness tolerance</td><td>Deep Dive 3 (O), Deep Dive 5 (Q)</td></tr>
+<tr><td>3</td><td>Do we need unique-reach (distinct clickers) as a first-class metric, or only raw click volume?</td><td>Determines whether a probabilistic cardinality structure (HyperLogLog) is required at all, or whether this is a simpler pure-counting problem</td><td>Deep Dive 4 (P), Core Entities (H)</td></tr>
+<tr><td>4</td><td>Is click-fraud detection in scope for this system, or handled entirely by a separate downstream service?</td><td>Determines whether fraud filtering is a first-class stage in this pipeline or an out-of-scope dependency this design simply feeds</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>5</td><td>How long does an advertiser have to dispute a billed click count, and how far back does "eventually exact" need to reach?</td><td>Sets the retention window for raw events and the scope of the reconciliation job</td><td>Capacity Estimation (G), Consistency Model (V)</td></tr>
+</table>
+
+<h3 id="p16-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> record every click, provide near-real-time per-ad/per-campaign aggregate dashboards, produce an eventual exact count for billing, and never let a naively-retried or duplicated event inflate a billable count.</li>
+<li><strong>Assumption:</strong> only the eventually-reconciled batch count needs to be exact; the live dashboard number is explicitly provisional, and the business already understands and accepts that framing (E's clarifying question 1) — this is what licenses windowed streaming aggregation as the primary path rather than forcing a strongly-consistent counter into the hot path.</li>
+<li><strong>Assumption:</strong> a one-to-two-minute end-to-end latency from click to dashboard visibility is acceptable (E's clarifying question 2) — generous enough to allow a real windowing/watermark scheme (O, Q), tight enough to still feel "live" to an advertiser watching spend in real time.</li>
+<li><strong>Assumption:</strong> unique-reach is a genuine, first-class requirement, not a hypothetical extension (E's clarifying question 3) — this is what makes HyperLogLog (P) a load-bearing part of the design rather than a footnote.</li>
+<li><strong>Assumption:</strong> fraud/bot filtering is in scope, at least at the heuristic level (E's clarifying question 4) — a full ML-based fraud model is explicitly out of scope, but the pipeline stage and its placement (S) are not.</li>
+<li><strong>Assumption:</strong> a 30-day dispute/audit window (E's clarifying question 5) — raw events are retained in a replayable form for at least that long (G, K).</li>
+</ul>
+
+<h3 id="p16-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Active ad campaigns / distinct ads</td><td>Illustratively, ~3M active campaigns, ~80M distinct ad creatives</td><td>The cardinality of the aggregation key space — the number that actually matters for rollup storage, not the raw event count</td></tr>
+<tr><td>Clicks/day, platform-wide</td><td>~2B clicks/day → 2×10⁹ / 86,400 ≈ 23,150/sec average</td><td>The baseline sustained write rate the ingestion path (M) must absorb continuously, every day, not just during a spike</td></tr>
+<tr><td>Peak-to-average ratio</td><td>Illustratively ~20x during a major shopping event or one ad going viral (R), ≈ 460,000 clicks/sec sustained for the peak window</td><td>The real design target — nearly half a million writes/sec is where a per-event relational insert (J) stops being a discussion and becomes simply impossible on any single reasonably-sized database instance</td></tr>
+<tr><td>What a single relational DB node can actually sustain</td><td>A well-tuned Postgres/MySQL instance realistically sustains roughly 5,000-15,000 simple indexed inserts/sec before write-ahead-log and index-maintenance overhead dominates</td><td>Even at the 23,150/sec <em>average</em> — before any peak multiplier at all — a single-node relational approach is already short by nearly 2x, and by ~30-90x at peak; this is the concrete arithmetic that motivates abandoning per-event DB writes entirely (J), not a stylistic preference</td></tr>
+<tr><td>Raw click event size</td><td><code>click_id</code>, <code>ad_id</code>, <code>campaign_id</code>, <code>advertiser_id</code>, <code>user/device_id</code>, <code>publisher_id</code>, timestamp, IP, user agent, referrer, bid CPC ≈ ~250 bytes</td><td>Sets the raw ingest byte-rate the log (K) must sustain</td></tr>
+<tr><td>Raw ingest volume</td><td>~2B × 250 bytes/day ≈ ~500GB/day; retained "hot" in the log for ~14 days ≈ ~7TB, then archived to cold object storage for the ~30-day dispute window and beyond (F, K)</td><td>Comfortably within a well-partitioned log's reach — an order of magnitude below the raw byte volumes this document's storage-heavy problems (Dropbox, <a href="#p14">P14</a>) already handle</td></tr>
+<tr><td>Rollup rows/day</td><td>Bounded by distinct <code>(ad_id, minute)</code> pairs that received ≥1 click, not by total click count — realistically tens of millions of rows/day, one to two orders of magnitude smaller than the 2B raw-event count, because a huge number of raw clicks collapse into the same rollup key</td><td>The entire reason windowed aggregation is tractable where per-event storage isn't — the thing actually being stored and queried scales with key cardinality × time buckets, not with event volume (O)</td></tr>
+<tr><td>Dedup/idempotency window store, live keys</td><td>Bounded to a ~10-minute dedup window (N), not a full day: ~2×10⁹ × (10/1440) ≈ ~13.9M live keys at any moment ≈ well under 1GB of keyed state</td><td>Small and bounded specifically because the window is short — the same TTL-bounding reasoning Payment System's idempotency store uses (<a href="#p15-m">P15-M</a>), applied to a duplicate-event window instead of a client-retry window</td></tr>
+<tr><td>HyperLogLog sketch footprint</td><td>A dense HLL register array is a fixed ~12KB per key regardless of true cardinality (<a href="#p16-ad">AD</a>); most (ad, window) keys stay in a sparse, few-dozen-byte representation until their estimated cardinality grows large enough to need the dense form</td><td>Fixed, small, and — critically — <em>independent of how many distinct users actually clicked</em>, which is the entire value proposition over a naive per-ad hash set (P)</td></tr>
+</table>
+
+<h3 id="p16-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>Advertiser</code> / <code>Campaign</code> / <code>Ad</code></td><td>The billing and organizational hierarchy a click ultimately rolls up into</td><td><code>advertiser_id</code>, <code>campaign_id</code>, <code>ad_id</code>, <code>bid_cpc</code>, <code>daily_budget</code></td></tr>
+<tr><td><code>ClickEvent</code></td><td>One raw, immutable click as it lands in the log — the unit of truth this entire pipeline is built to process (K, M)</td><td><code>click_id</code> (idempotency key, N), <code>ad_id</code>, <code>campaign_id</code>, <code>user_id</code>/<code>device_id</code>, <code>event_time</code>, <code>ip</code>, <code>user_agent</code>, <code>referrer</code></td></tr>
+<tr><td><code>DedupRecord</code></td><td>Tracks which <code>click_id</code>s have already been counted within the bounded dedup window (N)</td><td><code>click_id</code>, <code>first_seen_at</code>, <code>expires_at</code></td></tr>
+<tr><td><code>WindowedRollup</code></td><td>One finalized aggregate for a single <code>(ad_id, window_start, window_end)</code> triple — the actual queryable unit dashboards read (O)</td><td><code>ad_id</code>, <code>campaign_id</code>, <code>window_start</code>, <code>window_end</code>, <code>click_count</code>, <code>estimated_spend</code>, <code>hll_sketch</code> (bytes, P), <code>is_final</code></td></tr>
+<tr><td><code>LateCorrection</code></td><td>An adjustment record for events that arrived after their window had already closed and emitted — never a silent mutation of the original rollup (Q)</td><td><code>ad_id</code>, <code>window_start</code>, <code>delta_click_count</code>, <code>applied_at</code></td></tr>
+<tr><td><code>FraudSignal</code></td><td>A flag attached to a click, or a suppression applied to a rollup, from heuristic bot/fraud detection (S)</td><td><code>click_id</code> or <code>(ad_id, window)</code>, <code>reason</code>, <code>confidence</code>, <code>action</code> (flagged/excluded)</td></tr>
+<tr><td><code>ReconciliationDiscrepancy</code></td><td>A flagged mismatch between the streaming rollup's provisional count and the batch job's exact recount over the same window (V, cross-referencing <a href="#p15-q">P15-Q</a>'s identical reconciliation concept applied to a different domain)</td><td><code>discrepancy_id</code>, <code>ad_id</code>, <code>window</code>, <code>streaming_count</code>, <code>exact_count</code>, <code>resolved</code></td></tr>
+</table>
+
+<h3 id="p16-i">I. API Design</h3>
+<pre><code>-- public, hit directly by a user's browser/device when they click a rendered ad:
+GET  /click?ad_id=&lt;id&gt;&amp;campaign_id=&lt;id&gt;&amp;click_id=&lt;generated-at-ad-serve-time&gt;&amp;redirect=&lt;landing_url&gt;
+     -&gt; 302 redirect to the advertiser's landing page, near-instantly (M, L)
+     (as a side effect, produces one ClickEvent onto the ingestion log — never blocks the redirect on it)
+-- advertiser-facing reporting:
+GET  /campaigns/{campaign_id}/stats?window=1h&amp;from=...&amp;to=...
+     -&gt; { ad_id, click_count (provisional, V), unique_reach_estimate (P), spend, is_final }
+GET  /campaigns/{campaign_id}/stats/exact?window=1h&amp;from=...&amp;to=...
+     -&gt; { ad_id, exact_click_count, reconciled_at }              (only available once reconciliation (V) has run for that window)
+-- internal, cluster-facing:
+(stream processor) consumes ClickEvent topic -&gt; dedup (N) -&gt; windowed aggregate (O) -&gt; WindowedRollup   (K)
+(fraud worker) consumes the same ClickEvent topic in parallel, tags/suppresses suspicious clicks close to ingestion (S)
+(reconciliation job) periodic: recompute exact counts from the durable log/archive, diff against WindowedRollup (V)
+</code></pre>
+<p><strong>Why the public click endpoint has no request body and does the absolute minimum before redirecting:</strong> this is the one endpoint in the entire system sitting directly in a real user's page-load/navigation path — every extra millisecond here is a millisecond added to a real person waiting for a page to load, which is exactly the same "keep expensive work off the hot path" reasoning named generally in <a href="#patterns-c">Patterns Playbook C</a>. Producing to the log (M) is a fast, fire-and-forget append; every heavier step — dedup, aggregation, fraud scoring — happens entirely downstream, off this request's critical path.</p>
+<p><strong>Why there are two separate stats endpoints, not one:</strong> the plain <code>/stats</code> endpoint returns whatever the streaming pipeline currently believes, refreshed roughly every window (V) — fast, always available, explicitly not final. <code>/stats/exact</code> only ever returns a value once the slower batch reconciliation (V) has actually finished recomputing that specific window from the durable log — the same two-speed shape Payment System's saga-versus-reconciliation split uses (<a href="#p15">P15</a>), reused here for a click count instead of a ledger balance.</p>
+
+<h3 id="p16-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: the click-tracking redirect endpoint, on every click, runs <code>INSERT INTO clicks (ad_id, campaign_id, user_id, ts) VALUES (...)</code> directly against a relational database, synchronously, before issuing the 302 redirect. An advertiser's dashboard, to show "clicks in the last hour," runs <code>SELECT ad_id, COUNT(*) FROM clicks WHERE campaign_id = ? AND ts &gt;= NOW() - INTERVAL '1 hour' GROUP BY ad_id</code> directly against that same table, on demand, every time the dashboard refreshes.</p>
+<div class="mermaid diagram">
+flowchart LR
+  User(["User's Browser"]) -- "clicks ad" --> Redirect["Click Redirect Endpoint"]
+  Redirect -- "synchronous INSERT" --> DB[("clicks table<br/>one row per click")]
+  Redirect -- "302 redirect" --> Landing["Advertiser's Landing Page"]
+  Dashboard["Advertiser Dashboard"] -- "SELECT ... COUNT(*) ... GROUP BY ad_id" --> DB
+</div>
+<p class="diagram-caption">V1 — a direct, synchronous per-click insert, with reporting implemented as ad hoc aggregate queries over the raw table.</p>
+<p class="callout"><strong>Why this collapses under this problem's actual load, in the two ways that matter most:</strong> first, the write side simply cannot keep up — G's arithmetic isn't a rough approximation, it's the concrete reason a single relational node is already short of the platform's <em>average</em> click rate before any peak multiplier is applied at all, and no amount of "just add read replicas" helps, because replicas don't add write capacity. Sharding the writes helps to a point, but every shard boundary now has to somehow still answer "give me the total across all ads in this campaign" without re-introducing a fan-out query across every shard on every dashboard refresh. Second, and just as fatal even if the write problem were solved: <code>COUNT(*)</code>/<code>GROUP BY</code> over a raw table that grows by tens of millions of rows a minute means every dashboard refresh re-scans an ever-larger slice of raw data to answer the exact same question it answered a few seconds ago — the query gets slower over the course of the day, not just at scale, because "the last hour" itself contains more rows every single time it's asked. Neither flaw is fixable by throwing more database hardware at it; both point at the same root cause — this design treats aggregation as something computed fresh, from scratch, on every read, over ever-growing raw data, instead of computed once, incrementally, as data arrives.</p>
+
+<h3 id="p16-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>The raw click log lives in Kafka, not in any database:</strong> every <code>ClickEvent</code> (H) is appended to a durable, partitioned Kafka topic (<a href="#prereq-g">Prerequisites G</a>), partitioned by <code>ad_id</code> (with the hot-key exception handled separately, R). This is the direct structural fix for V1's write-throughput flaw (J) — appending to a log's sequential, ordered partition is a fundamentally cheaper operation than a random-access, indexed relational insert, and a log's whole design point is absorbing exactly this kind of high-volume, append-only, rarely-if-ever-updated event stream. Raw events are retained "hot" in Kafka for roughly two weeks (G), then archived to cold object storage (<a href="#prereq-i">Prerequisites I</a>) for the remainder of the ~30-day dispute window (F) — a metadata/blob-style split in spirit, though here what moves to cold storage is the raw event stream itself, not a large binary payload.</p>
+<p><strong>The rollup store is a wide-column/OLAP-oriented store, not the same relational table V1 reached for:</strong> <code>WindowedRollup</code> rows (H) are written by the stream-processing layer (O), keyed by <code>(ad_id, window_start)</code>, into a store optimized for exactly this access pattern — range-scan a specific key's time series, not join across arbitrary tables (<a href="#prereq-b">Prerequisites B</a>'s wide-column category, e.g. Cassandra-style, or a purpose-built time-series/OLAP columnar engine). This is the direct fix for V1's second flaw: a dashboard query now reads a small number of already-computed rollup rows for the requested window, never re-scanning raw events, because the aggregation work already happened once, incrementally, as the stream flowed through.</p>
+<p><strong>The dedup/idempotency window store is a fast, TTL'd keyed store, deliberately small and short-lived:</strong> <code>DedupRecord</code>s (H, N) live in the stream processor's own keyed state (backed by something like RocksDB) or an external fast store such as Redis, bounded to the dedup window (~10 minutes, G) rather than growing with total event volume — the same TTL-bounding discipline Payment System's idempotency store uses (<a href="#p15-m">P15-M</a>), reused here for a duplicate-event window instead of a client-retry window.</p>
+<p><strong>HyperLogLog sketches are stored as compact binary blobs alongside each rollup row, or natively in Redis:</strong> a <code>hll_sketch</code> field (H) attached to each <code>WindowedRollup</code> — a fixed handful of bytes to a fixed ~12KB, never a growing set of raw user IDs (P).</p>
+
+<h3 id="p16-l">L. End-to-End Flow — A User Clicks an Ad: Ingestion, Dedup, and Windowed Aggregation into a Queryable Rollup</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant U as User's Browser
+  participant R as Click Redirect Endpoint
+  participant K as Kafka Topic (M)
+  participant S as Stream Processor
+  participant Dedup as Dedup State Store (N)
+  participant HLL as HLL Sketch (P)
+  participant Roll as Rollup Store (K)
+  participant Dash as Advertiser Dashboard
+  U->>R: GET /click?ad_id=...&click_id=C1
+  R->>K: produce ClickEvent (fire-and-forget)
+  R-->>U: 302 redirect to landing page (immediate, M)
+  K->>S: consume ClickEvent
+  S->>Dedup: has click_id C1 been seen (bounded window)?
+  Dedup-->>S: no — record C1
+  S->>S: assign event to tumbling window (ad_id, minute) (O)
+  S->>HLL: add user_id to (ad_id, minute) sketch
+  S->>S: watermark passes window end + allowed lateness (Q)
+  S->>Roll: emit finalized WindowedRollup (count, hll bytes, is_final=true)
+  Dash->>Roll: query recent windows
+  Roll-->>Dash: provisional near-real-time counts (V)
+</div>
+<p class="diagram-caption">The redirect to the user completes before any of the aggregation work even starts — everything from the Kafka produce onward is fully decoupled from the request the user is actually waiting on.</p>
+
+<h3 id="p16-m">M. Deep Dive 1 — Ingesting at Scale via a Log</h3>
+<p><strong>Requirement this addresses:</strong> the extremely-high-write-throughput NFR (D) — the direct fix for V1's fatal write-side flaw (J).</p>
+<p><strong>Why a log, specifically, and not just "a faster database":</strong> <a href="#prereq-g">Prerequisites G</a> draws the general distinction — a traditional queue deletes a message once consumed, while a log-based broker like Kafka retains every event and lets multiple independent consumer groups each read the full stream at their own pace. This system needs exactly that fan-out: the windowed-aggregation consumer (O), the fraud-detection consumer (S), and the cold-storage archival consumer (K) all need to read the identical stream of clicks, independently, without the click-redirect endpoint needing to know any of them exist or coordinate delivery to each. A traditional single-consumer queue would force either one consumer to do all three jobs, or the producer to write to three separate queues — a log lets the producer write once and stay entirely ignorant of how many downstream systems are reading it.</p>
+<p><strong>Why appending to a log is cheaper than a relational insert at this specific volume:</strong> a Kafka partition is, mechanically, a sequential append to the end of a file — no index to update, no row-level lock to acquire, no page to potentially split. A relational insert with even a couple of indexes pays for random-access index maintenance on every single write; at tens of thousands of writes/sec sustained, and hundreds of thousands at peak (G), that per-write overhead is exactly what makes the relational approach infeasible and the log-append approach tractable.</p>
+<p><strong>Why the click-redirect endpoint's produce call is fire-and-forget, not a blocking, fully-acknowledged write:</strong> the endpoint's only real job (I) is getting the user redirected quickly — it needs the produce call to be durable enough to survive a normal broker failure (acknowledged by at least the partition leader) but does not need to wait for the aggregation pipeline downstream to do anything at all before responding. This is the same "keep expensive work off the hot path" reasoning as <a href="#patterns-c">Patterns Playbook C</a>, applied to a redirect instead of a job submission.</p>
+<p><strong>Partitioning strategy:</strong> partitioned by <code>ad_id</code> by default, which keeps every click for a given ad in delivery order on one partition (the ordering guarantee Kafka only makes <em>within</em> a partition, per Prerequisites G) — a property the windowed-aggregation stage (O) benefits from, though it does not strictly require it, since the watermark mechanism (Q) is designed to tolerate some disorder regardless. This default partitioning is exactly what breaks down for one specific case, covered on its own (R).</p>
+
+<h3 id="p16-n">N. Deep Dive 2 — Deduplication of Duplicate Click Events</h3>
+<p><strong>Requirement this addresses:</strong> the exactly-once-billable-count NFR (D) — duplicate click events are not a rare edge case here, they're an expected, routine byproduct of at-least-once delivery (<a href="#prereq-g">Prerequisites G</a>) compounded by real client-side behavior: a user double-clicking, a flaky mobile connection causing a browser to silently retry the same GET request, or a bot deliberately re-firing the same tracking URL.</p>
+<p><strong>The idempotency key, established at ad-serve time, not at click time:</strong> a <code>click_id</code> is generated once, when the ad is actually rendered to the user (embedded directly into the tracking URL the ad itself links through), so that a double-fire of the exact same click — whether from a genuine double-click or a network-level retry — carries the identical <code>click_id</code> both times. This is precisely the same idempotency-key mechanism named generally in <a href="#prereq-o">Prerequisites O</a> and cataloged across three other domains in <a href="#patterns-e">Patterns Playbook E</a> (Chat's <code>client_msg_id</code>, Ticketmaster's payment key, Job Scheduler's execution key) — the only thing different here is that the "client" retrying isn't an API caller reacting to a lost response, it's a browser or bot reacting to normal, everyday network flakiness.</p>
+<p><strong>Bloom filter as a cheap pre-filter in front of the exact dedup store — and why the direction of the check matters:</strong> checking every incoming <code>click_id</code> against an exact dedup store (K) for every single click is itself real work at this volume. A Bloom filter (<a href="#prereq-m">Prerequisites M</a>) sitting in front of that store answers the cheap, common case fast: if the filter says "definitely not seen," that's a guaranteed-correct answer — the click is genuinely novel, no exact-store lookup needed at all. Only when the filter says "probably seen" does the click fall through to the heavier exact check, to rule out a false positive before treating it as a real duplicate. Because the overwhelming majority of clicks in any real workload are genuinely novel, this ordering means the expensive exact lookup is paid only for the minority of cases that actually need it — and, critically, the filter's one-directional error (false positives only, never false negatives, Prerequisites M) means this optimization can never itself cause a real click to be wrongly discarded as a duplicate.</p>
+<p><strong>Why the dedup window is bounded, not permanent:</strong> a <code>DedupRecord</code> only needs to live as long as a duplicate could realistically still arrive — roughly ten minutes (F, G) comfortably covers a retried request or a delayed redelivery, without growing the dedup store's size in proportion to the platform's total daily click volume. This mirrors the exact TTL trade-off Payment System's idempotency store makes for its own, differently-scoped window (<a href="#p15-m">P15-M</a>).</p>
+
+<h3 id="p16-o">O. Deep Dive 3 — Batched / Windowed Aggregation</h3>
+<p><strong>Requirement this addresses:</strong> the near-real-time-visibility NFR (D) — the direct fix for V1's second flaw (J), replacing "re-scan raw rows on every query" with "aggregate incrementally, once, as data arrives."</p>
+<p><strong>Tumbling windows, the primary aggregation unit:</strong> a stateful stream processor (conceptually, a Flink- or Spark-Streaming-style engine) groups deduplicated events into fixed, non-overlapping one-minute buckets keyed by <code>(ad_id, window_start)</code> — every click belongs to exactly one tumbling window, which is what makes higher-level rollups (per-hour, per-day) a simple matter of summing already-computed child windows rather than ever re-touching raw events. The processor maintains a running count (and a running HyperLogLog sketch, P) as its keyed state for each currently-open window, and emits a finalized <code>WindowedRollup</code> row once that window closes (governed by the watermark, Q).</p>
+<p><strong>Sliding windows, for the dashboard's "trailing N minutes" display:</strong> a dashboard's "clicks in the last 5 minutes, updated every 30 seconds" view is a sliding window — overlapping, recomputed on a shorter interval than its own width. Rather than maintaining a second, separate streaming aggregation for this, it's computed on read, on top of the already-finalized one-minute tumbling rollups (summing the last five one-minute buckets) — cheap precisely because the expensive part, the actual per-click aggregation, already happened once in the tumbling layer.</p>
+<p class="callout"><strong>The one detail that breaks if it's missed: summing works for counts, but not for HLL sketches.</strong> Rolling a per-minute count up into a per-hour count is a simple sum of 60 child values. Rolling a per-minute unique-reach <em>estimate</em> up into a per-hour estimate is not a sum — summing 60 minutes' distinct-user counts would badly overcount anyone who clicked in more than one of those minutes. HLL sketches instead <em>merge</em> (a register-wise max across the 60 sketches, equivalent to computing the union of the underlying sets), which is exactly the property that makes HLL sketches composable across time and across partitions in the first place (P) — a distinction worth stating explicitly, because it's the single most common mistake a candidate makes the first time they reach for "just roll it up the same way as the count."</p>
+
+<h3 id="p16-p">P. Deep Dive 4 — Approximate Counting at Extreme Scale</h3>
+<p><strong>Requirement this addresses:</strong> the unique-reach functional requirement (D) — and the second half of this design's central bet: some numbers this system reports are not worth computing exactly, because the exact version is prohibitively expensive and the approximate version is, for the actual business purpose, just as useful.</p>
+<p><strong>Why exact unique counting doesn't scale here:</strong> computing the true number of distinct users who clicked a given ad requires remembering every distinct user ID ever seen for that ad — a full hash set, growing linearly with true cardinality, per ad, per window. At tens of millions of ads and per-minute granularity (G), that's simply not a viable amount of memory to hold, and it doesn't compress: a hash set of a million distinct IDs is a million distinct IDs' worth of memory, no matter how it's stored.</p>
+<p><strong>HyperLogLog, the fix:</strong> a HyperLogLog sketch estimates the number of distinct elements added to it using a small, <em>fixed</em> amount of memory — a dense representation uses roughly 12KB regardless of whether the true distinct count is a hundred or a hundred million, with a standard error around 0.8-2% depending on configuration (<a href="#p16-ad">AD</a>). Adding an element hashes it and updates a small number of registers based on patterns in the hash's bits; estimating cardinality reads those registers back through a formula, never the raw elements themselves — which is exactly why the memory footprint never grows with the true count, only the accuracy's confidence interval narrows or widens with configuration choices made up front.</p>
+<p><strong>Why sketches can be merged, and why that's the whole point:</strong> a per-minute HLL sketch and a different per-minute HLL sketch for the same ad can be merged into a single sketch representing their union — a per-hour reach estimate is the merge of that hour's 60 per-minute sketches (O), and a platform-wide reach estimate for an ad is the merge of every shard's local sketch for it, all without ever needing to bring the underlying raw user IDs back together in one place.</p>
+<p class="callout"><strong>How this differs from a Bloom filter — the two probabilistic structures answer genuinely different questions:</strong> a Bloom filter (<a href="#prereq-m">Prerequisites M</a>, and this design's own dedup layer, N) answers "have I seen this <em>specific</em> element before" — a membership question about one item, with no false negatives and a small false-positive rate, and it fundamentally cannot tell you how many distinct elements it has seen in total. HyperLogLog answers the opposite question: "how many <em>distinct</em> elements have I seen overall" — a cardinality question about the whole set, and it fundamentally cannot tell you whether any one specific element was among them; there's no way to ask an HLL sketch "was <code>user_42</code>'s click already counted," the way a Bloom filter's entire purpose is answering exactly that. This design needs both, for two entirely different jobs: the Bloom filter cheapens the dedup check (N); the HLL sketch estimates reach (P) — and conflating the two, or reaching for one where the problem actually calls for the other, is a common, avoidable mistake.</p>
+
+<h3 id="p16-q">Q. Deep Dive 5 — Handling Late-Arriving / Out-of-Order Events</h3>
+<p><strong>Requirement this addresses:</strong> the near-real-time-visibility NFR (D), specifically the honest admission that "near-real-time" also means "not every event arrives on time," and the design needs a defined, bounded answer for the ones that don't.</p>
+<p><strong>Event time versus processing time:</strong> a click's <em>event time</em> is when it actually happened, according to a timestamp assigned as close to the user's action as possible; its <em>processing time</em> is whenever the stream processor actually gets around to handling it. These two can legitimately diverge — network delay, a mobile device that buffers clicks while offline and replays them once reconnected, or ordinary multi-hop pipeline lag can all mean an event's processing time trails its event time by anywhere from milliseconds to, occasionally, minutes.</p>
+<p><strong>Watermarks — the processor's own evolving estimate of "how caught up are we, really":</strong> a watermark is a continuously-advancing threshold, computed from the event times actually observed so far, representing the processor's belief that it has now seen every event with an event time earlier than the watermark (allowing for some configured maximum expected disorder). A given tumbling window (say, 14:32:00-14:33:00) closes and emits its finalized <code>WindowedRollup</code> not the instant its wall-clock end arrives, but once the watermark passes that window's end plus a configured <strong>allowed-lateness</strong> buffer (e.g., two extra minutes) — giving legitimately-delayed events a real, bounded chance to still land in the correct bucket before it's considered final.</p>
+<p><strong>What happens to an event that's later than even that:</strong> a click whose event time falls inside an already-closed, already-emitted window, but which only arrives after the allowed-lateness buffer has also passed, is genuinely too late for the window's live-emitted rollup. Rather than silently mutating that already-published <code>WindowedRollup</code> row in place, it's routed to a side stream and applied as an explicit <code>LateCorrection</code> record (H) — a small, attributable adjustment layered on top of the original, never a quiet rewrite of a number a dashboard already displayed. This is the same "never silently mutate a financial fact, write a new attributable adjustment instead" discipline Payment System's ledger uses for corrections (<a href="#p15-n">P15-N</a>, <a href="#p15-q">P15-Q</a>), reapplied here to a click count instead of a balance.</p>
+<p><strong>Why this bounded-lateness gap is exactly what the later reconciliation job exists to close systematically:</strong> the watermark and allowed-lateness window are deliberately finite — extending them indefinitely to catch every conceivable straggler would mean windows never close and dashboards never show a "final" number at all. The batch reconciliation job (V, cross-referencing <a href="#p15-q">P15-Q</a>'s identical role in a different domain) runs hours later against the full durable log, with no lateness bound at all, and is what ultimately catches anything the streaming layer's necessarily-finite patience for stragglers still missed.</p>
+
+<h3 id="p16-r">R. Deep Dive 6 — The Hot Ad Problem</h3>
+<p><strong>Requirement this addresses:</strong> the resilience-to-a-single-spike NFR (D) — a distinct scaling problem from the platform-wide peak G already accounts for: one specific ad's traffic becoming disproportionate to every other ad's, concentrated on whatever single partition that ad's <code>ad_id</code> happens to hash to.</p>
+<p><strong>Why the default partitioning scheme (M) breaks down for exactly this case:</strong> partitioning by <code>ad_id</code> keeps a given ad's clicks ordered and together, which is normally a feature — but it also means one viral ad's entire click volume lands on a single Kafka partition, read by a single consumer instance within its consumer group. This is structurally the identical shape as two problems already solved elsewhere in this document for different resources: Rate Limiter's hot-key/single-abusive-client problem (<a href="#p2-q">P2-Q</a>), where one client's traffic can't be spread across shards without breaking per-client atomicity, and News Feed's celebrity problem (<a href="#p3-n">P3-N</a>), where one account's follower count skews a fanout scheme built assuming a roughly uniform distribution. All three are the same underlying fact — a partitioning scheme chosen for the average case has no defense against one key's traffic being wildly non-average.</p>
+<p><strong>The fix — salt the hot key, merge the pieces back downstream:</strong> once an ad is detected as disproportionately hot (a lightweight streaming heavy-hitter estimate is enough — exact top-k tracking isn't needed to make this call), its clicks are salted with a random shard suffix before being keyed into Kafka (<code>ad_id#0</code> through <code>ad_id#N</code> instead of a single <code>ad_id</code>), fanning that one ad's write volume across N partitions instead of one — the direct structural echo of Rate Limiter's own hot-key fan-out mitigation (P2-Q). The aggregation layer (O) then merges the N shards' partial results back into one logical rollup for that ad: click counts sum trivially across the salted shards, and — because HyperLogLog sketches merge rather than sum (O, P) — the reach estimate recombines just as cleanly, with no special-casing needed for the fact that the same ad's data briefly lived on multiple partitions.</p>
+<p><strong>Why this fix is applied selectively, not universally:</strong> salting every ad's key by default would spread ordinary, non-hot ads' small click volumes across more partitions than they need, adding merge overhead for no benefit. Detecting hotness first and only paying the fan-out cost for the small number of ads that actually need it — the same selective-cost reasoning News Feed's hybrid fanout applies to celebrity accounts specifically, rather than to every account (<a href="#p3">P3</a>) — keeps the common case simple.</p>
+
+<h3 id="p16-s">S. Deep Dive 7 — Fraud / Bot Click Filtering</h3>
+<p><strong>Requirement this addresses:</strong> the fraud-resistance NFR (D) — protecting an advertiser's spend from clicks that were never a genuine expression of interest in their ad.</p>
+<p><strong>Representative heuristics:</strong> click velocity from a single IP or device exceeding a threshold within a short window; a click with no corresponding ad impression ever having been served to that user; traffic originating from known datacenter IP ranges or exhibiting headless-browser signatures; mechanically regular click-timing patterns inconsistent with normal human variance; a single device clicking on every ad it's ever shown, regardless of relevance. None of these individually proves fraud with certainty — each contributes a confidence signal that, combined, determines whether a click is flagged, suppressed from billing, or simply allowed through with a lower confidence tag for later review.</p>
+<p class="callout"><strong>Why this must run close to ingestion time, not after billing has already run:</strong> an advertiser's campaign spend and daily budget are decremented against near-real-time click counts (D, V) — the whole point of the near-real-time dashboard is that an advertiser can watch their budget deplete as clicks happen. If fraud filtering only ran as a nightly batch pass, fraudulent clicks would already have both charged the advertiser and consumed real budget/inventory-pacing decisions for that day before anyone caught them — and refunding the charge afterward doesn't undo the fact that the campaign may have been paused early, or that a legitimate click was crowded out of that day's budget by a fraudulent one that arrived first. This is a mirror image of Payment System's own "slow correct answer beats a fast wrong one" reasoning (<a href="#p15">P15</a>): there, the fix is to slow down and verify before acting; here, verification has to happen fast enough to still be <em>before</em> the money-affecting decision, because by the time a fully-certain, slow answer is available, the budget has already moved.</p>
+<p><strong>Where this lives in the pipeline:</strong> a dedicated fraud-scoring consumer reads the same Kafka topic (M) in parallel with the aggregation consumer (O) — not as a gate the click has to pass before ever being logged (that would risk losing a genuinely legitimate click to a slow or overzealous check), but as an independent stream that tags or suppresses clicks from rollups quickly enough to matter for same-day budget pacing, while the raw event itself remains durably logged either way for later audit.</p>
+
+<h3 id="p16-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  User["User's Browser"] --> Redirect["Click Redirect Endpoint<br/>(minimal work, fast produce, M)"]
+  Redirect --> Topic[("Kafka Topic<br/>partitioned by ad_id, salted if hot, M/R")]
+  Redirect --> User
+
+  Topic --> AggConsumer["Aggregation Consumer Group"]
+  AggConsumer --> BloomPre["Bloom Filter Pre-Filter (N)"]
+  BloomPre --> DedupStore[("Exact Dedup Store<br/>bounded TTL window, N")]
+  DedupStore --> Windower["Tumbling Window Aggregator<br/>(count + HLL sketch, O, P)"]
+  Windower -->|"watermark passes window end + lateness, Q"| RollupStore[("Rollup Store<br/>(ad_id, window_start), K")]
+
+  Topic --> FraudConsumer["Fraud/Bot Scoring Consumer (S)"]
+  FraudConsumer --> RollupStore
+
+  Topic --> Archiver["Archival Consumer"]
+  Archiver --> ColdStore[("Cold Object Storage<br/>30-day+ raw retention, K")]
+
+  RollupStore --> Dashboard["Advertiser Dashboard<br/>(provisional counts, V)"]
+
+  subgraph Recon [" Batch Reconciliation (V) "]
+    direction LR
+    Recompute["Recompute exact counts from ColdStore"] --> Diff["Diff vs RollupStore"]
+    Diff --> Discrepancy["ReconciliationDiscrepancy queue"]
+  end
+  ColdStore --> Recompute
+  RollupStore --> Diff
+</div>
+<p class="diagram-caption">Two speeds, deliberately: the streaming path (top) trades a small, bounded error for near-real-time visibility; the batch path (bottom) trades latency for an eventual, fully-exact number.</p>
+
+<h3 id="p16-u">U. Design Evolution</h3>
+<table>
+<tr><th>Version</th><th>What Changed</th><th>Why</th></tr>
+<tr><td>V1</td><td>Direct synchronous per-click <code>INSERT</code>, reporting via ad hoc <code>COUNT(*)</code>/<code>GROUP BY</code> queries over raw rows (J)</td><td>Simplest possible thing that satisfies the functional requirement in isolation</td></tr>
+<tr><td>V2</td><td>Click ingestion moves to a durable Kafka log; the redirect endpoint only produces an event and returns immediately</td><td>Closes V1's write-throughput flaw — ingestion is decoupled from every downstream consumer's processing rate (M)</td></tr>
+<tr><td>V3</td><td>A stream-processing layer performs tumbling-window aggregation, emitting precomputed rollups instead of scanning raw events on read</td><td>Closes V1's read-side flaw — a dashboard query now reads a small number of already-aggregated rows (O)</td></tr>
+<tr><td>V4</td><td>A <code>click_id</code> idempotency key, backed by a Bloom-filter-fronted exact dedup store, deduplicates events before they're counted</td><td>At-least-once delivery plus real-world duplicate clicks would otherwise silently inflate billable counts (N)</td></tr>
+<tr><td>V5</td><td>Unique-reach is computed via mergeable HyperLogLog sketches instead of a per-ad set of raw user IDs</td><td>Exact unique counting doesn't fit in memory at this cardinality; a small, known error rate is the correct trade (P)</td></tr>
+<tr><td>V6</td><td>Watermarks and a bounded allowed-lateness window govern when a window closes; events later than that become explicit correction records, not silent rewrites</td><td>Event time and processing time genuinely diverge; the design needs a defined, bounded answer for stragglers (Q)</td></tr>
+<tr><td>V7</td><td>Hot ads are detected and their key is salted across multiple partitions, merged back downstream</td><td>A single viral ad's traffic would otherwise overwhelm the one partition its <code>ad_id</code> happens to hash to (R)</td></tr>
+<tr><td>V8</td><td>A parallel fraud-scoring consumer tags/suppresses suspicious clicks close to ingestion time; a batch reconciliation job independently recomputes exact counts from the durable log</td><td>Fraud filtering after billing has already run is too late to protect budget pacing (S); "near-real-time and provisional" needs an eventual, exact counterpart for disputes and audits (V)</td></tr>
+</table>
+<p><strong>What stays stable throughout:</strong> the small, click-through-redirect contract from I — every later refinement changes how a click's data flows and gets aggregated downstream, never the basic shape of what a user's browser actually hits or how quickly it gets redirected.</p>
+
+<h3 id="p16-v">V. Consistency Model</h3>
+<p>This design sits at almost the opposite end of this document's consistency spectrum from Payment System (<a href="#p15-v">P15-V</a>) — worth stating that contrast explicitly, because both problems' central lesson only lands fully once compared against each other. Payment System scopes strong consistency down to the smallest possible island (a single ledger commit) precisely because a financial fact being briefly wrong is unacceptable, no matter how narrow the window. This system does the reverse: it deliberately, explicitly treats its <em>headline, live-facing numbers</em> as approximate and provisional, on the honest premise (<a href="#prereq-l">Prerequisites L</a>'s PACELC framing, taken to its logical extreme) that a click dashboard which is 30 seconds stale, or off by a fraction of a percent on a reach estimate, has lost nothing a real advertiser actually needs from it in the moment.</p>
+<p><strong>The two-speed shape, made explicit:</strong> the live dashboard's numbers (V's provisional <code>WindowedRollup</code> counts, T) are eventually consistent in the ordinary sense — they converge toward correct as stragglers and corrections (Q) land — and are additionally, deliberately <em>approximate</em> in the statistical sense for reach specifically (P), which is a stronger and different kind of "not exact" than mere staleness. Underneath that live number, a slower batch reconciliation job (cross-referencing <a href="#p15-q">P15-Q</a>'s identical structural role for Payment System's ledger) independently recomputes an exact count from the full durable log, with no lateness bound and no statistical shortcuts, publishing it via the separate <code>/stats/exact</code> endpoint (I) once it's done — hours, not seconds, later. Billing ultimately settles against that slower, exact number, not the fast provisional one; the fast number's entire job is to be a good-enough, near-real-time signal for a human watching a dashboard, not the final financial word.</p>
+
+<h3 id="p16-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>The stream-processing layer falls behind the ingestion rate during a peak spike:</strong> Kafka's durable retention (M) means nothing is lost — the consumer simply catches up once the spike subsides, at the cost of temporarily wider staleness on the live dashboard, never at the cost of a dropped click.</li>
+<li><strong>A consumer instance crashes mid-window:</strong> its keyed aggregation state, checkpointed periodically by the stream-processing framework, is recovered on restart from the last checkpoint plus replaying the small slice of the log since then — no window silently loses its partial count.</li>
+<li><strong>The Bloom filter pre-filter is temporarily unavailable:</strong> every click simply falls through to the exact dedup store (N) directly — slower, but never incorrect; the filter is a pure optimization, never load-bearing for correctness.</li>
+<li><strong>A viral ad's hotness detection lags behind its actual traffic spike (R):</strong> the affected partition temporarily lags further behind than others, visible as extra staleness for that one ad specifically, until the salting kicks in — a graceful, localized degradation rather than a platform-wide one.</li>
+<li><strong>An event arrives after both the allowed-lateness window and, rarely, after reconciliation has already run for that window:</strong> it generates a second, explicit correction on top of the first (Q) — never silently discarded, never silently merged into a number already reported to an advertiser without a trace.</li>
+<li><strong>The fraud-scoring consumer is down:</strong> clicks continue to be aggregated and counted normally, unflagged, with the gap in fraud coverage explicitly logged — accepting some short-term fraud exposure is judged safer than blocking legitimate ad traffic from being counted at all (S).</li>
+</ul>
+
+<h3 id="p16-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1's single relational table</td><td>Write throughput ceiling reached well below even average platform load, before any peak multiplier (G, J)</td><td>Kafka as the ingestion point; the database is removed from the write-hot-path entirely (M)</td></tr>
+<tr><td>V1's <code>COUNT(*)</code>/<code>GROUP BY</code> reporting queries</td><td>Query cost grows with total raw row count, which itself grows without bound over the course of a day</td><td>Precomputed windowed rollups, read directly instead of recomputed on every query (O)</td></tr>
+<tr><td>A naive per-ad hash set for unique-reach</td><td>Memory grows linearly with true distinct-user count, per ad, per window — unbounded at this cardinality</td><td>HyperLogLog sketches, fixed-size regardless of true cardinality (P)</td></tr>
+<tr><td>A single Kafka partition under one viral ad</td><td>All of that ad's traffic funnels through one partition's single-consumer throughput ceiling (R)</td><td>Detect hotness, salt the key across N partitions, merge results downstream (R)</td></tr>
+<tr><td>Reconciliation re-scanning the entire retained log on every run</td><td>Cost grows without bound as retained history grows</td><td>Incremental, windowed reconciliation — only the period since the last successful run is diffed each time, the same discipline Payment System's own reconciliation job applies (<a href="#p15-x">P15-X</a>)</td></tr>
+</table>
+
+<h3 id="p16-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Ingestion path</td><td>Direct synchronous DB writes</td><td>Durable log (Kafka), chosen</td><td>Direct writes are simpler to reason about for a small system, but hit a hard throughput ceiling far below this problem's actual load; a log adds an extra hop and eventual-consistency reasoning in exchange for effectively unbounded write-side scale (M)</td></tr>
+<tr><td>Aggregation strategy</td><td>On-demand <code>COUNT</code>/<code>GROUP BY</code> queries</td><td>Windowed stream aggregation, chosen</td><td>On-demand queries need zero extra infrastructure but get slower as raw data grows; streaming aggregation needs a stateful processing layer, in exchange for query cost that stays flat regardless of total historical volume (O)</td></tr>
+<tr><td>Unique-reach counting</td><td>Exact per-ad hash set of user IDs</td><td>HyperLogLog sketch, chosen</td><td>An exact set is perfectly accurate but its memory cost scales with true cardinality, unboundedly; HLL trades a small, known error rate (P) for a fixed, tiny memory footprint per key, at any scale</td></tr>
+<tr><td>Late-event handling</td><td>Keep windows open indefinitely until every straggler arrives</td><td>Bounded watermark + allowed lateness, chosen</td><td>Indefinitely-open windows guarantee no straggler is ever missed but mean no number is ever truly "final" in a useful timeframe; a bounded window closes on a predictable schedule, at the cost of needing explicit correction records for genuinely late outliers (Q)</td></tr>
+<tr><td>Hot-key mitigation</td><td>Salt every ad's partition key uniformly</td><td>Detect hotness, salt selectively, chosen</td><td>Uniform salting handles any future hot ad automatically but adds merge overhead to every ordinary ad's small volume for no benefit; selective salting keeps the common case simple, at the cost of a brief lag while a newly-hot ad is first detected (R)</td></tr>
+</table>
+
+<h3 id="p16-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Writing every click as a row via a synchronous <code>INSERT</code>, then running <code>COUNT(*)</code>/<code>GROUP BY</code> for reporting.</strong> The single most important mistake to avoid on this problem — it collapses on both the write side and the query side independently, and no amount of sharding fully rescues either half (J).</li>
+<li><strong>Treating a disabled/one-time redirect as sufficient duplicate protection.</strong> A browser retry, a bot re-firing a URL, or a slow network causing a resend all happen below any client-side safeguard — only a server-recognized idempotency key genuinely deduplicates (N).</li>
+<li><strong>Trying to compute exact unique reach with a per-ad hash set of user IDs "for accuracy," without first asking whether the business actually needs exactness there.</strong> Burns unbounded memory on a number a HyperLogLog sketch answers, at fixed cost, within a well-understood, small error bound (P).</li>
+<li><strong>Confusing a Bloom filter with a cardinality estimator, or vice versa.</strong> One answers "have I seen this specific thing," the other answers "how many distinct things have I seen" — reaching for the wrong one for a given question is a fast way to lose credibility in this specific problem (P).</li>
+<li><strong>Assuming all events arrive in event-time order, with no watermark or lateness handling at all.</strong> Guarantees silently wrong counts the moment any client is delayed even briefly — which, at this volume, is not a rare event but a routine one (Q).</li>
+<li><strong>Running fraud detection as a nightly batch job, after the day's budget has already been spent.</strong> Technically catches the fraud eventually, but too late to have protected the advertiser's actual spend or budget-pacing decisions in the moment it mattered (S).</li>
+</ul>
+
+<h3 id="p16-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"How would you also track ad impressions, not just clicks, given impressions are 50-100x higher volume?"</td><td>The identical log-ingest-plus-windowed-aggregation architecture, reused wholesale — impressions simply produce to their own Kafka topic and rollup store, at higher partition count for the higher volume</td><td>Topic/partition count, rollup store sizing</td><td>Everything structural — dedup, windowing, HLL, watermarks — the pattern doesn't change, only the numbers</td></tr>
+<tr><td>"An advertiser disputes a specific day's billed click count — how do you actually investigate it?"</td><td>Pull the exact, reconciled count for that window (already computed by the batch job, V) alongside the original raw events for that ad from cold storage (K) — the full, replayable history is exactly what a log-based, non-destructive design (unlike V1) makes possible</td><td>None structurally — this is querying data the design already retains</td><td>The entire live pipeline — a dispute investigation never touches or slows down the streaming path</td></tr>
+<tr><td>"What if two ads are run by the same advertiser and need a combined, deduplicated reach number across both?"</td><td>Merge the two ads' HLL sketches for the requested window (P) — the union-merge property is exactly what makes a cross-ad, cross-key reach estimate possible without re-processing any raw events</td><td>A query-time HLL merge step</td><td>The underlying per-ad sketches themselves — nothing about how they're built changes</td></tr>
+<tr><td>"How would you support real-time budget pacing that pauses a campaign the instant it hits its daily spend cap?"</td><td>The streaming rollup's provisional spend figure (V) — already updated within roughly a minute of a click — is wired to a budget-check consumer that pauses ad serving on threshold breach; explicitly accepting that this decision is made against the provisional, not the exact, number, with the exact reconciled figure only ever adjusting the <em>next</em> day's ledger, never retroactively un-pausing</td><td>A new budget-pacing consumer reading the rollup store</td><td>The core ingestion, dedup, and windowing machinery — a pacing decision is just another reader of the same rollups</td></tr>
+</table>
+
+<h3 id="p16-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> writes every click directly to a relational table and proposes <code>COUNT(*)</code>/<code>GROUP BY</code> for reporting, with no answer for duplicate clicks and no awareness that this collapses well before the stated peak load.</li>
+<li><strong>Mid-level:</strong> correctly identifies that a queue/log is needed for ingestion and that some form of aggregation should be precomputed, but treats unique-reach as "just <code>COUNT(DISTINCT user_id)</code>" without recognizing the memory cost at this scale, and has no concrete answer for late-arriving events beyond "hope they don't happen."</li>
+<li><strong>Senior:</strong> proactively reaches for Kafka as the ingestion log and windowed stream aggregation as the computation model; correctly applies an idempotency key to deduplicate events; recognizes that exact unique counting doesn't scale and reaches for HyperLogLog, and can explain — unprompted — how it differs from a Bloom filter.</li>
+<li><strong>Staff+:</strong> is explicit, unprompted, about event time versus processing time and designs a concrete watermark/allowed-lateness scheme with a defined fallback (correction records) for genuine stragglers; names the hot-ad partitioning problem before being asked and connects it to the identical hot-key pattern elsewhere in the interview; treats the live dashboard number and the eventual reconciled number as two deliberately different guarantees serving two different audiences, and can defend why that split is correct rather than a compromise.</li>
+</ul>
+
+<h3 id="p16-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design the system behind an ad platform that records every click on an ad and shows advertisers a near-real-time dashboard of how many clicks each ad is getting.</div>
+<div class="dialog"><span class="who">Candidate:</span> Before I sketch anything, I want to flag the number that's going to drive every decision here — how many clicks per second are we actually talking about at peak? If we're talking hundreds of thousands a second, that immediately rules out the naive answer of just inserting a row per click into a database and running aggregate queries on top of it. A single database node just can't sustain that write rate, and even if it could, a <code>COUNT(*) GROUP BY</code> query over a table that's growing by millions of rows a minute gets slower every time you run it.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Right, assume it's real — hundreds of thousands per second at peak. What do you do instead?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd put a durable log — Kafka — directly in the ingestion path. The click-tracking endpoint's only job is to append the click event to a Kafka topic and redirect the user, as fast as possible — it doesn't wait on anything downstream. Then a stream-processing layer reads that log continuously and does the actual aggregation incrementally, grouping clicks into small time windows — say one-minute buckets per ad — and writing out a precomputed count for each window. The dashboard reads those precomputed rollups, never the raw click stream.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What about duplicate clicks — a user double-clicking, or a flaky connection retrying the same request?</div>
+<div class="dialog"><span class="who">Candidate:</span> Every click carries an idempotency key — a <code>click_id</code> generated once, when the ad is actually rendered, embedded in the tracking URL itself. So a double-fire of the same click, whether it's a real double-click or a network retry, carries the identical key both times. The stream processor checks that key against a short-lived dedup store before counting it — and to make that check cheap at this volume, I'd put a Bloom filter in front of it, so the overwhelming majority of clicks, which are genuinely novel, get a fast "definitely not a duplicate" answer without ever touching the heavier exact store.</div>
+<div class="dialog"><span class="who">Interviewer:</span> The advertiser also wants to know how many unique people clicked their ad, not just the raw click count. How would you compute that?</div>
+<div class="dialog"><span class="who">Candidate:</span> Not with an exact set of user IDs per ad — that grows without bound in memory as the true number of distinct clickers grows, and at this scale, per ad, per minute, that's just not viable. I'd use a HyperLogLog sketch instead — a fixed, small amount of memory, something like 12 kilobytes, that gives you a distinct-count estimate within a percent or two of error, no matter how many actual distinct users there were. And the useful property here is that these sketches merge — I can combine an hour's worth of one-minute sketches, or two different ads' sketches, into one combined estimate, without ever needing the original user IDs back.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Is that the same kind of structure as a Bloom filter, then?</div>
+<div class="dialog"><span class="who">Candidate:</span> No, and that's worth being precise about — they answer different questions. A Bloom filter tells you whether one specific item was seen before, with no false negatives; it can't tell you how many distinct items it's seen in total. HyperLogLog does the opposite — it estimates the total distinct count, but it can't tell you whether any one specific user was part of that count. I'm using a Bloom filter for the dedup check, and HyperLogLog for reach — they're solving two different problems that happen to both be probabilistic.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last thing — what if events don't arrive in order, or arrive late?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's expected, not an edge case, at this scale — a mobile device might buffer clicks offline and replay them minutes later. I'd use a watermark — the processor's own estimate, based on event timestamps it's actually seen, of how caught up it believes it is — and only close and emit a window's final count once the watermark passes that window's end plus a bit of extra buffer for allowed lateness. Anything that arrives even later than that becomes an explicit correction record layered on top of the original number, rather than silently rewriting it — and then a slower batch job, hours later, recomputes the fully exact count from the durable log for billing and disputes. The live dashboard number is always explicitly provisional; the batch number is the one that's actually final.</div>
+
+<h3 id="p16-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://nathanmarz.com/blog/how-to-beat-the-cap-theorem.html" target="_blank">Nathan Marz — "How to Beat the CAP Theorem" (introducing the Lambda Architecture)</a></td><td>Proposes a batch layer (recomputes exact views over the full immutable dataset) alongside a speed layer (fast, approximate, real-time views over only the most recent data), reconciled into a combined serving layer</td><td>The original, widely-cited articulation of exactly this design's two-speed shape — a fast, provisional streaming path and a slower, exact batch path serving different needs off the same underlying log</td><td>Predates modern unified stream-processing frameworks; in practice, systems like Flink and Kafka Streams now blur the sharp batch/speed-layer split Marz originally proposed</td><td>The clearest historical grounding for why this design's provisional-versus-exact split (V) is a recognized architectural pattern, not an invented shortcut</td></tr>
+<tr><td><a href="https://www.oreilly.com/radar/the-world-beyond-batch-streaming-101/" target="_blank">Tyler Akidau — "Streaming 101: The World Beyond Batch" (O'Reilly Radar)</a></td><td>Defines event time versus processing time precisely, and introduces watermarks as the mechanism a streaming system uses to reason about completeness in the face of unbounded, out-of-order data</td><td>The standard, most-cited explanation of exactly the terminology and reasoning this design's Deep Dive 5 (Q) applies — written by one of the engineers behind Google's own internal streaming infrastructure (the basis for Cloud Dataflow/Apache Beam)</td><td>Framework-agnostic by design — doesn't walk through a specific engine's API, so the concepts still need to be mapped onto whichever stream processor is actually chosen</td><td>The clearest available explanation of why "late data" is a fundamental property of distributed data collection, not an implementation bug</td></tr>
+<tr><td><a href="https://redis.io/docs/latest/develop/data-types/probabilistic/hyperloglogs/" target="_blank">Redis — "HyperLogLog" (official documentation)</a></td><td>Documents Redis's real, production HyperLogLog commands (<code>PFADD</code>, <code>PFCOUNT</code>, <code>PFMERGE</code>), including its actual standard error (~0.81%) and its sparse-to-dense representation switch as cardinality grows</td><td>A direct, first-party confirmation that a fixed-size, mergeable probabilistic cardinality structure — not an interview simplification — is exactly how a real, widely-deployed system implements unique counting at scale</td><td>Documents the client-facing command interface thoroughly but not the underlying register-update algorithm in depth</td><td>Confirms the concrete ~12KB dense-sketch size and the sparse-representation detail this design's Capacity Estimation (G) and Deep Dive 4 (P) rely on</td></tr>
+<tr><td><a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/operators/windows/" target="_blank">Apache Flink Documentation — "Windows"</a></td><td>Formally documents tumbling, sliding, and session window assigners, alongside watermark generation and an explicit, configurable "allowed lateness" parameter per window</td><td>The standard, widely-used real implementation of exactly the windowing and lateness-handling vocabulary this design's Deep Dives 3 and 5 (O, Q) use — confirms tumbling-vs-sliding and allowed-lateness are established, off-the-shelf concepts, not invented for this problem</td><td>Documents one specific framework's API surface — the underlying concepts transfer to Kafka Streams or Spark Structured Streaming, but the exact configuration knobs don't</td><td>Confirms the vocabulary (tumbling window, watermark, allowed lateness) this design's Deep Dives 3 and 5 use is the field's actual standard terminology, not an interview simplification</td></tr>
+</table>
+
+<h3 id="p16-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Ad Click Aggregation</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced — individually simple mechanisms, but the whole design only holds together once you accept that per-event DB writes and exact counting are both, deliberately, abandoned</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Record every click, deduplicated; near-real-time per-ad/per-campaign click and reach dashboards; an eventual, exact reconciled count for billing and disputes</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Ingest through a durable log (Kafka), not a database; aggregate via windowed stream processing, not per-event writes with query-time <code>COUNT</code>; deduplicate via an idempotency key established at ad-serve time; estimate unique reach with HyperLogLog instead of exact counting; bound lateness with watermarks and explicit correction records</td></tr>
+<tr><td><strong>Why not per-event DB writes</strong></td><td>A single relational node's realistic write throughput is already short of this platform's <em>average</em> load before any peak multiplier — sharding helps the write side but doesn't fix ever-growing <code>COUNT(*)</code> query cost on the read side (<a href="#p16-g">G</a>, <a href="#p16-j">J</a>)</td></tr>
+<tr><td><strong>Deduplication</strong></td><td>Client-side <code>click_id</code> generated at ad-serve time, checked via a Bloom-filter-fronted exact dedup store, TTL'd to a short window (<a href="#prereq-o">P.O</a>, <a href="#patterns-e">Pl.E</a>)</td></tr>
+<tr><td><strong>Approximate counting</strong></td><td>HyperLogLog for unique reach — fixed ~12KB memory regardless of true cardinality, mergeable across windows and partitions; distinct in purpose from a Bloom filter (membership) vs. HLL (cardinality) (<a href="#prereq-m">P.M</a>)</td></tr>
+<tr><td><strong>Late events</strong></td><td>Watermarks + a configured allowed-lateness buffer close windows on a predictable schedule; anything later becomes an explicit correction record, never a silent rewrite</td></tr>
+<tr><td><strong>Consistency</strong></td><td>Deliberately the opposite pole from Payment System (<a href="#p15-v">P15-V</a>) — the live number is provisional and approximate by design; a slower batch reconciliation produces the eventual exact number billing actually settles against</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Per-event <code>INSERT</code> plus <code>COUNT(*)</code>/<code>GROUP BY</code>; trusting a disabled button as dedup; exact per-ad hash sets for reach; conflating Bloom filters with cardinality estimators; running fraud detection only after billing has already run</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Ad serving/targeting/auction logic and the downstream billing/invoicing system itself — this design's scope is producing correct, timely click counts as an input to those systems, not replacing them</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p15.html">&larr; 15. Payment System (Stripe-like)</a><a class="prevnext-link next" href="p17.html">17. Yelp / Nearby Places Search &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

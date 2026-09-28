@@ -1,0 +1,4039 @@
+[
+ {
+  "title": "Home",
+  "url": "index.html",
+  "type": "page"
+ },
+ {
+  "title": "0. Prerequisites — Core Building Blocks",
+  "badge": "Read First If New to These Technologies",
+  "url": "prereq.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. How to Use This Section",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Relational vs. NoSQL Databases",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-b",
+  "type": "section"
+ },
+ {
+  "title": "C. Replication &amp; Sharding",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Caching &amp; Redis",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Distributed Locks",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Leader Election",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Message Queues, Kafka &amp; Pub/Sub",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-g",
+  "type": "section"
+ },
+ {
+  "title": "H. CDNs &amp; Load Balancers",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-h",
+  "type": "section"
+ },
+ {
+  "title": "I. Blob / Object Storage",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Consistent Hashing",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-j",
+  "type": "section"
+ },
+ {
+  "title": "K. WebSockets &amp; Persistent Connections",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-k",
+  "type": "section"
+ },
+ {
+  "title": "L. Consistency Models: CAP &amp; PACELC",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Bloom Filters",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Rate-Limiting &amp; Geospatial Primers",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Idempotency",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Quick-Reference Glossary",
+  "parent": "0. Prerequisites — Core Building Blocks",
+  "url": "prereq.html#prereq-p",
+  "type": "section"
+ },
+ {
+  "title": "1. URL Shortener (Bitly)",
+  "badge": "Beginner → Advanced+Scale",
+  "url": "p1.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation (Back-of-Envelope)",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Database Choice",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow (Basic)",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Ensuring Short-Code Uniqueness at Scale",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Ensuring Fast, Cheap Redirects",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Scaling to 1B URLs and 100M DAU",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — High Availability &amp; Fault Tolerance",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Custom Aliases &amp; Expiration",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Analytics / Click Tracking",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Security &amp; Abuse Prevention",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model &amp; CAP Trade-offs",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "1. URL Shortener (Bitly)",
+  "url": "p1.html#p1-ae",
+  "type": "section"
+ },
+ {
+  "title": "2. Rate Limiter",
+  "badge": "Beginner → Advanced+Distributed",
+  "url": "p2.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Choosing the Rate-Limiting Algorithm",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Atomicity Under Concurrency",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Scaling to 1M Requests/Sec",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — High Availability &amp; the Fail-Open/Fail-Closed Decision",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — The Hot-Key / Single Abusive Client Problem",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Multi-Region / Global Rate Limiting",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Where to Enforce the Limit",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "2. Rate Limiter",
+  "url": "p2.html#p2-ae",
+  "type": "section"
+ },
+ {
+  "title": "3. Twitter / News Feed",
+  "badge": "Intermediate → Advanced",
+  "url": "p3.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1) — Fanout-on-Read",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — Fanout-on-Write (Post → Delivery)",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Fanout Strategy: Write vs. Read vs. Hybrid",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — The Celebrity Problem, In Detail",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — The Precomputed Feed/Timeline Store",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Caching Viral / Hot Posts",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — From Chronological to Ranked Feed",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Media Storage &amp; Delivery",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Search",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "3. Twitter / News Feed",
+  "url": "p3.html#p3-ae",
+  "type": "section"
+ },
+ {
+  "title": "4. Chat System (WhatsApp)",
+  "badge": "Advanced",
+  "url": "p4.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — 1:1 Message, Both Users Online",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Connection Management at Scale",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — The Routing Problem",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Message Ordering",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Delivery Guarantees (Sent / Delivered / Read)",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Group Chat Fanout",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Offline Delivery (Store-and-Forward)",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — End-to-End Encryption &amp; Multi-Device",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "4. Chat System (WhatsApp)",
+  "url": "p4.html#p4-ae",
+  "type": "section"
+ },
+ {
+  "title": "5. Ride-Sharing (Uber)",
+  "badge": "Advanced + Geospatial",
+  "url": "p5.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — Trip Request to Match",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — The Geospatial Index",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — High-Frequency Location Ingestion",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Matching &amp; Ranking Candidates",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Atomic Driver Assignment",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Match Offer Reliability &amp; Retries",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Live Trip Tracking",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Supply/Demand Imbalance (Surge, Conceptual)",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "5. Ride-Sharing (Uber)",
+  "url": "p5.html#p5-ae",
+  "type": "section"
+ },
+ {
+  "title": "6. Web Crawler",
+  "badge": "Intermediate → Advanced",
+  "url": "p6.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — One Crawl Cycle",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — The URL Frontier",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Politeness",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Distributed Crawling at Scale",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Duplicate Detection",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Storage at Scale",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Freshness &amp; Recrawl Scheduling",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Crawler Traps &amp; Extensibility",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "6. Web Crawler",
+  "url": "p6.html#p6-ae",
+  "type": "section"
+ },
+ {
+  "title": "7. Video Streaming (YouTube)",
+  "badge": "Advanced",
+  "url": "p7.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — Upload to Watchable",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — The Upload Pipeline",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — The Transcoding Pipeline",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Adaptive Bitrate Streaming",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — CDN Delivery at Scale",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Metadata &amp; Search",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — View Counting at Scale",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Recommendations (Conceptual)",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "7. Video Streaming (YouTube)",
+  "url": "p7.html#p7-ae",
+  "type": "section"
+ },
+ {
+  "title": "8. Ticketmaster (Event Ticket Booking)",
+  "badge": "Advanced + High-Contention",
+  "url": "p8.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — Seat Reservation to Confirmed Order",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Preventing Overselling",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Reservation Holds &amp; Expiry",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Surviving Flash-Sale-Scale Load",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — The Virtual Waiting Room",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Payment Integration Timing",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Seat Map Display &amp; Search",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Fairness &amp; Bot/Scalper Mitigation",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "8. Ticketmaster (Event Ticket Booking)",
+  "url": "p8.html#p8-ae",
+  "type": "section"
+ },
+ {
+  "title": "9. Google Docs (Collaborative Editing)",
+  "badge": "Advanced",
+  "url": "p9.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — Two Users Editing Concurrently",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Real-Time Sync &amp; Transport",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Operational Transformation vs. CRDTs",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Ordering &amp; Causality",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Presence &amp; Live Cursors",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Offline Editing &amp; Reconciliation",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Persistence &amp; Snapshotting",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Scaling to Many Documents",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "9. Google Docs (Collaborative Editing)",
+  "url": "p9.html#p9-ae",
+  "type": "section"
+ },
+ {
+  "title": "10. Distributed Job Scheduler",
+  "badge": "Advanced + Distributed Systems",
+  "url": "p10.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — One Scheduled Job, Triggered and Executed",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Leader Election for the Triggering Role",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Scaling the Trigger Path (The Midnight Spike)",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Exactly-Once-Ish Execution",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Retries &amp; Failure Handling",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Job Dependency Graphs",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Worker Fleet &amp; Isolation",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Missed Runs &amp; Backfill",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "10. Distributed Job Scheduler",
+  "url": "p10.html#p10-ae",
+  "type": "section"
+ },
+ {
+  "title": "11. Distributed Cache",
+  "badge": "Advanced + Distributed Systems",
+  "url": "p11.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — One GET Request Routed to Its Shard and Served",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Eviction Policies",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Consistent Hashing for Horizontal Scaling",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Replication for High Availability",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — The Hot-Key Problem",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Cache Invalidation Strategies",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Memory Management &amp; Eviction Under Pressure",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Persistence &amp; Recovery",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "11. Distributed Cache",
+  "url": "p11.html#p11-ae",
+  "type": "section"
+ },
+ {
+  "title": "12. Notification System",
+  "badge": "Intermediate → Advanced",
+  "url": "p12.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — A Backend Service Triggers a Notification",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Async Fan-Out via Queue",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Multi-Channel Provider Abstraction",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — User Preferences &amp; Opt-Outs",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Deduplication &amp; Idempotency",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Rate Limiting &amp; Digesting",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Retry &amp; Failure Handling",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Priority &amp; Delivery Guarantees",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "12. Notification System",
+  "url": "p12.html#p12-ae",
+  "type": "section"
+ },
+ {
+  "title": "13. Search Autocomplete / Typeahead",
+  "badge": "Intermediate → Advanced",
+  "url": "p13.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — A User Types 3 Characters and Gets Ranked Suggestions",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Trie Data Structure for Prefix Search",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Precomputing Top-K at Each Trie Node",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Updating the Trie at Scale",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Sharding the Trie",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Caching Hot Prefixes",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Personalization",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Handling Typos / Fuzzy Matching",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "13. Search Autocomplete / Typeahead",
+  "url": "p13.html#p13-ae",
+  "type": "section"
+ },
+ {
+  "title": "14. Distributed File Storage (Dropbox)",
+  "badge": "Advanced + Storage &amp; Sync",
+  "url": "p14.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — A User Edits a Large File on Device A; Only the Changed Chunks Sync to the Cloud, Then Down to Device B",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Chunking Large Files",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Delta Sync &amp; Chunk-Level Deduplication",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Metadata / Blob Store Split, and the Chunk Store as Its Own Layer",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Multi-Device Sync &amp; Conflict Detection",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Conflict Resolution: Why a Conflicted Copy, Not an Automatic Merge",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Offline Edits Queued Locally, Synced on Reconnect",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Notifying Other Devices of Changes",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "14. Distributed File Storage (Dropbox)",
+  "url": "p14.html#p14-ae",
+  "type": "section"
+ },
+ {
+  "title": "15. Payment System (Stripe-like)",
+  "badge": "Advanced + Financial Correctness",
+  "url": "p15.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — A Customer Pays a Merchant: Charge, Ledger, Notification, All Idempotently",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Idempotency at the API Boundary",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — The Double-Entry Ledger as the Single Source of Truth",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Handling Processor Timeout Ambiguity",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — The Saga Pattern for Multi-Step Transactions",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Async Reconciliation Jobs",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Idempotent Webhooks from the Payment Processor",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Handling Refunds &amp; Partial Refunds",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "15. Payment System (Stripe-like)",
+  "url": "p15.html#p15-ae",
+  "type": "section"
+ },
+ {
+  "title": "16. Ad Click Aggregation",
+  "badge": "Advanced + High-Volume Stream Processing",
+  "url": "p16.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — A User Clicks an Ad: Ingestion, Dedup, and Windowed Aggregation into a Queryable Rollup",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Ingesting at Scale via a Log",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Deduplication of Duplicate Click Events",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Batched / Windowed Aggregation",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Approximate Counting at Extreme Scale",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Handling Late-Arriving / Out-of-Order Events",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — The Hot Ad Problem",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Fraud / Bot Click Filtering",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "16. Ad Click Aggregation",
+  "url": "p16.html#p16-ae",
+  "type": "section"
+ },
+ {
+  "title": "17. Yelp / Nearby Places Search",
+  "badge": "Intermediate → Advanced + Geospatial Search",
+  "url": "p17.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — A User Searches for \"Coffee Near Me\" With Filters",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Geospatial Indexing for Static Points",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Why Static Points Change the Geospatial Trade-off vs. Uber",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Combining the Geospatial Filter with Metadata Filters",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Ranking Results",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Caching Popular Areas and Queries",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Handling Reviews at Scale",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Search Index Freshness",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "17. Yelp / Nearby Places Search",
+  "url": "p17.html#p17-ae",
+  "type": "section"
+ },
+ {
+  "title": "18. Distributed Key-Value Store (Dynamo-style)",
+  "badge": "Advanced + Tunable Consistency (PACELC)",
+  "url": "p18.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — A Client Writes With W=2, Then Reads Back With R=2",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 — Consistent Hashing for Data Partitioning",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 — Replication Across Nodes",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 — Quorum Reads/Writes",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 — Conflict Detection with Vector Clocks",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 — Conflict Resolution Strategies",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 — Hinted Handoff &amp; Read Repair",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 — Anti-Entropy via Merkle Trees",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale — Final Architecture",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "18. Distributed Key-Value Store (Dynamo-style)",
+  "url": "p18.html#p18-ae",
+  "type": "section"
+ },
+ {
+  "title": "19. Real-Time Leaderboard",
+  "badge": "Intermediate &#8594; Advanced + Sorted-Set-Driven Scale-Out",
+  "url": "p19.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow — A Player's Score Updates After a Match, and Another Player Queries Their Own Rank",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 &#8212; Sorted Set as the Core Data Structure",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 &#8212; Getting a Player's Rank Efficiently",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 &#8212; Sharding the Leaderboard",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 &#8212; Real-Time Score Updates at High Write Volume",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 &#8212; Handling Ties",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 &#8212; Time-Windowed Leaderboards",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 &#8212; Persistence &amp; Durability",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale &#8212; Final Architecture",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "19. Real-Time Leaderboard",
+  "url": "p19.html#p19-ae",
+  "type": "section"
+ },
+ {
+  "title": "20. Distributed Message Queue (Build Kafka)",
+  "badge": "Advanced + Distributed Systems Capstone",
+  "url": "p20.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Realistic Interview Prompt",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Difficulty",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-b",
+  "type": "section"
+ },
+ {
+  "title": "C. What This Problem Tests",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Requirements",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Clarifying Questions",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Assumptions",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Capacity Estimation",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Core Entities",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-h",
+  "type": "section"
+ },
+ {
+  "title": "I. API Design",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Basic / Naive High-Level Design (V1)",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Data Model &amp; Store Choice",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-k",
+  "type": "section"
+ },
+ {
+  "title": "L. End-to-End Flow &#8212; A Producer Publishes a Message, It's Replicated to Followers, and a Consumer Group Reads and Commits It",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Deep Dive 1 &#8212; Partitioning a Topic for Parallelism",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-m",
+  "type": "section"
+ },
+ {
+  "title": "N. Deep Dive 2 &#8212; Durable, Append-Only Log Storage per Partition",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-n",
+  "type": "section"
+ },
+ {
+  "title": "O. Deep Dive 3 &#8212; Replication of Partitions",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-o",
+  "type": "section"
+ },
+ {
+  "title": "P. Deep Dive 4 &#8212; Consumer Groups &amp; Offset Tracking",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-p",
+  "type": "section"
+ },
+ {
+  "title": "Q. Deep Dive 5 &#8212; Delivery Semantics: At-Least-Once by Default",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-q",
+  "type": "section"
+ },
+ {
+  "title": "R. Deep Dive 6 &#8212; Producer Partitioning Strategy",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-r",
+  "type": "section"
+ },
+ {
+  "title": "S. Deep Dive 7 &#8212; Retention &amp; Compaction",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-s",
+  "type": "section"
+ },
+ {
+  "title": "T. Full Solution at Scale &#8212; Final Architecture",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-t",
+  "type": "section"
+ },
+ {
+  "title": "U. Design Evolution",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-u",
+  "type": "section"
+ },
+ {
+  "title": "V. Consistency Model",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-v",
+  "type": "section"
+ },
+ {
+  "title": "W. Failure Scenarios",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-w",
+  "type": "section"
+ },
+ {
+  "title": "X. Bottlenecks &amp; Scaling Boundary",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-x",
+  "type": "section"
+ },
+ {
+  "title": "Y. Design Trade-Offs",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-y",
+  "type": "section"
+ },
+ {
+  "title": "Z. Common Bad Designs",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-z",
+  "type": "section"
+ },
+ {
+  "title": "AA. Interviewer Follow-Ups",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-aa",
+  "type": "section"
+ },
+ {
+  "title": "AB. Interviewer Evaluation Rubric",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-ab",
+  "type": "section"
+ },
+ {
+  "title": "AC. Interview Simulation",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-ac",
+  "type": "section"
+ },
+ {
+  "title": "AD. Online Solution Comparison",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-ad",
+  "type": "section"
+ },
+ {
+  "title": "AE. Interview Cheat Sheet",
+  "parent": "20. Distributed Message Queue (Build Kafka)",
+  "url": "p20.html#p20-ae",
+  "type": "section"
+ },
+ {
+  "title": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "badge": "Synthesis Across All 20 Problems",
+  "url": "patterns.html",
+  "type": "problem"
+ },
+ {
+  "title": "A. Why This Section Exists",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-a",
+  "type": "section"
+ },
+ {
+  "title": "B. Pattern 1 — The Check-Then-Act Race",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-b",
+  "type": "section"
+ },
+ {
+  "title": "C. Pattern 2 — Keep Expensive Work Off the Hot Path",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-c",
+  "type": "section"
+ },
+ {
+  "title": "D. Pattern 3 — Metadata / Blob Store Split",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-d",
+  "type": "section"
+ },
+ {
+  "title": "E. Pattern 4 — Idempotent Retries via Client-Generated Keys",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-e",
+  "type": "section"
+ },
+ {
+  "title": "F. Pattern 5 — Push vs. Pull (Fan-Out Write vs. Fan-Out Read)",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-f",
+  "type": "section"
+ },
+ {
+  "title": "G. Pattern 6 — Shard by the Natural Ownership Key",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-g",
+  "type": "section"
+ },
+ {
+  "title": "H. Pattern 7 — Connection Routing at Scale",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-h",
+  "type": "section"
+ },
+ {
+  "title": "I. Pattern 8 — Leader Election for Singleton Responsibilities",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-i",
+  "type": "section"
+ },
+ {
+  "title": "J. Pattern 9 — Narrow Strong-Consistency Islands",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-j",
+  "type": "section"
+ },
+ {
+  "title": "K. Pattern 10 — Reusing Rate Limiting as a Cross-Cutting Concern",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-k",
+  "type": "section"
+ },
+ {
+  "title": "L. Pattern 11 — Consistent Hashing for Elastic Ownership",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-l",
+  "type": "section"
+ },
+ {
+  "title": "M. Master \"What to Use When\" Decision Table",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-m",
+  "type": "section"
+ },
+ {
+  "title": "N. How to Use This in an Actual Interview",
+  "parent": "21. Patterns Playbook — What Recurs, and What to Reach For",
+  "url": "patterns.html#patterns-n",
+  "type": "section"
+ }
+]

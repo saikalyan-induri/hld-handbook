@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>13. Search Autocomplete / Typeahead — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">13. Search Autocomplete / Typeahead <span class="badge">Intermediate → Advanced</span></h1>
+
+<div class="section-toc">
+<a href="#p13-a">A. Interview Prompt</a><a href="#p13-b">B. Difficulty</a><a href="#p13-c">C. What It Tests</a>
+<a href="#p13-d">D. Requirements</a><a href="#p13-e">E. Clarifying Questions</a><a href="#p13-f">F. Assumptions</a>
+<a href="#p13-g">G. Capacity Estimation</a><a href="#p13-h">H. Core Entities</a><a href="#p13-i">I. API Design</a>
+<a href="#p13-j">J. Basic Design (V1)</a><a href="#p13-k">K. Data Model &amp; Store Choice</a><a href="#p13-l">L. End-to-End Flow</a>
+<a href="#p13-m">M. Deep Dive 1: Trie Data Structure</a><a href="#p13-n">N. Deep Dive 2: Precomputed Top-K</a><a href="#p13-o">O. Deep Dive 3: Updating at Scale</a>
+<a href="#p13-p">P. Deep Dive 4: Sharding the Trie</a><a href="#p13-q">Q. Deep Dive 5: Caching Hot Prefixes</a><a href="#p13-r">R. Deep Dive 6: Personalization</a>
+<a href="#p13-s">S. Deep Dive 7: Typos &amp; Fuzzy Matching</a><a href="#p13-t">T. Full Solution at Scale</a><a href="#p13-u">U. Design Evolution</a>
+<a href="#p13-v">V. Consistency Model</a><a href="#p13-w">W. Failure Scenarios</a><a href="#p13-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p13-y">Y. Trade-Offs</a><a href="#p13-z">Z. Common Bad Designs</a><a href="#p13-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p13-ab">AB. Interviewer Evaluation</a><a href="#p13-ac">AC. Interview Simulation</a><a href="#p13-ad">AD. Source Comparison</a>
+<a href="#p13-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p13">Jump to section:</label><select id="jump-p13" class="jump-select" data-jump-select><option value="p13-a">A. Realistic Interview Prompt</option><option value="p13-b">B. Difficulty</option><option value="p13-c">C. What This Problem Tests</option><option value="p13-d">D. Requirements</option><option value="p13-e">E. Clarifying Questions</option><option value="p13-f">F. Assumptions</option><option value="p13-g">G. Capacity Estimation</option><option value="p13-h">H. Core Entities</option><option value="p13-i">I. API Design</option><option value="p13-j">J. Basic / Naive High-Level Design (V1)</option><option value="p13-k">K. Data Model &amp; Store Choice</option><option value="p13-l">L. End-to-End Flow — A User Types 3 Characters and Gets Ranked Suggestions</option><option value="p13-m">M. Deep Dive 1 — Trie Data Structure for Prefix Search</option><option value="p13-n">N. Deep Dive 2 — Precomputing Top-K at Each Trie Node</option><option value="p13-o">O. Deep Dive 3 — Updating the Trie at Scale</option><option value="p13-p">P. Deep Dive 4 — Sharding the Trie</option><option value="p13-q">Q. Deep Dive 5 — Caching Hot Prefixes</option><option value="p13-r">R. Deep Dive 6 — Personalization</option><option value="p13-s">S. Deep Dive 7 — Handling Typos / Fuzzy Matching</option><option value="p13-t">T. Full Solution at Scale — Final Architecture</option><option value="p13-u">U. Design Evolution</option><option value="p13-v">V. Consistency Model</option><option value="p13-w">W. Failure Scenarios</option><option value="p13-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p13-y">Y. Design Trade-Offs</option><option value="p13-z">Z. Common Bad Designs</option><option value="p13-aa">AA. Interviewer Follow-Ups</option><option value="p13-ab">AB. Interviewer Evaluation Rubric</option><option value="p13-ac">AC. Interview Simulation</option><option value="p13-ad">AD. Online Solution Comparison</option><option value="p13-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p13-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a search autocomplete / typeahead system — the kind of thing sitting behind the Google or Amazon search box — that suggests likely completions to a user as they type, ranked by how popular or relevant each completion actually is, and fast enough that it never feels like it's lagging behind the keyboard."</div>
+<p>Every character a user types is, underneath, a fresh request for "rank and return the best few completions for this exact prefix," fired at keystroke speed, at a volume that dwarfs the number of searches actually submitted — a single search is preceded by several throwaway prefix requests that never turn into anything. The honest, load-bearing answer this problem is actually testing is one integrated decision: <strong>a Trie (prefix tree) with the top-K completions precomputed and cached at each node, rebuilt periodically offline from aggregated query logs, with a fast-moving "trending" overlay merged on top of that otherwise-stale structure, sharded by prefix range once the corpus outgrows one machine, and aggressively cached at the edge for the small set of short, extremely hot prefixes that account for a disproportionate share of all traffic.</strong></p>
+
+<h3 id="p13-b">B. Difficulty</h3>
+<p><strong>Intermediate, growing into genuine distributed-systems territory in the deep dives</strong> — the read path itself (walk a tree, return a cached list) is conceptually simple once you know to reach for a trie at all; what makes this problem hard is everything <em>around</em> that read: keeping the structure fresh without paying a write cost on every keystroke (<a href="#patterns-c">Patterns Playbook C</a>), sharding a tree-shaped data structure rather than a flat keyspace (<a href="#patterns-g">Patterns Playbook G</a>), and layering personalization and typo-tolerance on top without breaking the one thing that makes the whole design fast — a shared, cacheable, precomputed structure.</p>
+
+<h3 id="p13-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognizing that the naive, "obvious" implementation — a live database prefix scan, or an in-memory trie that recomputes ranking on every request — breaks specifically on the hottest, shortest prefixes, which is exactly backwards from what a scalable design needs</li>
+<li>Precomputing expensive work off the hot path (<a href="#patterns-c">Patterns Playbook C</a>) as the central move, generalized here from "defer a side effect to a queue" to "defer an entire ranking computation to an offline batch job" — the same instinct behind News Feed's precomputed <code>FeedEntry</code> store (<a href="#p3">P3</a>, Deep Dive O)</li>
+<li>Sharding a data structure whose natural ownership boundary is a tree's own branches, not an entity ID — the same "shard by the natural ownership key" reasoning as <a href="#patterns-g">Patterns Playbook G</a>, just applied to prefix ranges instead of a row's primary key</li>
+<li>Distinguishing a slow-changing, globally-shared bulk structure from a fast-moving, narrow "what's trending right now" overlay — two different freshness requirements that need two different mechanisms, not one compromise setting</li>
+<li>Recognizing this as a read-heavy, staleness-tolerant system from the start (<a href="#p11">P11</a>'s caching reasoning applies almost unchanged) and being explicit about where personalization and fuzzy-matching can and can't be bolted onto a precomputed, shared cache without destroying its economics</li>
+</ul>
+
+<h3 id="p13-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Given a partial search string (a prefix), return a ranked list of the top-K most likely completions</li>
+<li>Ranking reflects overall popularity across all users — how often a completion has actually been searched — not simple alphabetical order</li>
+<li>Suggestions update, on some reasonable delay, to reflect genuinely new or newly-trending queries, not just what was popular when the system was first built</li>
+<li>Results are returned per keystroke, incrementally, as the user's prefix grows or shrinks</li>
+<li>(Extension, addressed in R/S) results can be personalized per user and tolerant of minor typos</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Very low latency</strong> — suggestions need to feel instantaneous relative to typing speed; a response arriving after the user has already typed the next character is functionally useless</li>
+<li><strong>Extremely read-heavy, at very high volume</strong> — every keystroke is a request, and only a small fraction of prefix requests ever culminate in an actual submitted search</li>
+<li><strong>Highly skewed traffic</strong> — a small number of short, common prefixes ("a", "how", "wea...") receive a wildly disproportionate share of total request volume relative to long, specific ones</li>
+<li><strong>Staleness-tolerant</strong> — a few minutes (or, for the bulk of the ranking, longer) of lag between "this query became popular" and "this query shows up in suggestions" is an acceptable, deliberate trade-off, not a correctness failure (elaborated fully in V)</li>
+<li><strong>Horizontally scalable storage</strong> — the full ranked corpus of query completions does not need to, and should not be assumed to, fit on one machine</li>
+</ul>
+<p><strong>Out of scope:</strong> full-text search over document contents (this system only autocompletes search-box query strings, not searching within results); a complete natural-language query-understanding layer; building a production-grade spelling-correction model from scratch (S names the mitigations available without claiming to design one in the room).</p>
+
+<h3 id="p13-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Does ranking need to reflect real-time trending activity (breaking news, a sudden spike), or is "popular over the last several days/weeks" an acceptable basis for ranking?</td><td>Determines whether a fast-moving real-time overlay is a first-class requirement or a later extension</td><td>Deep Dive 3 (O), Capacity Estimation (G)</td></tr>
+<tr><td>2</td><td>Should suggestions be personalized to an individual user's own search history, or is one shared, global ranking sufficient?</td><td>Changes whether personalization is a core requirement shaping the read path from the start, or a bolt-on layer</td><td>Deep Dive 6 (R)</td></tr>
+<tr><td>3</td><td>Do we need to tolerate typos/misspellings in the prefix itself, or is exact-prefix matching acceptable?</td><td>An exact-prefix trie structurally cannot answer a typo-tolerant query on its own — this changes whether a secondary mechanism is required at all</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>4</td><td>Roughly how large is the corpus of distinct query strings we're ranking over, and how long can completions realistically be?</td><td>Directly drives whether the precomputed structure fits comfortably on one machine or requires sharding from the start</td><td>Capacity Estimation (G), Deep Dive 4 (P)</td></tr>
+<tr><td>5</td><td>Is this general web-search autocomplete, or scoped to a narrower domain (product search, a company directory)?</td><td>A narrower, smaller corpus may never need sharding at all — worth confirming before assuming the full-scale version is required</td><td>Assumptions (F), Capacity Estimation (G)</td></tr>
+</table>
+
+<h3 id="p13-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> ranked, per-keystroke prefix completion, ranked by real popularity rather than alphabetically, with results that update over time as query trends shift.</li>
+<li><strong>Assumption:</strong> this is general, large-scale web-search autocomplete (E's clarifying question 5) — the assumption that makes sharding (P) and edge caching (Q) first-class parts of the design rather than something a smaller-scoped system would never need.</li>
+<li><strong>Assumption:</strong> both a slower, broad popularity ranking <em>and</em> a fast-moving trending signal are required (E's clarifying question 1) — treated throughout as two distinct mechanisms with two distinct freshness targets, never conflated into one setting.</li>
+<li><strong>Assumption:</strong> personalization (E's clarifying question 2) and typo tolerance (E's clarifying question 3) are both real, named extensions to the core design (R, S) rather than requirements the base trie itself must satisfy directly.</li>
+<li><strong>Assumption:</strong> the corpus of distinct query strings being ranked over is large enough (hundreds of millions of frequently-seen strings) that it will not comfortably fit in one machine's memory once precomputed rankings are included (E's clarifying question 4) — this is the assumption that makes sharding (P) load-bearing rather than a hypothetical extension.</li>
+</ul>
+
+<h3 id="p13-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Total submitted searches</td><td>Illustratively, ~1B searches/day platform-wide</td><td>The baseline "real" query volume — everything else in this table is a multiple of this number, not a replacement for it</td></tr>
+<tr><td>Autocomplete request volume</td><td>Each submitted search is preceded by roughly 5–7 keystroke-triggered prefix requests (after client-side debouncing) → ~6–7B autocomplete requests/day ≈ ~75,000/sec average</td><td>This, not the search-submission rate, is the number the read path has to be sized for — the actual dominant traffic in this entire system</td></tr>
+<tr><td>Peak traffic skew</td><td>Peak hours plus the natural skew toward short/common prefixes push the effective rate on hot paths to ~4–5x average during peak windows</td><td>Confirms this is fundamentally a read-fan-in problem concentrated on a small number of very hot prefixes, not an evenly-spread load</td></tr>
+<tr><td>Distinct query corpus after filtering</td><td>Illustratively, ~100–200M frequently-seen distinct query strings survive the offline aggregation job's noise/long-tail filtering (out of a much larger raw logged corpus)</td><td>Sets the outer bound on trie node count — everything below this line filters out the one-off, rarely-repeated tail that isn't worth precomputing ranking for at all</td></tr>
+<tr><td>Trie memory footprint</td><td>~200M shared-prefix nodes × ~500–600 bytes/node (children pointers + a small top-10 cached completion list per node) ≈ roughly 100–120 GB for the full structure</td><td>Comfortably beyond a single machine's safe in-memory budget — the concrete number that makes sharding (P) a necessity, not a hypothetical</td></tr>
+<tr><td>Per-request latency budget</td><td>Sub-100ms end to end, ideally well under that, to feel instantaneous relative to typing speed</td><td>Rules out anything that scans, joins, or re-ranks a large candidate set live per request — the entire justification for precomputing top-K (N) ahead of time</td></tr>
+</table>
+
+<h3 id="p13-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>QueryLogEntry</code></td><td>One raw record of a search actually submitted by a user, the ultimate source of all ranking signal</td><td><code>query_text</code>, <code>user_id</code> (optional), <code>timestamp</code>, <code>region</code>/<code>locale</code>, <code>resulted_in_click</code></td></tr>
+<tr><td><code>AggregatedQueryCount</code></td><td>A rolled-up, time-bucketed count for one query string, produced by the offline batch job (O)</td><td><code>query_text</code>, <code>count</code>, <code>time_bucket</code>, <code>decay_weighted_score</code></td></tr>
+<tr><td><code>TrieNode</code> (serialized)</td><td>One node of the precomputed structure, representing one prefix — the actual unit stored and served by a shard (M, N)</td><td><code>prefix</code>, <code>children</code> (pointers/offsets), <code>top_k_completions</code> (sorted <code>query_text</code> + score pairs)</td></tr>
+<tr><td><code>TrendingDelta</code></td><td>A short-lived, fast-refreshing overlay entry tracking a prefix's recent-activity spike, layered on top of the stale bulk trie (O)</td><td><code>prefix</code>, <code>top_trending_completions</code>, <code>window_start</code>, <code>window_end</code></td></tr>
+<tr><td><code>UserQueryHistory</code></td><td>A bounded, per-user record of recent searches/clicks used to personalize results (R)</td><td><code>user_id</code>, <code>recent_queries</code> (small, capped list), <code>last_updated</code></td></tr>
+</table>
+
+<h3 id="p13-i">I. API Design</h3>
+<pre><code>-- client-facing:
+GET /autocomplete?prefix={text}&amp;limit=10          -&gt; ranked list of { completion, score }
+POST /events/click { user_id?, prefix, selected_completion }  -&gt; fire-and-forget feedback signal (R, O)
+-- internal, cluster-facing, not client-facing:
+(query log stream) every submitted search -&gt; durable log (Kafka, Prerequisites G)
+(batch aggregation job) periodic: query log -&gt; counts + decay weighting -&gt; rebuild trie top-K caches (O)
+(trending aggregator) continuous: recent window of query log -&gt; TrendingDelta per prefix (O)
+(shard push) new trie version -&gt; blue-green deploy onto serving shards (O, P)
+</code></pre>
+<p><strong>Why <code>GET /autocomplete</code> is the only latency-critical endpoint in the whole system:</strong> everything else — logging a query, aggregating counts, rebuilding the trie, recording a click — happens off the request path entirely, on its own schedule (<a href="#patterns-c">Patterns Playbook C</a>). The one endpoint a user is actually waiting on synchronously is the read, and every other deep dive in this problem exists specifically to keep that one read cheap.</p>
+
+<h3 id="p13-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: on every keystroke, run a live query against the query-log database — <code>SELECT query_text, popularity FROM queries WHERE query_text LIKE 'prefix%' ORDER BY popularity DESC LIMIT 10</code> — and return whatever comes back.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Client["Browser<br/>(keystroke)"] --> API["Autocomplete API"]
+  API --> DB[("Query Log DB<br/>LIKE 'prefix%' + live ORDER BY")]
+  DB --> API
+  API --> Client
+</div>
+<p class="diagram-caption">V1 — one live, sorted prefix scan against the database, recomputed from scratch on every single keystroke.</p>
+<p class="callout"><strong>Why this breaks specifically on the traffic that matters most:</strong> for a long, specific prefix ("thermodynamics textbook re"), very few rows match, and the query is cheap regardless of how it's executed. But for exactly the short, common prefixes that make up a disproportionate share of real traffic (G) — "a", "th", "wea" — the <code>LIKE 'prefix%'</code> clause matches millions of rows, and the database has to scan and sort all of them, live, under a sub-100ms budget, on every one of thousands of concurrent keystrokes per second. The failure isn't a missing index — a leading, anchored prefix match can use one — the failure is recomputing an expensive rank-and-sort over an enormous, ever-growing candidate set from scratch, per request, for exactly the queries that arrive most often. An equally naive alternative — an in-memory trie with no precomputed ranking, which walks to the prefix node and then does a live DFS over its entire subtree to collect and sort every completion beneath it — has the identical flaw in a different shape: the subtree beneath a short, hot prefix is the largest subtree in the whole structure, so the traversal cost is again largest exactly where request volume is highest. Both point at the same fix: never rank live, at request time, over an unbounded candidate set — rank ahead of time, offline, and cache the small, already-sorted answer.</p>
+
+<h3 id="p13-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>The serving structure itself is a purpose-built, in-memory trie, not a general-purpose database:</strong> the access pattern is exclusively "walk down by character, read a small cached list at the end" — never a join, never a live aggregation — which is the same "match the store to the access pattern" reasoning from <a href="#prereq-c">Prerequisites C</a> and Distributed Cache's own storage choice (<a href="#p11">P11-K</a>), just applied to a tree shape instead of a flat key space.</p>
+<p><strong>Raw query logs live in a high-write-throughput, append-only store</strong> (a durable log via Kafka, feeding into a wide-column or object store for the raw history) — this is by far the highest-volume write path in the system (billions of submitted searches, not counting the far larger keystroke volume that never reaches the log at all), and gets none of the read-optimized structure the trie has, because nothing ever queries it directly at request time.</p>
+<p><strong>Aggregated counts and the built trie version are the output of a batch job, stored as an immutable, versioned artifact</strong> (O) — pushed out to serving shards as a whole, rather than mutated in place, so a serving shard can swap to a new version atomically and cleanly roll back to the previous one if something's wrong with a rebuild.</p>
+<p><strong>Trending deltas and per-user history both live in Redis, TTL'd to their respective freshness window</strong> — both need fast, small, frequently-refreshed reads and writes, and both are inherently time-bounded, the same reasoning Notification System applies to its own short-lived digest batches (<a href="#p12">P12-K</a>).</p>
+
+<h3 id="p13-l">L. End-to-End Flow — A User Types 3 Characters and Gets Ranked Suggestions</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant U as User (typing)
+  participant Edge as Edge/CDN Cache (Q)
+  participant API as Autocomplete API
+  participant Router as Shard Router (P)
+  participant Shard as Trie Shard (M, N)
+  participant Delta as Trending Delta Cache (O)
+  participant Pers as Personalization Service (R)
+  U->>Edge: GET /autocomplete?prefix=app
+  alt hot prefix, cached at edge
+    Edge-->>U: cached base ranking, returned directly
+  else miss, falls through to origin
+    Edge->>API: forward request
+    API->>Router: which shard owns "app"? (P)
+    Router-->>API: shard address
+    API->>Shard: walk trie to "app" node, read cached top-K (N)
+    Shard-->>API: base ranked list
+    API->>Delta: any trending completions under "app"? (O)
+    Delta-->>API: trending overlay (may be empty)
+    API->>Pers: user's own recent queries matching "app"? (R)
+    Pers-->>API: personalized boosts (may be empty)
+    API->>API: merge base + trending + personalization
+    API-->>Edge: response (cached at edge for the base portion)
+    Edge-->>U: final ranked suggestions
+  end
+</div>
+<p class="diagram-caption">The base, shared ranking is what the edge cache actually holds — the trending and personalization layers are merged in fresh on every request that reaches origin, never cached themselves at the edge.</p>
+
+<h3 id="p13-m">M. Deep Dive 1 — Trie Data Structure for Prefix Search</h3>
+<p><strong>Requirement this addresses:</strong> sub-100ms lookups (D, G) regardless of how many completions share a given prefix — and directly fixes V1's core flaw (J), which got slower exactly where traffic was heaviest.</p>
+<p><strong>Why a trie beats a sorted-list binary search:</strong> binary search over a single globally sorted array of query strings gets you to the <em>start</em> of the matching range in O(log n) — but you still then have to scan forward through however many entries share that prefix to know what's there, and the array itself needs contiguous, shiftable storage that makes inserts expensive. A trie sidesteps both problems: each node represents one character position, with children keyed by the next character, so walking from the root to the node representing a given prefix costs exactly O(prefix length) — a small, fixed number (bounded by the longest reasonable query, generally under 20-30 characters) — regardless of how large the overall corpus is or how many completions live beneath that node. The lookup cost is decoupled entirely from corpus size, which a sorted-array scan's forward-scan step is not.</p>
+<p><strong>Why it beats a live <code>LIKE 'prefix%'</code> scan:</strong> the same reasoning V1's callout already covered — a B-tree index on the query text can get an RDBMS to the start of a matching range about as efficiently as a trie gets to a node, but ranking and limiting the result still requires touching and sorting every matching row, live, per request. A trie's advantage isn't really about finding the prefix — it's that the node itself, once reached, can hold an already-ranked answer (N), which a raw index range scan has no equivalent way to do.</p>
+<p><strong>The memory cost of a naive trie, not fully addressed yet:</strong> a trie storing one node per character of every distinct query string, without any pruning, explodes in node count — a corpus of hundreds of millions of distinct strings (G) produces a proportionally enormous number of nodes, and a large fraction of that structure is long, rarely-visited tail branches (one-off typos, extremely specific long queries) that cost real memory to store and are almost never actually requested. This is exactly why the offline batch job (O) filters out low-frequency noise before building the served structure at all — the trie this system actually serves is built over the aggregated, filtered corpus, not the raw, unfiltered firehose of everything ever typed.</p>
+
+<h3 id="p13-n">N. Deep Dive 2 — Precomputing Top-K at Each Trie Node</h3>
+<p><strong>Requirement this addresses:</strong> the second half of V1's flaw (J) — reaching the right trie node quickly (M) is only half the problem; ranking whatever's beneath it still needs an answer.</p>
+<p class="callout"><strong>Why a live subtree scan at request time is still broken, even with a trie:</strong> the naive move, once you have a trie, is to walk to the prefix's node and then DFS/BFS the entire subtree beneath it, collecting every completion, sorting by popularity, and taking the top K — live, on every request. This has the exact same shape of flaw as V1: the subtree beneath a short, common prefix ("a", "th") is the <em>largest</em> subtree in the entire structure, so this traversal is most expensive precisely for the requests that arrive most often, the same backwards-scaling problem in a new costume.</p>
+<p><strong>The fix:</strong> during the offline build (O), compute and cache the top-K completions — already fully sorted by score — directly at each node, not just at the leaves. A request is then answered by an O(prefix length) descent to the node, followed by an O(1) read of that node's small, pre-sorted list — no subtree traversal of any kind happens at request time, ever.</p>
+<p><strong>The cost, paid deliberately:</strong> the same popular completion ends up duplicated in the cached top-K list of every one of its ancestor nodes — "new york pizza" appears in the stored list for "n", "ne", "new", "new ", and so on. This is a direct trade of memory for read speed, the identical denormalize-for-reads move behind News Feed's precomputed <code>FeedEntry</code> store (<a href="#p3">P3-O</a>), just applied to a tree's ancestor chain instead of a follower list.</p>
+<p><strong>The gap this creates:</strong> a node's cached top-K list is only as fresh as the last full rebuild — a query that starts spiking in popularity right now will not appear in any node's precomputed list until the next rebuild runs, which for a corpus this size is not instantaneous. This gap is exactly what O's real-time trending overlay exists to cover, deliberately, rather than trying to make the precomputed structure itself real-time.</p>
+
+<h3 id="p13-o">O. Deep Dive 3 — Updating the Trie at Scale</h3>
+<p><strong>Requirement this addresses:</strong> keeping the ranking reasonably fresh (D) without paying a write cost on the single hottest, most latency-sensitive path in the system.</p>
+<p><strong>Why real-time insert-per-query doesn't scale:</strong> the naive alternative to a periodic rebuild is to update the trie live — every submitted search walks from the root down to its own terminal node, bumping a counter at every ancestor along the way, and potentially re-sorting each of those ancestors' cached top-K lists (N) to reflect the new count. That's an O(query length) cascading write, fanning out to every ancestor node, triggered by the full query-submission volume (billions/day, G) — turning what should be a pure, cheap read path into a read path that also does a chain of writes on every request, which is precisely the coupling this whole design exists to avoid.</p>
+<p><strong>The offline batch pipeline, concretely:</strong> submitted queries stream into a durable, append-only log (Kafka, <a href="#prereq-g">Prerequisites G</a>); a periodic batch aggregation job (running hourly, or every few hours) counts query frequency over a rolling window, applies decay-weighting so recent activity counts more than stale activity, filters out low-frequency and long-tail noise (M), and rebuilds each affected node's top-K cache from that aggregated count. The new trie version is pushed out to serving shards as a whole and swapped in via a blue-green deploy — old version keeps serving until the new one is fully live, so a rebuild never produces a visible gap or inconsistency mid-swap.</p>
+<p><strong>The trending delta layer, filling the gap the batch job leaves open:</strong> a separate, much lighter-weight streaming aggregator tracks query counts over a short, recent window (minutes, not hours) — using a streaming framework or simply short-TTL'd Redis sorted sets keyed by prefix — and produces a small overlay of fast-rising completions per prefix. At read time (L), this overlay is merged alongside the stale-but-broad base trie result, so a genuinely breaking, fast-moving query can surface within minutes without ever making the underlying bulk structure itself real-time.</p>
+<p><strong>Why the staleness this accepts is fine, not a compromise:</strong> the base trie being minutes-to-hours behind the absolute latest activity costs nothing correctness-wise — the worst outcome is a slightly-less-optimal ranked suggestion, never a wrong answer a user could be harmed by. This trade-off is stated explicitly and generally in V.</p>
+
+<h3 id="p13-p">P. Deep Dive 4 — Sharding the Trie</h3>
+<p><strong>Requirement this addresses:</strong> the full corpus trie (G) doesn't fit comfortably in one machine's memory once node overhead and the top-K cache at every node is accounted for.</p>
+<p><strong>The fix — shard by prefix range, the tree's own natural ownership boundary:</strong> a top-level split by the first character (or first one to two characters) of the query assigns each shard server a whole subtree — one shard owns everything rooted under "a"–"f," another "g"–"m," and so on. This is the identical "shard by the boundary within which data is almost always accessed together" instinct named generally as <a href="#patterns-g">Patterns Playbook Pattern 6</a>, just applied to a tree's own structural branches instead of an entity ID like <code>event_id</code> or <code>doc_id</code>.</p>
+<p><strong>Routing, without needing a consistent-hashing ring at all:</strong> because the prefix characters themselves directly determine ownership — the first character alone tells you which shard to talk to — a thin routing layer, or even a small client-side static range map (mirroring Distributed Cache's client-resolves-shard approach, <a href="#p11">P11-I</a>), can route a request without a full hash ring. The "key" here is structurally, not arbitrarily, distributed across the keyspace, so a simpler mechanism than consistent hashing suffices.</p>
+<p><strong>Rebalancing for uneven load:</strong> query volume is not evenly spread across the alphabet — some starting characters are searched far more often than others — so a naive equal split by letter produces uneven shard load. The fix is splitting further down the tree specifically for hot ranges (a heavily-searched letter gets its own dedicated shard, or even splits further into two-character prefixes, while several rarely-searched letters share one shard), decided from observed traffic statistics rather than assumed evenly at design time.</p>
+
+<h3 id="p13-q">Q. Deep Dive 5 — Caching Hot Prefixes</h3>
+<p><strong>Requirement this addresses:</strong> the extreme, structural skew toward short, common prefixes (D, G) — the same read fan-in shape as a viral post (<a href="#p3">P3-P</a>) or a hot key in a distributed cache (<a href="#p11">P11-P</a>), just triggered here by prefix length rather than by one specific piece of content.</p>
+<p><strong>Edge/CDN caching for the base ranking:</strong> the non-personalized response for a given (prefix, locale/region) is largely identical across huge numbers of users, and only changes as often as the underlying trie rebuilds (O) — minutes to hours. That makes it an unusually good fit for edge caching (<a href="#prereq-h">Prerequisites H</a>) with a short TTL matched to the trending-layer refresh interval: a request for "a" or "the" is, in the common case, served entirely from a nearby edge node and never reaches an origin trie shard at all.</p>
+<p><strong>A layered caching hierarchy, each layer catching what the one above it can't:</strong> edge/CDN (coarsest, longest-lived, region-shared) → a shared Redis or in-memory cache sitting in front of the origin trie shards for whatever does reach them (<a href="#prereq-d">Prerequisites D</a>; the same cache-aside layering Distributed Cache itself is built around, <a href="#p11">P11</a>) → the trie shard itself, as the final source of truth. Each successive layer absorbs progressively more specific or less-cached traffic than the layer above it could serve.</p>
+<p><strong>Personalized and trending results deliberately bypass the edge layer:</strong> both vary per-user or refresh too frequently for a long-lived, shared edge cache to be worth the complexity — only the base, global ranking is ever edge-cached; the trending overlay (O) and personalization (R) are merged in fresh, at origin, after the cacheable base result has already been fetched.</p>
+
+<h3 id="p13-r">R. Deep Dive 6 — Personalization</h3>
+<p><strong>Requirement this addresses:</strong> blending a user's own search history with global popularity (D, E) without undermining the one thing that makes this design fast and cheap — a single, shared, precomputed structure.</p>
+<p><strong>Where personalization fits, and deliberately nowhere else:</strong> the base trie lookup (M, N) and the trending overlay (O) both stay entirely global and shareable exactly as designed. Personalization is applied as a final, per-request re-ranking step at the API/serving layer, never baked into the shared cached structure itself. A small, bounded, per-user history store (<code>UserQueryHistory</code>, H) — the user's own recent searches and clicks, keyed by <code>user_id</code> — is checked in parallel with the trie lookup; any of the user's own recent queries matching the current prefix are boosted toward the top or injected alongside the global top-K, and the two results are merged only after both have independently returned.</p>
+<p><strong>Why this ordering is the load-bearing decision, not an implementation detail:</strong> baking personalization directly into the trie — a separate per-user trie, say — would multiply G's already-substantial memory estimate by the number of users, which is obviously infeasible at any real scale. Keeping personalization as a thin overlay merged at read time preserves the one shared, cacheable base structure (which is what Q's edge caching actually depends on) while still letting an individual user's own signal genuinely matter.</p>
+<p><strong>Deliberately bounded scope:</strong> only a small, capped set of a user's most recent queries needs to be checked per request — not their entire lifetime history — keeping this lookup itself cheap and bounded, the same "keep the addition cheap enough not to threaten the fast path" discipline behind N's node-local top-K design.</p>
+
+<h3 id="p13-s">S. Deep Dive 7 — Handling Typos / Fuzzy Matching</h3>
+<p><strong>Requirement this addresses:</strong> real human typing includes real typos (D, E) — and an exact-prefix trie, by construction, only ever matches completions that literally begin with the exact characters typed so far; a single dropped or swapped letter ("pyton" for "python") walks the trie down a path with no useful completions beneath it at all.</p>
+<p class="callout"><strong>Why the trie itself structurally cannot solve this:</strong> the entire reason a trie's lookup is fast (M) is that it only ever needs to follow the one exact path implied by the characters typed so far. Tolerating an edit distance of even one character means potentially considering many divergent paths at once — insertions, deletions, substitutions at every position — which defeats the O(prefix length) lookup cost that's the whole point of the structure in the first place. This isn't a missing feature to bolt on; it's a fundamentally different access pattern than what a trie is built for.</p>
+<p><strong>Lightweight mitigations, roughly in order of increasing cost:</strong></p>
+<ul>
+<li><strong>Phonetic/normalized secondary keys</strong> (a Soundex- or metaphone-style encoding) — index common queries under a phonetic key alongside the exact-text trie, so a phonetically similar misspelling can still be routed to the correctly-spelled term's bucket; cheap to add, but coarse and language-specific.</li>
+<li><strong>A secondary fuzzy index over only the head of the popularity distribution</strong> — a small edit-distance-aware structure (a BK-tree, or an n-gram index) built over just the tens of thousands of most popular queries, not the full corpus; full fuzzy search over hundreds of millions of strings is expensive, but restricting it to the queries actually worth catching typos for keeps it tractable.</li>
+<li><strong>A cheap client-side correction pass before the request is even sent</strong> — a small, bundled dictionary of extremely common misspellings, correcting the obvious case before it ever reaches the trie at all.</li>
+</ul>
+<p><strong>Worth naming explicitly, not glossing over:</strong> none of these are a complete, general-purpose fuzzy-search solution — this is an area where the honest answer is "good enough, bounded-cost mitigation for the common case," not "solve typo tolerance perfectly," and saying so directly is a stronger interview answer than quietly overpromising.</p>
+
+<h3 id="p13-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  User["User (typing)"] --> EdgeCDN["Edge / CDN Cache<br/>(base ranking only, Q)"]
+  EdgeCDN --> API["Autocomplete API"]
+
+  API --> Router["Shard Router<br/>(prefix-range map, P)"]
+  Router --> ShardA["Trie Shard: a-f<br/>(precomputed top-K, M, N)"]
+  Router --> ShardB["Trie Shard: g-m"]
+  Router --> ShardC["Trie Shard: n-z"]
+
+  API --> DeltaCache[("Trending Delta Cache<br/>Redis, short TTL, O")]
+  API --> PersSvc["Personalization Service<br/>(UserQueryHistory, R)"]
+  API --> FuzzyIdx["Secondary Fuzzy Index<br/>(head-of-distribution only, S)"]
+
+  API --> Merge["Merge: base + trending + personalization"]
+  Merge --> EdgeCDN
+  Merge --> User
+
+  subgraph OFFLINE [" Offline / Batch Pipeline (O) "]
+    direction LR
+    Logs[("Query Log Stream<br/>Kafka, Prerequisites G")]
+    Agg["Batch Aggregation Job<br/>(counts + decay weighting)"]
+    Build["Trie Builder<br/>(rebuild top-K per node)"]
+    Logs --> Agg --> Build
+  end
+  Build -.->|"blue-green version push"| ShardA
+  Build -.->|"blue-green version push"| ShardB
+  Build -.->|"blue-green version push"| ShardC
+
+  subgraph STREAM [" Real-Time Trending Pipeline (O) "]
+    direction LR
+    RTLogs[("Recent Query Window")]
+    Trend["Trending Aggregator"]
+    RTLogs --> Trend
+  end
+  Trend --> DeltaCache
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — the read path (top) stays cheap because every expensive computation (bottom) happens off of it entirely, on its own schedule.</p>
+
+<h3 id="p13-u">U. Design Evolution</h3>
+<table>
+<tr><th>Version</th><th>What Changed</th><th>Why</th></tr>
+<tr><td>V1</td><td>Live <code>LIKE 'prefix%'</code> scan with a live <code>ORDER BY</code>, recomputed on every keystroke (J)</td><td>Simplest possible thing that satisfies the functional requirement in isolation</td></tr>
+<tr><td>V2</td><td>An in-memory trie replaces the database scan for the lookup itself, but still does a live subtree DFS/sort per request</td><td>Fixes the "finding the prefix" half of V1's cost, but not the "ranking what's beneath it" half (M)</td></tr>
+<tr><td>V3</td><td>Top-K completions precomputed and cached directly at each trie node</td><td>Eliminates the live subtree traversal entirely — a request becomes a tree descent plus an O(1) read (N)</td></tr>
+<tr><td>V4</td><td>A defined offline batch pipeline (log → aggregate → rebuild) formalizes how and when V3's cached lists get refreshed</td><td>Replaces "however the trie happened to get built" with a repeatable, decay-weighted, noise-filtered process (O)</td></tr>
+<tr><td>V5</td><td>A real-time trending delta overlay is merged on top of the otherwise-stale bulk trie</td><td>Closes the freshness gap V4's periodic rebuild leaves open, without making the base structure itself real-time (O)</td></tr>
+<tr><td>V6</td><td>The trie is sharded by prefix range across multiple servers</td><td>The full corpus trie no longer fits one machine's memory once the corpus grows large enough (P)</td></tr>
+<tr><td>V7</td><td>Edge/CDN and shared-cache layers added in front of the origin shards</td><td>Absorbs the disproportionate share of traffic hitting a small number of short, hot prefixes (Q)</td></tr>
+<tr><td>V8</td><td>A personalization overlay merged at read time, on top of the shared base result</td><td>Lets a user's own history matter without duplicating the entire structure per user (R)</td></tr>
+<tr><td>V9</td><td>A secondary phonetic/fuzzy index added for the head of the popularity distribution</td><td>Mitigates the exact-prefix trie's structural inability to tolerate typos, for the queries most worth catching them on (S)</td></tr>
+</table>
+<p><strong>What stays stable throughout:</strong> the small <code>GET /autocomplete</code> contract from I — every later refinement changes how the answer is computed, cached, or merged, never the basic shape of what a client asks for.</p>
+
+<h3 id="p13-v">V. Consistency Model</h3>
+<p>This system is, unusually among the problems in this document, <strong>eventually consistent everywhere, with no narrow strong-consistency island at all</strong> — worth noticing as a genuine contrast to the more common shape named in Patterns Playbook J, where most designs default to eventual consistency but still carve out one small piece of state that must be strongly consistent (a seat's hold status, a leader lock). There is no equivalent here: nothing in this system is a scarce resource being contended over, and no single request's correctness depends on reading the absolute latest write. The base trie (N, O) can lag reality by minutes to hours; the trending overlay (O) lags by a smaller but still nonzero window; personalization (R) reads a user's own recent history, which itself may be a request or two behind the very latest click. In every one of these cases, the worst possible outcome of staleness is a suggestion list that's slightly less optimally ranked than it could be — never a lost booking, a double charge, or a duplicated message, the kinds of failures strong-consistency islands exist elsewhere in this document specifically to prevent. Because nothing here is actually correctness-critical in that sense, this design leans as far toward "stale but fast and cheap" as the read-heavy, staleness-tolerant requirement (D) allows, without ever needing to walk that trade-off back for a specific field.</p>
+
+<h3 id="p13-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>A trie shard becomes unavailable:</strong> the shard router (P) detects the failure via health checks and routes requests for that prefix range to a replica of the same shard; if no replica is available, the system degrades to returning fewer or no results for that specific prefix range rather than failing the whole request path.</li>
+<li><strong>A batch rebuild job fails partway through or produces a bad build:</strong> serving shards continue serving the last known-good trie version (O) — the blue-green swap only happens once a rebuild completes and validates successfully, so a broken rebuild simply never gets promoted, and the failure is visible to on-call rather than silently corrupting live results.</li>
+<li><strong>The real-time trending aggregator falls behind or goes down:</strong> the trending overlay (O) is simply empty or stale for that window; the base trie (N) continues serving fine on its own, so a trending-pipeline outage degrades freshness for fast-moving queries specifically, without affecting the majority of traffic at all.</li>
+<li><strong>The personalization service is down:</strong> the API merges the base and trending results without a personalization boost — every user sees the same shared, unpersonalized ranking, a graceful degradation rather than a failed request.</li>
+<li><strong>A single hot prefix's edge cache entry expires simultaneously across many edge nodes:</strong> the same thundering-herd shape named for Distributed Cache's hot-key problem (<a href="#p11">P11-Q</a>) — mitigated the same way, via request coalescing at origin so only one in-flight fetch per prefix reaches the shared cache/trie shard while concurrent misses wait on it.</li>
+<li><strong>A malicious or buggy client hammers the same rare, expensive prefix directly, bypassing normal traffic patterns:</strong> the layered cache (Q) and standard per-client rate limiting (reused as a cross-cutting concern, <a href="#patterns-k">Patterns Playbook K</a>) bound the damage to that one client's own allotment, rather than letting it degrade the shared origin tier for everyone.</li>
+</ul>
+
+<h3 id="p13-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 live prefix scan</td><td>Ranking recomputed live, per request, over an unbounded and largest-for-the-hottest-prefixes candidate set</td><td>Precomputed, cached top-K at each trie node (N)</td></tr>
+<tr><td>Real-time insert-per-query</td><td>Every submitted search would cascade a write up every ancestor node, at full query-volume write rate, on the read-critical path</td><td>Offline batch rebuild plus a separate, lightweight real-time trending overlay (O)</td></tr>
+<tr><td>Single-machine trie</td><td>The full corpus trie (G) exceeds one machine's safe memory budget once top-K caches are included</td><td>Sharding by prefix range across multiple servers (P)</td></tr>
+<tr><td>Disproportionate load on short, common prefixes</td><td>A small set of prefixes accounts for a wildly outsized share of total request volume, regardless of how well the rest of the keyspace is distributed</td><td>Layered edge/CDN and shared caching in front of origin shards (Q)</td></tr>
+<tr><td>Personalization baked into the shared structure</td><td>A per-user trie would multiply memory cost by the number of users — infeasible at any real scale</td><td>Personalization kept as a thin, bounded overlay merged at read time (R)</td></tr>
+<tr><td>Exact-prefix-only matching</td><td>A single typo produces a dead-end path with no useful completions, for a real and common class of input</td><td>A bounded secondary fuzzy/phonetic index over only the most popular queries (S)</td></tr>
+</table>
+
+<h3 id="p13-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Ranking computation</td><td>Live, per-request scan/sort</td><td>Precomputed top-K per trie node (chosen)</td><td>Live computation is simpler and always perfectly fresh, but scales worst exactly where traffic is heaviest; precomputing trades some staleness for making the hottest requests the cheapest ones</td></tr>
+<tr><td>Freshness mechanism</td><td>Real-time insert-per-query</td><td>Periodic batch rebuild + real-time trending overlay (chosen)</td><td>Real-time insert keeps the structure always current but adds a cascading write to the hottest read path; the batch-plus-overlay split keeps the read path pure while still surfacing fast-moving trends within minutes</td></tr>
+<tr><td>Trie placement</td><td>Single machine, unsharded</td><td>Sharded by prefix range (chosen)</td><td>Unsharded is simpler to operate but caps out once the corpus exceeds one machine's memory; sharding costs a routing layer in exchange for effectively unbounded horizontal scale</td></tr>
+<tr><td>Personalization</td><td>Baked into a per-user structure</td><td>Thin overlay merged at read time (chosen)</td><td>A per-user structure gives the cleanest personalization but multiplies memory cost by user count; a merged overlay keeps one shared, cacheable base structure at the cost of a second, smaller lookup per request</td></tr>
+<tr><td>Typo tolerance</td><td>None (exact-prefix only, chosen default)</td><td>Full fuzzy/edit-distance index over the entire corpus</td><td>Exact-prefix is fast and simple but misses a real class of common typing errors; full fuzzy search over the whole corpus would meaningfully raise both cost and lookup latency for a benefit concentrated in a minority of requests</td></tr>
+</table>
+
+<h3 id="p13-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>A live <code>LIKE 'prefix%'</code> database scan with a live <code>ORDER BY</code> on every keystroke.</strong> Scales worst on exactly the short, common prefixes that make up the majority of real traffic — the single most important mistake to avoid on this problem.</li>
+<li><strong>An in-memory trie with no precomputed ranking, doing a live subtree scan per request.</strong> Fixes the wrong half of the problem — finding the prefix fast doesn't help if ranking what's beneath it is still done live, and the subtree is largest exactly where traffic is heaviest.</li>
+<li><strong>Inserting and re-ranking on every submitted query, live, against the serving structure.</strong> Turns a pure read path into a read-plus-cascading-write path at full query volume — the single change most likely to sink an otherwise-correct design under real load.</li>
+<li><strong>One giant, unsharded trie assumed to fit on one machine regardless of corpus size.</strong> Works fine in a small-scale demo and falls over the moment the corpus estimate in G is taken seriously.</li>
+<li><strong>Baking personalization directly into the shared, cached structure.</strong> Multiplies memory cost by the number of users and destroys the one thing (a single shared, cacheable base result) that makes edge caching viable at all.</li>
+<li><strong>Ignoring staleness as a design constraint entirely, insisting every suggestion be perfectly real-time.</strong> Solves a problem this system doesn't actually have — the honest answer is that a few minutes of lag costs nothing here, and insisting otherwise adds real complexity for no real benefit.</li>
+</ul>
+
+<h3 id="p13-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"How would you support this across multiple languages/locales?"</td><td>A separate trie (or a separate top-level branch) per language/locale, with routing decided by the client's declared locale before the prefix-range shard lookup ever happens</td><td>Sharding/routing layer, offline build pipeline (now per-locale)</td><td>The trie structure itself, precomputed top-K, trending overlay mechanism</td></tr>
+<tr><td>"What about location-aware autocomplete, like a maps search box?"</td><td>Blend the text-prefix trie with a geospatial signal — either a geohash-prefixed branch of the structure or a separate geospatial index merged in at read time, reusing Ride-Sharing's geospatial primer reasoning (<a href="#prereq-n">Prerequisites N</a>) rather than inventing a new spatial mechanism</td><td>Merge/ranking step, a new geospatial signal source</td><td>Core trie structure, batch rebuild pipeline, edge caching</td></tr>
+<tr><td>"How do you keep offensive or private (PII-containing) queries from surfacing as suggestions?"</td><td>A filtering/blocklist step added inside the offline aggregation job (O), before any query ever contributes to a node's top-K cache — kept upstream of the trie build, not applied as a per-request check</td><td>The batch aggregation job only</td><td>Everything downstream — the trie, sharding, caching, personalization all stay identical</td></tr>
+<tr><td>"What if this needs to autocomplete structured entities — products, not just free-text queries?"</td><td><code>AggregatedQueryCount</code> (H) gains associated entity metadata (inventory, price, category), and ranking blends textual popularity with entity-specific signals — a genuine extension to the ranking function, not a structural rewrite</td><td>Core entities, the ranking/scoring function used during the batch build</td><td>The trie structure, sharding, and caching layers themselves</td></tr>
+</table>
+
+<h3 id="p13-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes a live database query or an unranked in-memory list with no precomputation at all, and has no answer for why a short, common prefix would behave any differently from a long, rare one under load.</li>
+<li><strong>Mid-level:</strong> correctly reaches for a trie and recognizes it needs precomputed ranking, but treats "rebuild the trie" as a hand-wave rather than a concrete pipeline, and hasn't considered what happens once the corpus no longer fits on one machine.</li>
+<li><strong>Senior:</strong> proactively separates the slow-changing bulk structure from a fast-moving trending overlay; reasons concretely about sharding by prefix range rather than defaulting to a generic consistent-hashing ring without asking whether the keyspace's structure already gives a simpler routing answer; is explicit that this system has no strong-consistency requirement anywhere and says why.</li>
+<li><strong>Staff+:</strong> raises the hot-prefix caching problem unprompted and connects it explicitly to the same shape as a hot key or viral content elsewhere; is honest about typo tolerance being a bounded, cost-conscious mitigation rather than a fully solved problem; reasons about where personalization can and can't be added without destroying the shared-cache economics the whole design depends on.</li>
+</ul>
+
+<h3 id="p13-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design an autocomplete/typeahead system for a search box — as the user types, suggest likely completions.</div>
+<div class="dialog"><span class="who">Candidate:</span> The first thing I want to avoid is computing the ranked list live, on every keystroke — a query against the raw query log with a live sort is fine for a long, rare prefix, but for something short and common like "a" or "the," you'd be scanning and ranking millions of rows under a tight latency budget, on every one of thousands of concurrent requests per second. So the core idea is a trie, with the top-K completions precomputed and cached directly at each node, built ahead of time from aggregated query logs rather than computed per request.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you keep that precomputed data from going stale?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd split that into two separate mechanisms with two different freshness targets. The bulk of the ranking comes from a periodic offline batch job — query logs get aggregated with some decay weighting so recent activity counts more, and the trie gets rebuilt and pushed out every hour or so. That's deliberately not real-time. On top of that, I'd run a lightweight streaming aggregator that tracks a short recent window — the last few minutes — and produces a small "trending" overlay per prefix. At read time, I merge the stale-but-broad base result with whatever's in that trending overlay, so a genuinely fast-moving query can surface within minutes without ever making the core structure itself real-time.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What happens once that trie is too big to fit on one machine?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd shard it by prefix range — one server owns everything under "a" through "f," another "g" through "m," and so on. The nice thing here is that the shard key falls directly out of the data structure itself; you don't need a consistent-hashing ring, because the first character of the prefix already tells you exactly which shard to route to. The one wrinkle is that query volume isn't evenly spread across the alphabet, so I'd expect to split further on whichever ranges turn out to be hottest in practice, based on actual traffic, not assumed evenly upfront.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How would you personalize results without redoing all of that per user?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd keep personalization completely separate from the shared trie. The base lookup and the trending overlay both stay global and cacheable exactly as they are — personalization is a small, bounded check against the user's own recent search history, done in parallel, and merged in at the very end. Baking it directly into the trie — a separate structure per user — would multiply the memory cost by the number of users, which doesn't work at scale. Keeping it as a thin overlay lets one user's own signal matter without touching the shared structure everyone else depends on.</div>
+
+<h3 id="p13-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters.html" target="_blank">Elasticsearch Completion Suggester (official docs)</a></td><td>Builds a Finite State Transducer (FST) — a compressed, trie-like structure — at index time from configured suggestion inputs and weights, held entirely in memory for extremely fast prefix lookups; natively supports fuzzy matching via a configurable Damerau-Levenshtein edit-distance parameter</td><td>A production-grade, real confirmation that a precomputed, in-memory, trie-shaped structure built ahead of time (not queried live) is the standard real-world answer to this exact problem — and that fuzzy tolerance (S) is commonly bolted on as a configurable parameter rather than solved from scratch</td><td>Rebuilding the FST means reindexing the underlying suggester data — genuinely real-time updates aren't native, which is exactly why this design layers a separate trending overlay (O) rather than expecting the base structure to be live</td><td>Confirms that "precompute a prefix-optimized structure offline, keep it in memory, tolerate rebuild lag" is the real production pattern, not an interview simplification</td></tr>
+<tr><td><a href="https://support.google.com/websearch/answer/106230" target="_blank">Google Search "About autocomplete predictions" (official help documentation)</a></td><td>Documents that predictions are generated from real searches performed by users, are explicitly influenced by trending topics and rapidly updated for breaking events, and are personalized using signals including a signed-in user's own search history and general location</td><td>A direct, official confirmation that a real, massive-scale autocomplete system separates "broad historical popularity" from "trending right now" and layers personalization on top of both — the exact three-way split this design's O and R sections are built around</td><td>The documentation intentionally doesn't disclose ranking internals or infrastructure — useful for confirming the shape of the problem, not for replicating an implementation</td><td>Confirms trending-as-a-distinct-signal and personalization-as-an-overlay are real, named, production concerns at the largest possible scale, not interview embellishments</td></tr>
+<tr><td><a href="http://oldblog.antirez.com/post/autocomplete-with-redis.html" target="_blank">"Auto Complete with Redis" (Salvatore Sanfilippo / antirez, Redis creator's blog)</a></td><td>Describes simulating a trie using a single Redis sorted set, storing every prefix of every term as a member and using range queries (<code>ZRANGEBYLEX</code>-style lexicographic range scans) to retrieve completions for a given prefix, avoiding the need to build and maintain an actual pointer-based tree structure in application memory</td><td>A real, widely-referenced open-source pattern for implementing trie-like prefix search using an off-the-shelf data store rather than custom infrastructure — a legitimate, lighter-weight alternative to a bespoke trie server for smaller-scale versions of this problem</td><td>Storing every prefix of every term multiplies storage several-fold over a true trie's shared-prefix structure, and this approach doesn't natively give you a precomputed, ranked top-K per node (N) — ranking still has to be layered on separately</td><td>A concrete, credible demonstration that the core "prefix range lookup" idea behind a trie can be implemented multiple different ways depending on scale — worth knowing this is a spectrum, not one single canonical implementation</td></tr>
+</table>
+
+<h3 id="p13-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Search Autocomplete / Typeahead</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Intermediate → Advanced (simple read path, genuinely hard freshness/sharding/caching surface underneath it)</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Ranked prefix completion, sub-100ms per keystroke, updates over time as trends shift, tolerant of scale-driven staleness</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Trie with precomputed top-K per node, rebuilt offline from aggregated logs, plus a real-time trending overlay, sharded by prefix range, cached aggressively at the edge for hot prefixes</td></tr>
+<tr><td><strong>Why not live ranking</strong></td><td>A live scan/sort or a live subtree traversal is slowest exactly on the short, common prefixes that account for most real traffic — precomputing inverts that relationship</td></tr>
+<tr><td><strong>Freshness split</strong></td><td>Two distinct mechanisms: a slow, broad, decay-weighted batch rebuild for the bulk ranking; a fast, narrow streaming overlay for genuinely trending queries</td></tr>
+<tr><td><strong>Sharding</strong></td><td>By prefix range — the tree's own structural boundary supplies the shard key directly, no consistent-hashing ring required</td></tr>
+<tr><td><strong>Caching</strong></td><td>Layered edge/CDN → shared cache → origin shard, but only for the shared, non-personalized base ranking</td></tr>
+<tr><td><strong>Personalization &amp; typos</strong></td><td>Both are thin, bounded overlays merged at read time — never baked into the shared precomputed structure itself</td></tr>
+<tr><td><strong>Consistency</strong></td><td>Eventually consistent everywhere, with no strong-consistency island at all — staleness here costs ranking quality, never correctness</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Live prefix scans/sorts; a trie with no precomputed ranking; real-time insert-per-query into the serving structure; one unsharded trie; personalization baked into the shared cache; expecting perfect typo tolerance for free</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>A fully general fuzzy-search engine and a from-scratch ML ranking model — name both as real, bounded extensions (S, AA) rather than designing them from first principles in the room</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p12.html">&larr; 12. Notification System</a><a class="prevnext-link next" href="p14.html">14. Distributed File Storage (Dropbox) &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

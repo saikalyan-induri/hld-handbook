@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>3. Twitter / News Feed — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">3. Twitter / News Feed <span class="badge">Intermediate → Advanced</span></h1>
+
+<div class="section-toc">
+<a href="#p3-a">A. Interview Prompt</a><a href="#p3-b">B. Difficulty</a><a href="#p3-c">C. What It Tests</a>
+<a href="#p3-d">D. Requirements</a><a href="#p3-e">E. Clarifying Questions</a><a href="#p3-f">F. Assumptions</a>
+<a href="#p3-g">G. Capacity Estimation</a><a href="#p3-h">H. Core Entities</a><a href="#p3-i">I. API Design</a>
+<a href="#p3-j">J. Basic Design (V1)</a><a href="#p3-k">K. Data Model &amp; Store Choice</a><a href="#p3-l">L. End-to-End Flow</a>
+<a href="#p3-m">M. Deep Dive 1: Fanout</a><a href="#p3-n">N. Deep Dive 2: Celebrity Problem</a><a href="#p3-o">O. Deep Dive 3: Timeline Store</a>
+<a href="#p3-p">P. Deep Dive 4: Viral-Post Caching</a><a href="#p3-q">Q. Deep Dive 5: Ranking</a><a href="#p3-r">R. Deep Dive 6: Media &amp; CDN</a>
+<a href="#p3-s">S. Deep Dive 7: Search</a><a href="#p3-t">T. Full Solution at Scale</a><a href="#p3-u">U. Design Evolution</a>
+<a href="#p3-v">V. Consistency Model</a><a href="#p3-w">W. Failure Scenarios</a><a href="#p3-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p3-y">Y. Trade-Offs</a><a href="#p3-z">Z. Common Bad Designs</a><a href="#p3-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p3-ab">AB. Interviewer Evaluation</a><a href="#p3-ac">AC. Interview Simulation</a><a href="#p3-ad">AD. Source Comparison</a>
+<a href="#p3-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p3">Jump to section:</label><select id="jump-p3" class="jump-select" data-jump-select><option value="p3-a">A. Realistic Interview Prompt</option><option value="p3-b">B. Difficulty</option><option value="p3-c">C. What This Problem Tests</option><option value="p3-d">D. Requirements</option><option value="p3-e">E. Clarifying Questions</option><option value="p3-f">F. Assumptions</option><option value="p3-g">G. Capacity Estimation</option><option value="p3-h">H. Core Entities</option><option value="p3-i">I. API Design</option><option value="p3-j">J. Basic / Naive High-Level Design (V1) — Fanout-on-Read</option><option value="p3-k">K. Data Model &amp; Store Choice</option><option value="p3-l">L. End-to-End Flow — Fanout-on-Write (Post → Delivery)</option><option value="p3-m">M. Deep Dive 1 — Fanout Strategy: Write vs. Read vs. Hybrid</option><option value="p3-n">N. Deep Dive 2 — The Celebrity Problem, In Detail</option><option value="p3-o">O. Deep Dive 3 — The Precomputed Feed/Timeline Store</option><option value="p3-p">P. Deep Dive 4 — Caching Viral / Hot Posts</option><option value="p3-q">Q. Deep Dive 5 — From Chronological to Ranked Feed</option><option value="p3-r">R. Deep Dive 6 — Media Storage &amp; Delivery</option><option value="p3-s">S. Deep Dive 7 — Search</option><option value="p3-t">T. Full Solution at Scale — Final Architecture</option><option value="p3-u">U. Design Evolution</option><option value="p3-v">V. Consistency Model</option><option value="p3-w">W. Failure Scenarios</option><option value="p3-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p3-y">Y. Design Trade-Offs</option><option value="p3-z">Z. Common Bad Designs</option><option value="p3-aa">AA. Interviewer Follow-Ups</option><option value="p3-ab">AB. Interviewer Evaluation Rubric</option><option value="p3-ac">AC. Interview Simulation</option><option value="p3-ad">AD. Online Solution Comparison</option><option value="p3-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p3-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a system like Twitter: users post short text/media updates, follow other users, and see a reverse-chronological (or ranked) feed of posts from the people they follow."</div>
+<p>This is the canonical "fanout" problem — the entire design hinges on one question: <em>do you compute a user's feed when they post, or when their followers read?</em> Both answers are individually simple; the difficulty is that neither answer works uniformly for every user, because follower-count distributions on a real social graph are wildly skewed (a handful of accounts with 100M+ followers, the vast majority with a few hundred). A design that treats all users identically has already missed the core insight.</p>
+
+<h3 id="p3-b">B. Difficulty</h3>
+<p><strong>Intermediate to start</strong> — "write posts to a table, read posts from people you follow" is a five-minute answer — escalating to <strong>Advanced</strong> the moment the interviewer asks what happens when a celebrity with 100M followers posts, or when the feed needs to be ranked instead of chronological. Structurally similar to Rate Limiter in that a clean naive answer exists, but the real signal is entirely in the deep dives.</p>
+
+<h3 id="p3-c">C. What This Problem Tests</h3>
+<ul>
+<li>Whether you independently arrive at "fanout-on-write vs. fanout-on-read" as the central trade-off, rather than needing it spelled out</li>
+<li>Recognition that a single strategy fails at the tails of a skewed distribution (celebrities), and the judgment to apply a hybrid rather than forcing one strategy everywhere</li>
+<li>Read/write ratio reasoning — feeds are read orders of magnitude more than posts are written, so the design should shift work toward write time wherever the fanout width allows it</li>
+<li>Comfort with a precomputed, denormalized "inbox" data model (one entry per follower per post) instead of reflexively normalizing everything</li>
+<li>Knowing where ranking, search, and media serving are separable concerns layered on top of the feed-delivery core, not part of it</li>
+</ul>
+
+<h3 id="p3-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Users can post short text updates (optionally with media) and follow/unfollow other users</li>
+<li>Users can view a feed composed of posts from people they follow, ordered by recency (baseline) or relevance (extension, Q)</li>
+<li>Users can like, reply to, and repost/retweet content</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Read-heavy at extreme scale</strong> — feed reads vastly outnumber posts written; this document uses <strong>200M DAU, each checking their feed ~5×/day and posting ~10% of the time</strong> as the standard illustrative input, deriving all downstream QPS from it in G</li>
+<li><strong>Low latency feed loads</strong> — a feed should render in <strong>&lt;200ms</strong>; this is a "check my phone" interaction, not a batch job</li>
+<li><strong>Eventual consistency is acceptable</strong> — a new post appearing in a follower's feed a few seconds late is a non-issue; this is the single assumption that makes async fanout tractable</li>
+<li><strong>Highly available for reads</strong> — a feed failing to load is a much worse user experience than a post being delayed by a few seconds</li>
+</ul>
+<p><strong>Out of scope:</strong> direct messages, notifications infrastructure, ad insertion, detailed content moderation — each is its own design problem.</p>
+
+<h3 id="p3-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Chronological feed, or ranked/algorithmic?</td><td>Chronological is a pure delivery problem; ranked adds a scoring/ML layer on top</td><td>Deep Dive 5 (Q)</td></tr>
+<tr><td>2</td><td>What's the follower-count distribution — are there celebrity accounts with tens of millions of followers?</td><td>This single fact is what forces a hybrid fanout design instead of one uniform strategy</td><td>Deep Dive 1-2 (M, N)</td></tr>
+<tr><td>3</td><td>How stale can a feed be before it's a problem?</td><td>Confirms eventual consistency is acceptable, unlocking async fanout entirely</td><td>Consistency Model (V)</td></tr>
+<tr><td>4</td><td>Is search (by keyword/hashtag) in scope?</td><td>A materially different data-access pattern (full-text) from timeline delivery</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>5</td><td>How far back does "the feed" need to go — infinite scroll, or a bounded recent window?</td><td>Bounds the size of the precomputed inbox structure in O</td><td>Timeline Store (O)</td></tr>
+<tr><td>6</td><td>Do posts support media (images/video)?</td><td>Changes storage and delivery entirely — blob store + CDN, not the feed DB</td><td>Deep Dive 6 (R)</td></tr>
+</table>
+
+<h3 id="p3-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> post, follow, and reverse-chronological feed read are the core functional loop.</li>
+<li><strong>Assumption:</strong> the social graph has real celebrity accounts with 10M+ followers — the standard, most-interesting version of this problem, and what every major source (Hello Interview, ByteByteGo, the donnemartin repo) converges on.</li>
+<li><strong>Assumption:</strong> chronological feed is the base design (J-T); ranking is an explicit, clearly-flagged extension (Q), not baked in from the start — mirrors Rate Limiter's structure of "solve the core problem, then layer the harder extension."</li>
+<li><strong>Assumption:</strong> eventual consistency for feed delivery (a few seconds of fanout lag is fine) — this is the load-bearing assumption for the entire async design.</li>
+<li><strong>Assumption:</strong> media is supported but delegated to a separate blob-store + CDN path (R), not stored in the feed/post database itself.</li>
+</ul>
+
+<h3 id="p3-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>DAU</td><td>200M</td><td>Base input for every number below</td></tr>
+<tr><td>Posts/day</td><td>200M × 10% ≈ 20M/day</td><td>Write volume — small relative to reads</td></tr>
+<tr><td>Post write QPS</td><td>20M ÷ 86,400s ≈ <strong>~230/sec</strong> (peak ~3-5×, ~1K/sec)</td><td>Trivial write load in isolation — the real cost is fanout, not the write itself</td></tr>
+<tr><td>Feed reads/day</td><td>200M × 5 ≈ 1B/day</td><td>Read volume dwarfs write volume by ~50×</td></tr>
+<tr><td>Feed read QPS</td><td>1B ÷ 86,400s ≈ <strong>~11,600/sec</strong> (peak ~35-50K/sec)</td><td>Confirms this is a read-optimize-first problem — justifies precomputing feeds instead of computing on read</td></tr>
+<tr><td>Average follower count</td><td>~200 (typical), but a small set of accounts have 10M-100M+</td><td>The skew itself, not the average, is what drives the celebrity-problem deep dive (N)</td></tr>
+<tr><td>Fanout writes for one average post</td><td>~200 (one per follower)</td><td>Cheap — fine to do synchronously-ish for typical users</td></tr>
+<tr><td>Fanout writes for one celebrity post (10M followers)</td><td>10,000,000 individual inbox writes</td><td>At Twitter/X's own reported scale this can take <strong>over an hour</strong> to fully fan out if done the same way as a normal user — the concrete number that forces the hybrid design in N</td></tr>
+<tr><td>Post storage/year</td><td>20M/day × 365 × ~300B/post (text+metadata) ≈ <strong>~2TB/year</strong> (media stored separately in blob store, R)</td><td>Trivial for the source-of-truth post store; confirms media, not text, is the real storage driver</td></tr>
+</table>
+
+<h3 id="p3-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>User</code></td><td>An account</td><td><code>user_id</code>, <code>username</code>, <code>follower_count</code> (denormalized — read constantly, see N)</td></tr>
+<tr><td><code>Post</code></td><td>Source of truth for one post</td><td><code>post_id</code>, <code>author_id</code>, <code>text</code>, <code>media_url</code>, <code>created_at</code></td></tr>
+<tr><td><code>Follow</code></td><td>Edge in the social graph</td><td><code>follower_id</code>, <code>followee_id</code>, <code>created_at</code></td></tr>
+<tr><td><code>FeedEntry</code> (precomputed)</td><td>One row per (follower, post) — the denormalized "inbox"</td><td><code>user_id</code> (the feed owner), <code>post_id</code>, <code>author_id</code>, <code>created_at</code> — deliberately duplicated data, not a foreign-key join (O)</td></tr>
+</table>
+
+<h3 id="p3-i">I. API Design</h3>
+<pre><code>POST /v1/posts               { text, media_url? } -> { post_id, created_at }
+POST /v1/follows             { followee_id }
+DELETE /v1/follows/{id}
+GET  /v1/feed?cursor=&limit= -> { posts: [...], next_cursor }
+POST /v1/posts/{id}/like
+</code></pre>
+<p><strong>Why a cursor, not an offset, for pagination:</strong> the feed is a live, constantly-growing precomputed list (O) — an offset-based page 2 can skip or duplicate entries as new posts fan in between requests; a cursor (typically an encoded timestamp+post_id) is stable against concurrent inserts, the same reasoning behind cursor-based pagination in most high-write-throughput feeds.</p>
+
+<h3 id="p3-j">J. Basic / Naive High-Level Design (V1) — Fanout-on-Read</h3>
+<p>The simplest correct design: store posts in one table; to build a feed, query the posts of everyone the user follows, at read time, and merge-sort by recency.</p>
+<div class="mermaid diagram">
+flowchart LR
+  U(["User opens feed"]) --> API["Feed Service"]
+  API -- "1. get following list" --> Graph[("Follow Graph DB")]
+  API -- "2. query posts for each followee" --> Posts[("Post DB")]
+  API -- "3. merge + sort in memory" --> API
+  API --> U
+</div>
+<p class="diagram-caption">V1 — nothing is precomputed. Every feed load re-queries and re-merges from scratch.</p>
+<p class="callout"><strong>Why this doesn't scale, specifically:</strong> if a user follows 500 accounts, loading their feed means 500 separate lookups (or one large fanned-out query) plus an in-memory merge, on <em>every single feed load</em> — and per G, feed loads happen ~50× more often than posts are written. This design does the most expensive part of the work (the fanout/merge) at the highest-frequency point in the whole system (read time) — precisely backwards for a read-heavy workload. It is, however, immediately correct for new-post visibility (no fanout lag at all) and worth naming as V1's one genuine advantage before replacing it.</p>
+
+<h3 id="p3-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Posts and the follow graph:</strong> a relational or wide-column store (e.g. Postgres/MySQL for posts, or a graph-friendly store for follows) — this data is the durable source of truth and benefits from real schema/indexing.</p>
+<p><strong>The precomputed feed/inbox (<code>FeedEntry</code>):</strong> a wide-column store or Redis sorted set, keyed by <code>user_id</code>, with <code>post_id</code>s ordered by a score (timestamp, or a rank score once Q is layered in). <strong>Why a sorted set, not a relational table:</strong> the access pattern is "give me the top N entries for this user, ordered by score" — exactly what a sorted set's <code>ZREVRANGE</code> does in O(log n), and precisely the same "the store's native data structure already matches the access pattern" reasoning used for Redis in the Rate Limiter and URL Shortener problems.</p>
+
+<h3 id="p3-l">L. End-to-End Flow — Fanout-on-Write (Post → Delivery)</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant U as Author
+  participant PS as Post Service
+  participant DB as Post DB
+  participant MQ as Message Queue
+  participant FO as Fanout Worker
+  participant Cache as Feed Store (Redis ZSET)
+  U->>PS: POST /posts
+  PS->>DB: write post (source of truth)
+  PS->>MQ: publish "new_post" event
+  PS-->>U: 201 Created
+  MQ->>FO: consume event
+  FO->>FO: fetch follower list
+  loop for each follower
+    FO->>Cache: ZADD user_feed:{follower_id} post_id score
+  end
+</div>
+<p><strong>Why the queue between the write and the fanout:</strong> the exact same reasoning as URL Shortener's analytics pipeline — the fanout can be arbitrarily slow (celebrity-scale, per G) and must never sit on the critical path of "did my post succeed." The author gets their <code>201</code> the instant the source-of-truth write lands; fanout happens asynchronously afterward.</p>
+
+<h3 id="p3-m">M. Deep Dive 1 — Fanout Strategy: Write vs. Read vs. Hybrid</h3>
+<p><strong>Requirement this addresses:</strong> the core read/write imbalance from D and G — this is the single most important decision in the whole problem.</p>
+<table>
+<tr><th>Strategy</th><th>How</th><th>Read Cost</th><th>Write Cost</th><th>Fatal Flaw</th></tr>
+<tr><td>Fanout-on-read (V1, J)</td><td>Compute the feed at read time by querying followees' posts live</td><td>High — a live fan-in query + merge on every load</td><td>Zero</td><td>Puts the most expensive work on the highest-frequency path (reads outnumber writes ~50:1 per G)</td></tr>
+<tr><td><strong>Fanout-on-write (chosen default)</strong></td><td>On post, immediately push the post into every follower's precomputed feed</td><td>Trivial — one <code>ZREVRANGE</code> read</td><td>Proportional to follower count</td><td>A celebrity post with 10M followers means 10M writes for one post — can take over an hour (G) and floods the fanout workers</td></tr>
+<tr><td><strong>Hybrid (final answer)</strong></td><td>Fanout-on-write for typical users; fanout-on-read for celebrity posts, merged into the reader's feed only at load time</td><td>Slightly more than pure write-fanout — one extra merge step for celebrity content</td><td>Bounded — celebrities never trigger a massive write storm</td><td>More moving parts (two code paths instead of one) — the accepted cost for solving the actual skewed-distribution problem</td></tr>
+</table>
+<p><strong>Why hybrid, not one uniform strategy:</strong> the follower-count distribution is the entire crux (E's clarifying question 2) — the two strategies fail at opposite ends of it. Fanout-on-write is clearly right for a user with 200 followers (cheap, and gives their followers a fast read); it is clearly wrong for a user with 10M followers (one post shouldn't trigger 10M synchronous-ish writes). Treating "average follower count is low" as license to use one strategy everywhere is the single most common mistake on this problem — the average hides exactly the tail that breaks the design.</p>
+
+<h3 id="p3-n">N. Deep Dive 2 — The Celebrity Problem, In Detail</h3>
+<p><strong>Requirement this addresses:</strong> directly extends M — this is where the hybrid strategy's threshold and mechanics get concrete.</p>
+<div class="mermaid diagram">
+flowchart TB
+  P["New Post"] --> Check{"author follower_count<br/>&gt; threshold (e.g. 1M)?"}
+  Check -- "No — normal user" --> FO["Fanout-on-write:<br/>push to all followers' feeds now"]
+  Check -- "Yes — celebrity" --> Skip["Skip write-fanout entirely.<br/>Post only written to author's own post list"]
+  Skip -.-> Read["At read time: merge author's<br/>recent posts into follower's<br/>feed on-the-fly (fanout-on-read)"]
+  FO --> Feeds[("Followers' precomputed feeds")]
+  Read --> Feeds
+</div>
+<p class="diagram-caption">The threshold check happens once, at post time — not a runtime cost paid on every read for every user.</p>
+<p><strong>Why a follower-count threshold, and why it's cheap to check:</strong> <code>follower_count</code> is deliberately denormalized onto the <code>User</code> entity (H) specifically so this check is a single field read, not a <code>COUNT(*)</code> over the follow graph on every single post. The threshold itself (Hello Interview and ByteByteGo both use illustrative values in the hundreds-of-thousands-to-low-millions range) is a tuning knob, not a hard constant — the point being tested is recognizing that <em>a</em> threshold-based split is needed, not memorizing the exact number.</p>
+<p><strong>The follow/unfollow edge case this creates:</strong> a normal user's feed is a static, precomputed list plus a live merge of celebrity content — meaning if a user follows a new celebrity, nothing needs to be backfilled into their feed at all (celebrity content is always merged live); but if a user follows a new *normal* user, the follow event itself must NOT retroactively push that user's back-catalog into the new follower's feed — only new posts going forward. Getting this backfill boundary right (new posts only, never historical) is a common subtlety worth naming explicitly.</p>
+
+<h3 id="p3-o">O. Deep Dive 3 — The Precomputed Feed/Timeline Store</h3>
+<p><strong>Requirement this addresses:</strong> Latency (D) — the &lt;200ms feed-load target is only achievable if the read is a single cheap lookup, not a computation.</p>
+<p><strong>Why one row per (follower, post), not a join:</strong> a normalized design would join <code>Follow</code> and <code>Post</code> at read time — exactly V1's mistake, just moved one layer down. The precomputed <code>FeedEntry</code> model deliberately <strong>duplicates</strong> data (the same <code>post_id</code> appears once per follower) in exchange for making the read O(1)-ish (one sorted-set range query). This is a direct, worthwhile application of denormalize-for-reads, the same trade-off implicit in every cache-aside pattern in the URL Shortener problem, just applied to a primary data structure instead of a cache layer.</p>
+<p><strong>Bounding the size:</strong> feeds don't need infinite history precomputed — capping each user's stored feed at, say, the most recent ~800 entries (per E's clarifying question 5) bounds memory per user regardless of how prolific their followees are; anything older falls back to a (rarer, acceptable-latency) on-demand fanout-on-read query.</p>
+
+<h3 id="p3-p">P. Deep Dive 4 — Caching Viral / Hot Posts</h3>
+<p><strong>Requirement this addresses:</strong> a distinct hot-spot problem from N — N is about fanout <em>write</em> cost for celebrity authors; this is about <em>read</em> cost when one specific post goes viral and is fetched by an enormous number of readers nearly simultaneously.</p>
+<p class="callout"><strong>Why normal cache sharding doesn't fix this:</strong> a single viral <code>post_id</code> hashes to one shard no matter how many shards exist — identical in shape to the Rate Limiter's hot-key problem (Q in that section), just triggered by read fan-in instead of one abusive writer.</p>
+<ul>
+<li><strong>Full replication for hot content</strong> — instead of sharding a viral post's data, replicate it across every cache node (or a dedicated small pool of nodes), so read traffic for that one post is spread across all of them rather than hammering one shard.</li>
+<li><strong>Local, short-TTL in-process caching at the edge/API-server layer</strong> — a post that's hot right now is still hot 500ms from now; a very short local cache absorbs a large fraction of read fan-in before it ever reaches the shared cache tier.</li>
+<li><strong>Detecting "hot" dynamically</strong> — track access frequency per key and promote a post into the replicated tier automatically once it crosses a threshold, rather than guessing in advance which posts will go viral.</li>
+</ul>
+
+<h3 id="p3-q">Q. Deep Dive 5 — From Chronological to Ranked Feed</h3>
+<p><strong>Requirement this addresses:</strong> the explicit extension flagged in F/E — replacing "most recent first" with "most relevant first."</p>
+<p>Ranking is a separable layer, not a rearchitecture: the precomputed <code>FeedEntry</code> sorted set already supports an arbitrary score, not just a timestamp. Swapping recency for a <strong>relevance score</strong> — a weighted function of recency, the reader's affinity to the author (past interactions), predicted engagement (likes/replies), and content type — changes what gets written as the score at fanout time, not the storage/delivery mechanism from O.</p>
+<table>
+<tr><th>Approach</th><th>How</th><th>Trade-off</th></tr>
+<tr><td>Pure recency (base design)</td><td>Score = timestamp</td><td>Simple, fully explainable, but surfaces low-engagement posts equally with high-engagement ones</td></tr>
+<tr><td>Heuristic weighted score</td><td>Score = f(recency, affinity, predicted engagement) computed at fanout time</td><td>Meaningfully better relevance for modest complexity; still explainable</td></tr>
+<tr><td>ML ranking model (real-world default)</td><td>A trained model scores candidate posts, typically at read time over a smaller candidate set (fanout still narrows the pool first)</td><td>Best relevance, but a full ML pipeline (feature store, training, serving) is usually out of scope for the interview itself — worth naming as the real-world answer without pretending to design the model in the room</td></tr>
+</table>
+<p><strong>Why fanout still matters even with read-time ranking:</strong> ranking needs a bounded candidate set to score — the precomputed feed/inbox from O is exactly what narrows "every post ever" down to "the few hundred candidates worth ranking for this user," so the ranking layer sits on top of the fanout design, not instead of it.</p>
+
+<h3 id="p3-r">R. Deep Dive 6 — Media Storage &amp; Delivery</h3>
+<p><strong>Requirement this addresses:</strong> the media-support assumption from F — images/video have a completely different size and access profile than post text.</p>
+<p><strong>Why media never touches the post DB or feed store:</strong> a video attachment can be MB-GB in size — storing it inline would blow out row sizes in a store optimized for small, frequent reads (O). Instead: media uploads go to a <strong>blob store (S3-class object storage)</strong>, the <code>Post</code> row stores only a URL/reference, and reads are served via a <strong>CDN</strong> fronting the blob store — the same "don't put large binary data in your hot-path database" principle, and the same CDN-for-static-content pattern used for redirects in the URL Shortener problem, just applied to media bytes instead of a redirect response.</p>
+
+<h3 id="p3-s">S. Deep Dive 7 — Search</h3>
+<p><strong>Requirement this addresses:</strong> the explicit extension flagged in E's clarifying question 4 — a genuinely different access pattern (full-text/keyword) from timeline delivery by follow-graph.</p>
+<p><strong>Why the feed store (O) can't serve this:</strong> the sorted-set-by-user model is built for "give me this user's feed ordered by score" — it has no notion of matching arbitrary text across all posts globally. Search requires an inverted index (Elasticsearch/OpenSearch-class system), populated asynchronously off the same "new_post" event stream already used for fanout (L) — one write, two independent async consumers (fanout worker, search indexer), each free to fail or lag independently without affecting the other.</p>
+
+<h3 id="p3-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  U(["Author"]) --> PS["Post Service"]
+  PS --> PDB[("Post DB — source of truth")]
+  PS --> MQ["Message Queue<br/>(new_post events)"]
+
+  subgraph FANOUT [" Fanout Path (M, N) "]
+    direction LR
+    Check{"follower_count<br/>&gt; threshold?"}
+    FW["Fanout Worker<br/>(normal users)"]
+    Check -- "no" --> FW
+  end
+  MQ --> Check
+
+  subgraph STORAGE [" Precomputed Feed Store (O) "]
+    direction LR
+    Redis1[("Feed ZSETs<br/>shard 1")]
+    Redis2[("Feed ZSETs<br/>shard N")]
+  end
+  FW --> STORAGE
+
+  subgraph ASYNC [" Parallel Async Consumers "]
+    direction LR
+    Search["Search Indexer (S)"]
+  end
+  MQ --> ASYNC
+
+  Reader(["Reader"]) --> FeedSvc["Feed Service"]
+  FeedSvc --> STORAGE
+  Check -- "yes — celebrity" --> Merge["Live merge of celebrity posts (N)"]
+  FeedSvc -. "read-time merge" .-> Merge
+  FeedSvc -- "rank candidates (Q)" --> Reader
+
+  PS -.-> Blob["Blob Store + CDN (R)"]
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p3-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — fanout-on-read (J):</strong> correct, but puts the expensive merge on the highest-frequency path.</li>
+<li><strong>V2 — fanout-on-write for everyone:</strong> fixes the read-cost problem, but a single celebrity post now triggers a write storm (M).</li>
+<li><strong>V3 — hybrid fanout with a follower-count threshold:</strong> solves the celebrity write-storm problem (M, N).</li>
+<li><strong>V4 — precomputed, capped, sorted-set feed store:</strong> hits the &lt;200ms read target (O).</li>
+<li><strong>V5 — replicated caching for viral posts:</strong> handles read fan-in on one hot post that write-side sharding alone can't (P).</li>
+<li><strong>V6 — relevance scoring at fanout time:</strong> upgrades chronological to ranked without changing the delivery mechanism (Q).</li>
+<li><strong>V7 — blob store + CDN for media:</strong> keeps large binary content out of the hot-path stores (R).</li>
+<li><strong>V8 — async search indexer off the same event stream:</strong> adds full-text search without coupling it to the fanout path (S).</li>
+</ul>
+<p><strong>What stays stable throughout:</strong> the <code>GET /v1/feed</code> contract from I and the append-only "new_post" event from L — every version underneath changes without the client noticing.</p>
+
+<h3 id="p3-v">V. Consistency Model</h3>
+<p>Deliberately <strong>eventually consistent</strong> almost everywhere, matching D's NFR directly: a follower seeing a new post a few seconds after it's published (fanout lag) is a non-issue, and a search result lagging the live feed by longer still is equally fine (S). The one place closer-to-immediate consistency matters is the <strong>author's own read-after-write view of their own post</strong> — a user who just posted expects to see it on their own profile instantly, which is why the author's own timeline reads from the source-of-truth Post DB directly (or a cache populated synchronously at write time), not through the same async fanout path their followers use.</p>
+
+<h3 id="p3-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>A fanout worker crashes mid-fanout:</strong> the message queue's redelivery/at-least-once semantics ensure the event is reprocessed; fanout writes (ZADD) are naturally idempotent, so reprocessing is safe (L).</li>
+<li><strong>The feed store shard for a hot user goes down:</strong> that user's reads degrade to a fallback fanout-on-read query against the Post DB — slower, but available, not a hard outage (O, N).</li>
+<li><strong>A celebrity post's live merge is slow:</strong> bound the celebrity-merge window (e.g. only their last N posts) so a slow merge degrades gracefully rather than blocking the whole feed load (N).</li>
+<li><strong>The search indexer falls behind:</strong> isolated entirely to the search path — feed delivery is unaffected, since it's a fully independent consumer of the same event stream (S).</li>
+<li><strong>A write storm from an unexpectedly-viral normal-user post</strong> (follower count under the celebrity threshold, but the post itself goes viral): handled by P's read-side hot-key mitigations, not by N's write-side threshold, since N only protects against a large existing follower base, not an unpredictable spike in engagement.</li>
+</ul>
+
+<h3 id="p3-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 fanout-on-read</td><td>Every feed load pays a live fan-in query cost</td><td>Fanout-on-write, precomputed store (M, O)</td></tr>
+<tr><td>Uniform fanout-on-write</td><td>Celebrity posts trigger write storms (10M+ writes)</td><td>Hybrid threshold-based fanout (N)</td></tr>
+<tr><td>Hybrid fanout, single cache tier</td><td>A viral post overwhelms one shard on the read side</td><td>Replicated hot-content caching (P)</td></tr>
+<tr><td>Chronological-only feed at scale</td><td>Relevance ceiling — recency alone under-serves high-engagement content</td><td>Relevance scoring at fanout/read time (Q)</td></tr>
+</table>
+
+<h3 id="p3-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Fanout strategy</td><td>Fanout-on-read</td><td>Fanout-on-write + hybrid (chosen)</td><td>Read is simpler and has zero fanout lag, but fails the read-heavy NFR; write is fast to read but needs a celebrity carve-out</td></tr>
+<tr><td>Feed model</td><td>Normalized join at read time</td><td>Denormalized precomputed FeedEntry (chosen)</td><td>Join saves storage and avoids duplication; denormalized trades storage for a dramatically cheaper, faster read</td></tr>
+<tr><td>Ranking</td><td>Pure chronological</td><td>Relevance-scored (extension)</td><td>Chronological is simple and fully explainable; ranked is better UX at the cost of a scoring layer and reduced transparency</td></tr>
+<tr><td>Media storage</td><td>Inline in Post DB</td><td>Blob store + CDN (chosen)</td><td>Inline is simpler for tiny attachments; blob+CDN is required once media size/volume is realistic</td></tr>
+<tr><td>Search</td><td>Query the feed store directly</td><td>Dedicated inverted index (chosen)</td><td>Reusing the feed store avoids a new system but can't do full-text matching at all; a dedicated index is the only correct tool for the access pattern</td></tr>
+</table>
+
+<h3 id="p3-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Fanout-on-write for every user with no celebrity carve-out.</strong> Works in a demo with a few hundred users; falls over the instant one account has millions of followers — the single most common mistake on this problem.</li>
+<li><strong>Fanout-on-read presented as "the" solution</strong> with no mention of the read/write ratio from G — technically correct, but ignores the NFR that makes this problem interesting in the first place.</li>
+<li><strong>Normalizing the feed as a join</strong> between Follow and Post tables computed at read time — the same V1 mistake, just moved one layer into "the database" instead of "the application," with the same latency consequence.</li>
+<li><strong>Treating ranking as a day-one requirement</strong> instead of a layer on top of a working chronological design — leads to spending the whole interview on a scoring model instead of the delivery architecture that actually carries most of the signal.</li>
+<li><strong>Storing media inline in the post/feed tables.</strong> Bloats the exact tables that need to stay small and fast for the core read path.</li>
+</ul>
+
+<h3 id="p3-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"A celebrity account has 100M followers — what happens?"</td><td>Confirms/exercises the hybrid threshold from N directly</td><td>None — this is exactly what N already handles</td><td>Everything</td></tr>
+<tr><td>"Users complain their feed isn't 'smart' enough."</td><td>Layer in relevance scoring (Q) on top of the existing fanout/store design</td><td>Score computation at fanout/read time</td><td>Storage, delivery, celebrity handling</td></tr>
+<tr><td>"Add the ability to search posts by keyword."</td><td>Add an async search indexer off the same event stream (S)</td><td>New indexing consumer + search store</td><td>Fanout path, feed store</td></tr>
+<tr><td>"A post just went viral and is getting hammered."</td><td>Promote it into the replicated hot-content cache tier (P)</td><td>Cache replication policy</td><td>Sharding, fanout logic</td></tr>
+<tr><td>"Support un-posting / deleting a post after the fact."</td><td>Tombstone at the source of truth; lazily filter out on feed read, or best-effort async removal from precomputed feeds</td><td>Post DB + a cleanup consumer</td><td>The rest of the fanout/read architecture</td></tr>
+</table>
+
+<h3 id="p3-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> "query posts from people you follow, sort by date" with no mention of precomputation, no awareness of the read/write imbalance.</li>
+<li><strong>Mid-level:</strong> proposes fanout-on-write with a precomputed feed store; hasn't yet considered what happens with a very large follower count.</li>
+<li><strong>Senior:</strong> proactively raises the celebrity/skewed-distribution problem and proposes a hybrid threshold-based fanout unprompted; separates ranking and search as layered extensions rather than baking them into the core design.</li>
+<li><strong>Staff+:</strong> discusses the viral-post hot-key read problem distinctly from the celebrity write-fanout problem; reasons concretely about consistency (author read-after-write vs. follower eventual consistency) rather than asserting "eventually consistent" as a blanket statement.</li>
+</ul>
+
+<h3 id="p3-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a system like Twitter — posting, following, and a feed of who you follow.</div>
+<div class="dialog"><span class="who">Candidate:</span> The core tension here is when to compute the feed. I could query posts from everyone you follow every time you open the feed, or I could push each new post into every follower's feed the moment it's posted. Given that reads massively outnumber writes on a platform like this, I'd lean toward doing the expensive work at write time.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Okay, so fanout-on-write. What happens when someone with 50 million followers posts?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's exactly the failure case of pure fanout-on-write — you'd be triggering 50 million writes for one post, which can take a very long time and floods whatever's doing the fanout. I'd use a hybrid: for normal accounts, fanout-on-write as usual; past some follower-count threshold, skip the write fanout entirely and instead merge that account's recent posts into their followers' feeds live, at read time.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you know at post time whether someone's a "celebrity"?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd keep a denormalized follower count on the user record itself, so it's a single field read, not a count query over the whole follow graph, on every post.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Where does the actual feed live?</div>
+<div class="dialog"><span class="who">Candidate:</span> A precomputed structure per user — I'd use something like a Redis sorted set keyed by user ID, storing post IDs scored by recency, capped at some reasonable history length. Reading a feed is then one range query, not a live join or fan-in.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Now one specific post — not from a celebrity — suddenly goes viral. What breaks?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's a different problem from the celebrity case — that's a hot read on one key, not a write storm. Sharding doesn't help because one post ID always lands on one shard. I'd replicate that specific post's data across multiple cache nodes once it's detected as hot, so read traffic for it is spread out instead of hammering one shard.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last thing — make the feed ranked instead of chronological.</div>
+<div class="dialog"><span class="who">Candidate:</span> That changes what score I write into the sorted set — instead of pure timestamp, it's some weighted function of recency, how much the reader engages with that author, and predicted engagement. The storage and delivery mechanism don't need to change at all — fanout still narrows down the candidate set, ranking just changes how that set gets ordered.</div>
+
+<h3 id="p3-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/fb-newsfeed" target="_blank">Hello Interview (FB News Feed breakdown)</a></td><td>Requirements-first framing, explicit fanout-on-write/read/hybrid comparison, staff-level ranking discussion</td><td>Cleanest articulation of the hybrid threshold as the central decision</td><td>Uses Facebook framing rather than Twitter specifically, though the fanout problem is identical</td><td>The requirements-driven structure adopted for this whole section</td></tr>
+<tr><td><a href="https://bytebytego.com/courses/system-design-interview/design-a-news-feed-system" target="_blank">ByteByteGo</a></td><td>Detailed fanout worker architecture, media handling, and notification-adjacent concerns</td><td>Most thorough treatment of the async fanout pipeline's internals</td><td>Lighter on the specific numeric celebrity-threshold reasoning</td><td>The queue-decoupled fanout-worker pipeline shape used in L and T</td></tr>
+<tr><td><a href="https://github.com/donnemartin/system-design-primer#design-a-system-that-scales-to-millions-of-users-on-aws" target="_blank">donnemartin/system-design-primer (GitHub)</a></td><td>General scaling primer with a dedicated fanout-service discussion applicable directly to feed systems</td><td>Good grounding in the general read-heavy caching/queue patterns reused throughout this section</td><td>Not Twitter-specific — requires translating general scaling advice into the feed domain</td><td>The general "queue between write and expensive fanout" pattern, reused identically from the Rate Limiter's analytics discussion</td></tr>
+<tr><td>Redis documentation (sorted sets)</td><td>Native <code>ZADD</code>/<code>ZREVRANGE</code> semantics used directly for the feed store</td><td>Concrete, correct primitive for exactly this access pattern</td><td>No system-design framing — implementation reference only</td><td>Why a sorted set's native score-ordering maps directly onto "give me my feed, most recent/relevant first"</td></tr>
+</table>
+
+<h3 id="p3-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Twitter / News Feed</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Intermediate → Advanced</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Post, follow, reverse-chron feed; 200M DAU, ~50:1 read:write ratio, &lt;200ms feed load, eventual consistency OK</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Fanout-on-write (cheap reads) vs. fanout-on-read (cheap writes) — resolved via a hybrid, threshold-based split</td></tr>
+<tr><td><strong>Celebrity fix</strong></td><td>Skip write-fanout above a follower-count threshold; merge their posts live at read time instead</td></tr>
+<tr><td><strong>Feed store</strong></td><td>Precomputed, capped, sorted-set "inbox" per user (denormalized, one entry per follower per post)</td></tr>
+<tr><td><strong>Viral-post fix</strong></td><td>Replicate hot content across cache nodes — sharding alone can't spread one key's read load</td></tr>
+<tr><td><strong>Ranking</strong></td><td>A scoring layer on top of the same fanout/store mechanism — not a rearchitecture</td></tr>
+<tr><td><strong>Media &amp; search</strong></td><td>Delegated to a blob store+CDN and an async inverted index, respectively — both off the same event stream</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Uniform fanout-on-write with no celebrity carve-out; normalized read-time joins; treating ranking as day-one scope</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>A full ML ranking pipeline in the room — name it as the real-world answer, don't design the model</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p2.html">&larr; 2. Rate Limiter</a><a class="prevnext-link next" href="p4.html">4. Chat System (WhatsApp) &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

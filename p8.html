@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>8. Ticketmaster (Event Ticket Booking) — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">8. Ticketmaster (Event Ticket Booking) <span class="badge">Advanced + High-Contention</span></h1>
+
+<div class="section-toc">
+<a href="#p8-a">A. Interview Prompt</a><a href="#p8-b">B. Difficulty</a><a href="#p8-c">C. What It Tests</a>
+<a href="#p8-d">D. Requirements</a><a href="#p8-e">E. Clarifying Questions</a><a href="#p8-f">F. Assumptions</a>
+<a href="#p8-g">G. Capacity Estimation</a><a href="#p8-h">H. Core Entities</a><a href="#p8-i">I. API Design</a>
+<a href="#p8-j">J. Basic Design (V1)</a><a href="#p8-k">K. Data Model &amp; Store Choice</a><a href="#p8-l">L. End-to-End Flow</a>
+<a href="#p8-m">M. Deep Dive 1: Overselling</a><a href="#p8-n">N. Deep Dive 2: Reservation Holds</a><a href="#p8-o">O. Deep Dive 3: Flash-Sale Scale</a>
+<a href="#p8-p">P. Deep Dive 4: Waiting Room</a><a href="#p8-q">Q. Deep Dive 5: Payment Integration</a><a href="#p8-r">R. Deep Dive 6: Seat Map &amp; Search</a>
+<a href="#p8-s">S. Deep Dive 7: Fairness &amp; Bots</a><a href="#p8-t">T. Full Solution at Scale</a><a href="#p8-u">U. Design Evolution</a>
+<a href="#p8-v">V. Consistency Model</a><a href="#p8-w">W. Failure Scenarios</a><a href="#p8-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p8-y">Y. Trade-Offs</a><a href="#p8-z">Z. Common Bad Designs</a><a href="#p8-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p8-ab">AB. Interviewer Evaluation</a><a href="#p8-ac">AC. Interview Simulation</a><a href="#p8-ad">AD. Source Comparison</a>
+<a href="#p8-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p8">Jump to section:</label><select id="jump-p8" class="jump-select" data-jump-select><option value="p8-a">A. Realistic Interview Prompt</option><option value="p8-b">B. Difficulty</option><option value="p8-c">C. What This Problem Tests</option><option value="p8-d">D. Requirements</option><option value="p8-e">E. Clarifying Questions</option><option value="p8-f">F. Assumptions</option><option value="p8-g">G. Capacity Estimation</option><option value="p8-h">H. Core Entities</option><option value="p8-i">I. API Design</option><option value="p8-j">J. Basic / Naive High-Level Design (V1)</option><option value="p8-k">K. Data Model &amp; Store Choice</option><option value="p8-l">L. End-to-End Flow — Seat Reservation to Confirmed Order</option><option value="p8-m">M. Deep Dive 1 — Preventing Overselling</option><option value="p8-n">N. Deep Dive 2 — Reservation Holds &amp; Expiry</option><option value="p8-o">O. Deep Dive 3 — Surviving Flash-Sale-Scale Load</option><option value="p8-p">P. Deep Dive 4 — The Virtual Waiting Room</option><option value="p8-q">Q. Deep Dive 5 — Payment Integration Timing</option><option value="p8-r">R. Deep Dive 6 — Seat Map Display &amp; Search</option><option value="p8-s">S. Deep Dive 7 — Fairness &amp; Bot/Scalper Mitigation</option><option value="p8-t">T. Full Solution at Scale — Final Architecture</option><option value="p8-u">U. Design Evolution</option><option value="p8-v">V. Consistency Model</option><option value="p8-w">W. Failure Scenarios</option><option value="p8-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p8-y">Y. Design Trade-Offs</option><option value="p8-z">Z. Common Bad Designs</option><option value="p8-aa">AA. Interviewer Follow-Ups</option><option value="p8-ab">AB. Interviewer Evaluation Rubric</option><option value="p8-ac">AC. Interview Simulation</option><option value="p8-ad">AD. Online Solution Comparison</option><option value="p8-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p8-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a ticket booking platform like Ticketmaster: users browse events, select seats, and purchase tickets — for events where demand can vastly exceed supply the instant tickets go on sale."</div>
+<p>This is the sharpest <strong>strong-consistency</strong> problem in this document. Every prior design leaned eventually-consistent almost everywhere, with at most one narrow atomic island (Rate Limiter's counter, Uber's driver assignment). Here, the entire product is built around a single unforgiving invariant — <strong>a seat can be sold at most once</strong> — combined with a traffic pattern that is the opposite of steady: near-zero demand, then an instantaneous, massive spike the second a popular on-sale opens. Both properties push hard against the "just scale it out and eventually-consistent everything" instincts most of the rest of this document teaches.</p>
+
+<h3 id="p8-b">B. Difficulty</h3>
+<p><strong>Advanced</strong>, and specifically <strong>high-contention</strong> — the naive design (J) isn't wrong about the data model, it's wrong about concurrency, and that flaw is invisible until two people click "buy" on the same seat within milliseconds of each other, which is precisely what happens at scale during a real on-sale.</p>
+
+<h3 id="p8-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognizing overselling as a check-then-act race — by now a familiar shape from Rate Limiter (N) and Uber (P), but here the stakes are a legal/financial commitment (a sold ticket), not an approximate count or a delayed match</li>
+<li>Judgment about <em>when</em> to lock a seat (a short-lived reservation hold) versus when to actually commit the sale (after payment succeeds) — a two-phase commitment problem, not a single atomic step</li>
+<li>Handling extreme, predictable traffic spikes (a scheduled on-sale time) differently from unpredictable organic load — a virtual waiting room is a deliberate admission-control strategy, not a workaround for a badly-built system</li>
+<li>Recognizing that strong consistency is required at the seat level but not necessarily at the "how many seats are left, roughly" display level — a narrower, more precise consistency split than any prior problem</li>
+<li>Comfort discussing bot/scalper mitigation as a real, product-relevant concern, not just an afterthought</li>
+</ul>
+
+<h3 id="p8-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Users can browse events and view seat availability</li>
+<li>Users can select one or more specific seats (or general-admission quantity) and reserve them temporarily while completing checkout</li>
+<li>Users can complete payment to convert a temporary reservation into a confirmed, sold ticket</li>
+<li>A reservation that isn't completed within a time limit is released back to availability</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>No overselling, ever</strong> — exactly one confirmed sale per seat; this is the single non-negotiable correctness property of the entire system</li>
+<li><strong>Survives extreme, spiky load</strong> — this document uses <strong>a 50,000-seat venue's on-sale generating 1M+ concurrent requests in the first few seconds</strong> as the standard illustrative worst case, the kind of load pattern popular real-world on-sales are known to produce</li>
+<li><strong>Fast checkout</strong> — the reservation step itself should resolve in a low number of hundreds of milliseconds; a slow "is this seat available" check directly worsens contention by widening the race window</li>
+<li><strong>Fairness</strong> — under contention, some reasonably fair ordering (not strictly guaranteed first-come-first-served, but not arbitrary either) should determine who gets a shot at limited inventory</li>
+</ul>
+<p><strong>Out of scope:</strong> event creation/venue-management tooling, pricing/dynamic pricing, refunds/resale marketplace.</p>
+
+<h3 id="p8-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Specific seat selection, or general-admission quantity-only?</td><td>Specific-seat selection is a strictly harder concurrency problem — many individually contested resources instead of one decrementing counter</td><td>Core Entities (H)</td></tr>
+<tr><td>2</td><td>How long should a seat be held once selected, before checkout must complete?</td><td>Directly sets the reservation-hold TTL, a central parameter of the whole design</td><td>Deep Dive 2 (N)</td></tr>
+<tr><td>3</td><td>Is the traffic pattern a known, scheduled on-sale time, or unpredictable organic demand?</td><td>A known on-sale time is exactly what a virtual waiting room is designed to defend against — a materially different mitigation than general rate limiting</td><td>Deep Dive 4 (P)</td></tr>
+<tr><td>4</td><td>Should displayed seat-availability counts be exact in real time, or is a brief lag acceptable?</td><td>Exact-in-real-time display would require the same strong consistency as the sale itself; a brief lag decouples display load from the critical reservation path</td><td>Deep Dive 6 (R)</td></tr>
+<tr><td>5</td><td>Do we need to defend against bots/scalpers buying disproportionate inventory?</td><td>A real, product-relevant concern for high-demand events, requiring active countermeasures beyond basic rate limiting</td><td>Deep Dive 7 (S)</td></tr>
+</table>
+
+<h3 id="p8-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> browse → select seats → temporarily reserve → pay → confirm, with automatic release on hold expiry.</li>
+<li><strong>Assumption:</strong> specific reserved-seating selection (E's clarifying question 1) — the harder, more interesting, and more commonly-discussed version of this problem versus pure general-admission quantity.</li>
+<li><strong>Assumption:</strong> a short reservation hold (illustrative: 5-10 minutes) between seat selection and payment completion — long enough for a real checkout flow, short enough to bound how long a seat can be tied up by an abandoned cart.</li>
+<li><strong>Assumption:</strong> the on-sale traffic pattern is a known, scheduled spike (E's clarifying question 3) — the standard, most product-realistic framing, and what makes the virtual waiting room (P) a first-class deep dive rather than a footnote.</li>
+<li><strong>Assumption:</strong> displayed seat-availability counts tolerate a brief lag (E's clarifying question 4) — this single assumption is what lets the display/browse path be decoupled from the strongly-consistent reservation path.</li>
+</ul>
+
+<h3 id="p8-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Venue size (illustrative on-sale)</td><td>50,000 seats</td><td>The actual number of contested resources — small relative to the request volume competing for them</td></tr>
+<tr><td>Concurrent requests at on-sale open</td><td>1M+ within the first few seconds (illustrative, matching known real-world popular on-sale behavior)</td><td>A ~20:1 (or far higher) ratio of demanding requests to available seats — the core scale challenge is contention, not steady-state throughput</td></tr>
+<tr><td>Reservation hold duration</td><td>5-10 minutes (F's assumption)</td><td>Bounds how long an abandoned reservation ties up a seat before automatic release (N)</td></tr>
+<tr><td>Peak reservation-attempt QPS</td><td>A large fraction of the 1M concurrent requests will attempt a reservation within seconds — <strong>tens of thousands of reservation attempts/sec</strong>, illustratively, against only 50,000 total seats</td><td>Confirms the reservation step itself, not the browse/display path, is the system's true bottleneck and highest-risk component</td></tr>
+<tr><td>Seat/inventory data size</td><td>50,000 seats × ~200 bytes (seat_id, section, status, hold expiry) ≈ <strong>~10MB per event</strong></td><td>Trivially small — confirms this is a concurrency problem, not a storage-volume problem, unlike almost every other problem in this document</td></tr>
+<tr><td>Events at this scale/year</td><td>A modest number of "hot" on-sales/year across a platform, versus a much larger long tail of low-contention events</td><td>Justifies treating extreme contention as a per-event, on-demand mode (P) rather than the platform's permanent steady state</td></tr>
+</table>
+
+<h3 id="p8-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>Event</code></td><td>A ticketed event at a venue</td><td><code>event_id</code>, <code>venue_id</code>, <code>on_sale_at</code></td></tr>
+<tr><td><code>Seat</code></td><td>One specific, individually contested seat for one event</td><td><code>seat_id</code>, <code>event_id</code>, <code>status</code> (available/held/sold), <code>hold_expires_at</code>, <code>held_by</code></td></tr>
+<tr><td><code>Reservation</code> (ephemeral)</td><td>A user's in-progress hold on one or more seats</td><td><code>reservation_id</code>, <code>user_id</code>, <code>seat_ids</code>, <code>expires_at</code>, <code>status</code></td></tr>
+<tr><td><code>Order</code></td><td>A confirmed, paid purchase</td><td><code>order_id</code>, <code>user_id</code>, <code>seat_ids</code>, <code>payment_ref</code>, <code>confirmed_at</code></td></tr>
+</table>
+
+<h3 id="p8-i">I. API Design</h3>
+<pre><code>GET  /v1/events/{id}/seats               -> [{ seat_id, status (approx, R) }]
+POST /v1/events/{id}/reservations        { seat_ids } -> { reservation_id, expires_at }   (atomic hold, M)
+POST /v1/reservations/{id}/confirm       { payment_token } -> { order_id }                (Q)
+DELETE /v1/reservations/{id}                                                              (explicit early release)
+POST /v1/events/{id}/waiting-room/join   -> { queue_token }                               (P, only for flagged high-demand events)
+</code></pre>
+<p><strong>Why a distinct <code>Reservation</code> resource between "browsing" and "confirmed order," not a direct seat-to-order purchase call:</strong> payment processing itself takes real time and can fail for reasons unrelated to seat availability (a declined card) — collapsing "hold the seat" and "charge the card" into one step would mean either holding the seat for an unpredictably long time during payment processing, or risking the seat being sold to someone else mid-payment. Splitting them into an atomic hold (M) followed by a separate confirm step (Q) is what makes both halves individually tractable.</p>
+
+<h3 id="p8-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: a seats table with a <code>status</code> column; reserving a seat means reading its status, checking it's available, then updating it to held — as two separate database calls.</p>
+<div class="mermaid diagram">
+flowchart LR
+  U(["User selects a seat"]) --> API["Booking Service"]
+  API -- "1. SELECT status WHERE seat_id" --> DB[("Seats Table")]
+  DB --> API
+  API -- "2. if available,<br/>UPDATE status = held" --> DB
+</div>
+<p class="diagram-caption">V1 — a two-step read-then-write. Correct-looking, but the gap between steps 1 and 2 is exactly where two users can collide.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> at real on-sale contention (G's 1M+ concurrent requests against 50,000 seats), the gap between "read status" and "write status" — even a few milliseconds — is a window where two different requests for the same seat can both read "available" and both proceed to write "held," resulting in two users believing they've reserved the identical seat. This is the exact check-then-act race named explicitly in Rate Limiter (N) and Uber (P), just with a legally/financially binding outcome instead of an approximate count or a delayed match — and unlike those two problems, there is no acceptable "eventual" fallback here; a double-sold seat is a direct, visible, and expensive product failure.</p>
+
+<h3 id="p8-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Why a relational database, not an eventually-consistent NoSQL store, for seat inventory specifically:</strong> this is the one entity in the entire document where ACID transactional guarantees and row-level locking are exactly the right tool, not an unnecessary constraint — a relational database's native support for a single atomic conditional update (<code>UPDATE ... WHERE status='available'</code>, checking the affected-row count) or a short transaction with a row lock directly implements the correctness this problem needs, without inventing bespoke atomicity machinery the way Rate Limiter's Lua script or Uber's CAS had to.</p>
+<p><strong>Sharding by <code>event_id</code>:</strong> all seats for a given event are always accessed together (browsing, reserving, holding) and never need to be joined against another event's seats — a natural, clean shard key that also happens to contain each hot event's contention to its own shard, so one viral on-sale's load doesn't spill over onto the rest of the platform's traffic.</p>
+<p><strong>Reservation hold TTLs:</strong> tracked either as an expiry timestamp column checked lazily on read, or via a fast in-memory store (Redis) with native key expiry for immediate, proactive release — a hybrid is common in practice: the relational row is the source of truth for the seat's actual status, while a TTL-based cache entry drives prompt automatic release without needing a polling job.</p>
+
+<h3 id="p8-l">L. End-to-End Flow — Seat Reservation to Confirmed Order</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant U as User
+  participant BS as Booking Service
+  participant DB as Seat DB (atomic hold, M)
+  participant Pay as Payment Service
+  U->>BS: reserve(seat_ids)
+  BS->>DB: atomic conditional UPDATE (available -> held)
+  alt hold succeeds for all seats
+    DB-->>BS: success
+    BS-->>U: reservation_id + expires_at
+    U->>BS: confirm(reservation_id, payment_token)
+    BS->>Pay: charge payment
+    alt payment succeeds
+      Pay-->>BS: success
+      BS->>DB: UPDATE held -> sold, create Order
+      BS-->>U: order confirmed
+    else payment fails
+      Pay-->>BS: declined
+      BS->>DB: UPDATE held -> available (release early)
+      BS-->>U: payment failed, seat released
+    end
+  else any seat already held/sold
+    DB-->>BS: conflict
+    BS-->>U: seat(s) unavailable, choose again
+  end
+</div>
+
+<h3 id="p8-m">M. Deep Dive 1 — Preventing Overselling</h3>
+<p><strong>Requirement this addresses:</strong> directly fixes V1's fatal flaw (J) — the single highest-signal deep dive in this entire problem.</p>
+<p class="callout"><strong>The race, explicitly:</strong> two requests for the same seat arrive within milliseconds; a naive two-call read-then-write lets both believe they succeeded. The fix must collapse "check" and "act" into one indivisible operation.</p>
+<table>
+<tr><th>Mechanism</th><th>How</th><th>Trade-off</th></tr>
+<tr><td><strong>Atomic conditional update (chosen default)</strong></td><td><code>UPDATE seats SET status='held' WHERE seat_id=? AND status='available'</code>, checking the affected-row count — the database's own row-level locking makes the check-and-write indivisible</td><td>Simple, uses standard relational-database guarantees directly, no bespoke coordination primitive needed — the most defensible default answer</td></tr>
+<tr><td>Pessimistic row lock (<code>SELECT ... FOR UPDATE</code>)</td><td>Explicitly lock the row for the duration of a transaction spanning the check and the write</td><td>Equally correct, but holds a lock for longer, which can worsen contention under extreme load if the transaction does anything slow inside it</td></tr>
+<tr><td>Distributed lock (e.g. Redis-based)</td><td>Acquire an external lock keyed by <code>seat_id</code> before touching the database at all</td><td>Useful if the "hold" logic spans multiple systems, but adds an entirely new failure mode (lock-service unavailability) for a problem the database's own atomicity already solves cleanly</td></tr>
+</table>
+<p><strong>Why the plain atomic conditional update is the right default, not the distributed lock:</strong> the same principle as choosing a Lua script over an external coordination service in Rate Limiter (N) — reach for the storage layer's own native atomicity primitive first; only introduce an external distributed lock if the operation genuinely needs to span systems the database transaction can't reach, which a single seat's status update does not.</p>
+<p><strong>Multi-seat reservations specifically:</strong> reserving several seats at once (a group of friends booking together) must succeed or fail as a single unit — wrapping the conditional updates for all requested seats in one database transaction ensures a user is never left holding 3 of 4 requested seats because one was contested away mid-request.</p>
+
+<h3 id="p8-n">N. Deep Dive 2 — Reservation Holds &amp; Expiry</h3>
+<p><strong>Requirement this addresses:</strong> the temporary-hold functional requirement (D) — a seat marked "held" that's never released because a user abandoned checkout would slowly starve inventory even for a moderately popular event.</p>
+<p><strong>Why a bounded, automatically-expiring hold, not an indefinite one:</strong> per F's assumption, holds last 5-10 minutes — long enough for a real checkout flow, short enough that an abandoned cart doesn't meaningfully impact overall availability. Two release triggers work together: <strong>explicit release</strong> (the user backs out or a payment fails, per L) and <strong>automatic expiry</strong> (the TTL simply elapses with no confirmation).</p>
+<p><strong>Why a TTL-driven release (K's Redis-backed expiry), not a polling job scanning for expired holds:</strong> a periodic sweep introduces both latency (a seat might sit incorrectly "held" for up to one sweep interval past its actual expiry) and unnecessary database load scanning rows that are, most of the time, not yet expired. Native key expiry triggers the release essentially immediately when the TTL elapses, without any polling overhead — a materially better fit for a time-bounded resource than a scheduled scan.</p>
+
+<h3 id="p8-o">O. Deep Dive 3 — Surviving Flash-Sale-Scale Load</h3>
+<p><strong>Requirement this addresses:</strong> the extreme-spike NFR from D and G — 1M+ concurrent requests against 50,000 seats is a fundamentally different load shape than this document's other read-heavy problems, where load is large but comparatively smooth.</p>
+<p><strong>Why this isn't primarily a "scale out more servers" problem:</strong> the bottleneck isn't application-tier compute, it's <strong>contention on a small, fixed set of database rows</strong> — adding more booking-service instances just means more concurrent attempts to conditionally update the same 50,000 rows, which doesn't by itself reduce collisions, and can actually increase database-side lock contention if unbounded.</p>
+<ul>
+<li><strong>Sharding by event (K)</strong> contains one event's contention to its own database shard, so a viral on-sale doesn't degrade unrelated events' booking flows.</li>
+<li><strong>Read-path caching for browse/display</strong> (R) keeps the vastly larger "just looking" traffic off the strongly-consistent reservation path entirely — only an actual reservation attempt needs to touch the seat table's real-time state.</li>
+<li><strong>Admission control at the edge (P)</strong> — deliberately limiting how many requests are even allowed to attempt a reservation concurrently, rather than letting all 1M+ requests hit the database layer simultaneously.</li>
+</ul>
+
+<h3 id="p8-p">P. Deep Dive 4 — The Virtual Waiting Room</h3>
+<p><strong>Requirement this addresses:</strong> directly extends O — a deliberate admission-control strategy specific to <em>known, scheduled</em> traffic spikes (E's clarifying question 3), distinct from general rate limiting (which reacts to load, rather than anticipating it).</p>
+<div class="mermaid diagram">
+flowchart LR
+  U(["Users arriving<br/>at on-sale time"]) --> WR{"Virtual Waiting Room"}
+  WR -- "assign queue position/token" --> Hold["Hold in queue<br/>(polling or WebSocket for position updates)"]
+  Hold -- "admitted in controlled batches" --> Booking["Booking flow (M)"]
+  WR -.-> Reject["No booking-service load<br/>from users still queued"]
+</div>
+<p class="diagram-caption">The waiting room's entire job is to prevent the 1M+ concurrent surge from ever reaching the contested booking path at once.</p>
+<p><strong>Why this is a deliberate design choice, not a workaround for an under-scaled system:</strong> even a perfectly-scaled booking service still has only 50,000 seats to sell — admitting all 1M+ simultaneous requests into the reservation flow at once wouldn't let more people successfully book, it would just mean ~950,000 requests fail the atomic conditional update (M) after having already consumed real capacity getting there. A waiting room controls the <em>rate</em> of admission into the contested path, smoothing the exact same total demand into a shape the reservation system can process without the database layer being hit by the full spike instantaneously.</p>
+<p><strong>Fairness mechanism:</strong> typically a randomized or arrival-order queue token issued at (or shortly before) the on-sale time, not raw first-byte-received ordering — raw network-arrival-order ordering would systematically favor users with lower latency/better connections or automated tooling, which directly motivates naming this alongside the bot-mitigation discussion in S.</p>
+
+<h3 id="p8-q">Q. Deep Dive 5 — Payment Integration Timing</h3>
+<p><strong>Requirement this addresses:</strong> the confirm-purchase functional requirement (D) — the second half of the two-phase commitment introduced in I's API design.</p>
+<p><strong>Why payment happens strictly after the seat hold succeeds, never before or concurrently:</strong> charging a payment before confirming the seat is actually available risks charging a user for a seat that gets contested away before the charge even completes; attempting both simultaneously reintroduces exactly the kind of race M was built to eliminate. Sequencing them — hold first (fast, purely internal), charge second (slower, involves an external payment processor) — means the slow, externally-dependent step only ever happens once the seat is already safely, atomically held under that user's reservation.</p>
+<p><strong>Idempotency on the confirm step:</strong> a client retrying a confirm call after a timeout (without knowing whether the first attempt actually succeeded) must not risk double-charging the user — the confirm endpoint accepts an idempotency key so a retried request with the same key returns the original result rather than re-attempting the charge, the same idempotent-retry principle used for <code>client_msg_id</code> in the Chat System problem, here protecting a financial transaction instead of a chat message.</p>
+
+<h3 id="p8-r">R. Deep Dive 6 — Seat Map Display &amp; Search</h3>
+<p><strong>Requirement this addresses:</strong> the browse functional requirement (D), under the approximate-display assumption from F — this is the read path, and it must be decoupled from the strongly-consistent reservation path (M) to keep the vastly larger "just browsing" traffic from ever touching the contested seat rows.</p>
+<p><strong>Why the displayed seat map can lag reality slightly:</strong> per E's clarifying question 4, a seat map that's a few seconds stale (occasionally showing a seat as available that was actually just reserved by someone else) is a minor, self-correcting UX hiccup — the user simply gets a "sorry, that seat was just taken" response from the real, strongly-consistent check in M when they actually attempt to reserve it. A cache (Redis, or a read replica of the seat table) serving the browse/seat-map view absorbs the overwhelming majority of read traffic without ever touching the primary seat table that M's atomic updates depend on.</p>
+<p><strong>Search/discovery</strong> (events by artist, venue, date) is a standard, fully separable search-index concern — the same async-indexing pattern used for search in the News Feed, Chat System, and Video Streaming problems, entirely decoupled from seat-level inventory state.</p>
+
+<h3 id="p8-s">S. Deep Dive 7 — Fairness &amp; Bot/Scalper Mitigation</h3>
+<p><strong>Requirement this addresses:</strong> the fairness NFR from D — a real, product-relevant concern for high-demand events, where automated tools attempting to buy disproportionate inventory directly undermines the fairness the waiting room (P) is trying to provide.</p>
+<ul>
+<li><strong>CAPTCHA or equivalent human-verification at waiting-room entry</strong> — raises the cost of large-scale automated queue-joining without meaningfully inconveniencing genuine individual buyers.</li>
+<li><strong>Per-account/per-payment-method purchase limits</strong> — bounding how many tickets a single identity can acquire for one event, enforced as an additional check alongside (not instead of) the seat-level atomic hold in M.</li>
+<li><strong>Rate limiting reservation attempts per user/IP</strong> — a direct application of the Rate Limiter problem's own design (token bucket or sliding-window counter) layered on top of this system, reused rather than reinvented.</li>
+</ul>
+<p><strong>Why this is worth naming even though it's not the problem's core mechanic:</strong> a design that flawlessly prevents overselling but has no defense against a single automated actor acquiring a large fraction of available seats has technically satisfied D's correctness requirement while missing the fairness requirement entirely — worth stating explicitly as a distinct, product-relevant concern rather than assuming "no double-booking" is the whole story.</p>
+
+<h3 id="p8-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  U(["User"]) --> Browse["Browse / Seat Map (R)<br/>served from cache/replica"]
+  U -- "on-sale traffic" --> WR["Virtual Waiting Room (P)"]
+  WR -- "admitted, rate-controlled" --> BS["Booking Service"]
+
+  subgraph SEATDB [" Sharded Seat DB, by event_id (K) "]
+    direction LR
+    Shard1[("Event A shard")]
+    Shard2[("Event B shard")]
+  end
+  BS -- "atomic conditional update (M)" --> SEATDB
+  BS -- "hold TTL (N)" --> TTLStore[("Redis TTL Store")]
+
+  BS -- "hold confirmed" --> Pay["Payment Service (Q)<br/>idempotent charge"]
+  Pay -- "success" --> SEATDB
+  Pay -.-> Order[("Order Store")]
+
+  BS -.-> Guard["Bot/Fairness Guard (S)<br/>rate limits + purchase caps"]
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p8-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — two-call read-then-write seat status (J):</strong> broken under any real concurrent contention.</li>
+<li><strong>V2 — atomic conditional update / row-level locking:</strong> eliminates the overselling race, the single most important fix in the design (M).</li>
+<li><strong>V3 — TTL-bound reservation holds:</strong> prevents abandoned checkouts from starving inventory indefinitely (N).</li>
+<li><strong>V4 — sharding by event_id:</strong> contains one hot event's contention to its own shard (O).</li>
+<li><strong>V5 — virtual waiting room for known high-demand on-sales:</strong> controls admission rate into the contested path instead of absorbing the full spike directly (P).</li>
+<li><strong>V6 — sequenced hold-then-charge with idempotent confirmation:</strong> makes payment safe against races and retries (Q).</li>
+<li><strong>V7 — cached/replica-backed browse path:</strong> removes the vastly larger "just looking" traffic from the strongly-consistent reservation path (R).</li>
+<li><strong>V8 — purchase limits + bot mitigation layered alongside the atomic hold:</strong> extends correctness (no overselling) into actual fairness (S).</li>
+</ul>
+<p><strong>What stays stable throughout:</strong> the reserve → confirm two-step contract from I — every version underneath changes without the client needing to change its checkout flow shape.</p>
+
+<h3 id="p8-v">V. Consistency Model</h3>
+<p>The most strongly-consistency-weighted design in this entire document: <strong>the seat-hold step (M) requires genuine strong consistency</strong> — there is no acceptable eventual-consistency fallback for "is this seat available," unlike every prior problem's narrower strong-consistency islands. The <strong>browse/seat-map display (R)</strong> is the one deliberately eventually-consistent piece, explicitly to keep the much larger read volume off the strongly-consistent path — a brief display staleness is harmless because the real check happens at reservation time regardless of what the display showed. This is close to the inverse of URL Shortener's model (eventual everywhere, one narrow strong-consistency island for uniqueness) — here strong consistency is the default for anything touching actual inventory, and eventual consistency is the narrow, deliberate exception carved out only for display.</p>
+
+<h3 id="p8-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>Two reservation attempts race for the same seat:</strong> the atomic conditional update (M) ensures exactly one succeeds; the loser gets an immediate, clear "unavailable" response rather than a false success.</li>
+<li><strong>A user abandons checkout after holding a seat:</strong> TTL expiry (N) releases it automatically within the bounded hold window — no seat is lost to an abandoned cart indefinitely.</li>
+<li><strong>Payment fails after a successful hold:</strong> the seat is explicitly released back to available immediately (L), rather than waiting out the full TTL unnecessarily.</li>
+<li><strong>A confirm request is retried after a timeout</strong> (client never received the original response): the idempotency key (Q) ensures the payment isn't charged twice and the same order result is returned.</li>
+<li><strong>One event's on-sale goes viral far beyond capacity planning:</strong> sharding (O) contains the impact to that event's own shard; the waiting room (P) throttles admission rather than letting the surge hit the database directly.</li>
+</ul>
+
+<h3 id="p8-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 two-call read-then-write</td><td>A check-then-act race allows overselling under any real concurrency</td><td>Atomic conditional update / row lock (M)</td></tr>
+<tr><td>Atomic updates, no shard isolation</td><td>One viral event's contention can degrade booking for unrelated events sharing infrastructure</td><td>Sharding by event_id (K, O)</td></tr>
+<tr><td>Sharded, but full surge hits the DB directly</td><td>1M+ concurrent requests overwhelming a shard even with atomicity in place</td><td>Virtual waiting room admission control (P)</td></tr>
+<tr><td>Controlled admission, but browse traffic still hits the seat table</td><td>The much larger "just looking" volume competing for the same rows as real reservation attempts</td><td>Cached/replica-backed browse path (R)</td></tr>
+</table>
+
+<h3 id="p8-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Overselling prevention</td><td>Application-level distributed lock</td><td>Database atomic conditional update (chosen)</td><td>A distributed lock adds a whole new failure mode for a guarantee the database's own transactional semantics already provide cleanly and more simply</td></tr>
+<tr><td>Hold release</td><td>Periodic polling sweep for expired holds</td><td>TTL-driven expiry (chosen)</td><td>Polling is simpler to reason about but adds latency and unnecessary scan load; TTL expiry releases almost immediately with no polling overhead</td></tr>
+<tr><td>Extreme-spike handling</td><td>Scale booking-service compute only</td><td>Virtual waiting room admission control (chosen)</td><td>More compute doesn't reduce contention on a fixed set of rows; a waiting room controls the rate of admission into the contested path directly, which compute scaling alone cannot do</td></tr>
+<tr><td>Payment sequencing</td><td>Charge before/alongside the hold</td><td>Hold first, then charge (chosen)</td><td>Charging before the hold risks charging for a seat that gets contested away; sequencing makes the slow, external payment step happen only once the seat is already safely held</td></tr>
+<tr><td>Seat-map display</td><td>Read directly from the live seat table</td><td>Cached/replica-backed, slightly stale (chosen)</td><td>Reading live guarantees perfect accuracy but puts the largest traffic volume on the most contended table; a cached view accepts brief staleness to fully decouple the two paths</td></tr>
+</table>
+
+<h3 id="p8-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>A two-call read-then-write for seat status.</strong> Works in a demo with no concurrency; is the exact race that causes real-world overselling incidents — the single most important mistake to avoid on this problem.</li>
+<li><strong>Treating this as an eventually-consistent problem "like everything else" in a typical scale-out system.</strong> Misses the one place in the design where strong consistency is genuinely mandatory, not optional.</li>
+<li><strong>Charging payment before or concurrently with holding the seat.</strong> Risks charging a user for a seat that's no longer actually available by the time the charge completes.</li>
+<li><strong>Treating extreme on-sale spikes purely as a "scale out more servers" problem.</strong> More application-tier compute doesn't reduce contention on a small, fixed set of database rows — admission control (the waiting room) addresses a different bottleneck entirely.</li>
+<li><strong>No automatic hold expiry, or an indefinite hold.</strong> Lets abandoned checkouts silently starve inventory for a popular event over time.</li>
+</ul>
+
+<h3 id="p8-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"Two users reserve overlapping seats in a group booking at the exact same moment."</td><td>Directly exercises M's transaction-wrapped multi-seat atomic update — succeeds or fails as one unit</td><td>None — this is exactly what M already handles</td><td>Everything</td></tr>
+<tr><td>"Support general-admission (quantity-only, no specific seat) tickets too."</td><td>The contested resource becomes a decrementing counter rather than N individual seat rows — the same atomic-conditional-update principle applies, just against a count instead of a row per seat</td><td>Inventory model in H/K</td><td>Waiting room, payment sequencing, hold TTLs</td></tr>
+<tr><td>"How do you stop scalper bots from buying half the venue?"</td><td>Directly exercises S's purchase-limit and bot-mitigation layer</td><td>None — this is exactly what S already handles</td><td>Core reservation/payment flow</td></tr>
+<tr><td>"Add a resale/secondary marketplace."</td><td>A meaningfully new sub-system (re-listing a sold ticket) built on top of the existing Order entity, out of this design's core scope per D</td><td>New marketplace service consuming Order data</td><td>Primary sale flow entirely</td></tr>
+<tr><td>"The waiting room itself is getting hammered at on-sale time."</td><td>The waiting room's own admission-token issuance is a much simpler, higher-throughput operation than an actual seat reservation — scale it independently, since it doesn't touch the contested seat rows at all</td><td>Waiting-room service scaling (P)</td><td>Seat DB, atomicity guarantees</td></tr>
+</table>
+
+<h3 id="p8-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> "check if the seat is available, then mark it reserved" with no mention of concurrency at all; no distinction between holding and confirming a purchase.</li>
+<li><strong>Mid-level:</strong> recognizes the overselling race and proposes locking of some kind, but hasn't separated the hold step from the payment step, or considered what happens to abandoned holds.</li>
+<li><strong>Senior:</strong> proactively designs the atomic conditional-update mechanism and the two-phase hold-then-confirm flow unprompted; introduces TTL-based automatic release; explicitly separates the strongly-consistent reservation path from the eventually-consistent browse path.</li>
+<li><strong>Staff+:</strong> treats the extreme, scheduled-spike traffic pattern as requiring deliberate admission control (a virtual waiting room), not just more compute; raises fairness and bot mitigation unprompted as a distinct concern from pure correctness; reasons concretely about sharding by event to contain contention.</li>
+</ul>
+
+<h3 id="p8-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a ticket booking system like Ticketmaster — users pick seats and buy tickets, including for events where demand is enormous.</div>
+<div class="dialog"><span class="who">Candidate:</span> The core correctness requirement is that a seat can never be sold to more than one person. The naive approach — check if a seat is available, then mark it reserved, as two separate calls — has a race: two requests can both see "available" in that gap and both proceed. I'd fix that with an atomic conditional update at the database level: update the seat's status to held, but only where it's currently available, and check whether the update actually affected a row.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Why not use a distributed lock instead?</div>
+<div class="dialog"><span class="who">Candidate:</span> A lock service adds a whole new thing that can fail, for a guarantee the database already gives you natively through row-level locking or a conditional update. I'd only reach for an external lock if the hold logic needed to span systems the database transaction can't reach — a single seat's status doesn't need that.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Once a seat is held, when does payment happen?</div>
+<div class="dialog"><span class="who">Candidate:</span> Strictly after the hold succeeds, never before or at the same time — charging first risks charging someone for a seat that gets taken by someone else before the charge finishes. And the confirm step needs an idempotency key, since a client might retry it after a timeout without knowing if the first attempt actually went through, and I don't want to risk double-charging.</div>
+<div class="dialog"><span class="who">Interviewer:</span> This event has 50,000 seats and a million people try to buy at the exact on-sale second. What happens?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's not really a "scale out the servers" problem — there are still only 50,000 seats no matter how much compute you add, so letting all a million requests hit the reservation path at once just means most of them fail after consuming real capacity getting there. I'd put a virtual waiting room in front of the booking flow specifically for known high-demand on-sales — it issues queue positions and admits people into the actual reservation flow in a controlled, rate-limited way, so the database layer never sees the full spike instantaneously.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you keep that fair?</div>
+<div class="dialog"><span class="who">Candidate:</span> I wouldn't base the queue purely on raw network arrival time, since that favors bots and low-latency connections over genuine buyers. I'd add some human-verification at waiting-room entry and per-account purchase limits, alongside the seat-level atomicity — correctness alone doesn't guarantee fairness, so I'd treat that as its own explicit concern.</div>
+
+<h3 id="p8-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/ticketmaster" target="_blank">Hello Interview</a></td><td>Atomic-reservation-first framing, explicit two-phase hold/confirm discussion, staff-level virtual-waiting-room treatment</td><td>Clearest articulation of the overselling race and the hold/confirm split as the two central ideas — the core structure adopted for this section</td><td>Lighter on the specific bot/fairness mitigation angle</td><td>The two-phase commit framing (hold, then charge) reused directly as the spine of L and Q</td></tr>
+<tr><td><a href="https://bytebytego.com/courses/system-design-interview/design-ticketmaster" target="_blank">ByteByteGo</a></td><td>Detailed database-locking mechanism comparison (optimistic vs. pessimistic) and sharding-by-event discussion</td><td>The most rigorous side-by-side treatment of locking strategies of any source reviewed</td><td>Less depth on the waiting-room's fairness-token mechanics specifically</td><td>The pessimistic-lock-vs-conditional-update comparison table adapted into M</td></tr>
+<tr><td><a href="https://github.com/donnemartin/system-design-primer#design-a-web-crawler" target="_blank">donnemartin/system-design-primer (GitHub, general concurrency patterns)</a></td><td>General distributed-locking and race-condition-avoidance patterns applicable directly to high-contention inventory problems</td><td>Good grounding in the general check-then-act race vocabulary reused consistently across this document (Rate Limiter, Uber, here)</td><td>Not ticket-booking-specific — requires translating general concurrency advice into the seat-inventory domain</td><td>Confirming the check-then-act race is a recurring, well-known distributed-systems pattern, not a problem-specific quirk</td></tr>
+<tr><td>Real-world virtual waiting room vendors (e.g. Queue-it — industry practice, reviewed at a conceptual level)</td><td>Actual production admission-control services used by real ticketing platforms during high-demand on-sales</td><td>Ground-truth confirmation that a dedicated waiting-room layer is standard real-world practice, not a hypothetical interview construct</td><td>Vendor marketing material, not a system-design walkthrough — needs translation, which P provides</td><td>Confirming that admission control as a deliberate, separate layer (not just rate limiting) is how real platforms handle exactly this problem</td></tr>
+</table>
+
+<h3 id="p8-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Ticketmaster (Event Ticket Booking)</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced + High-Contention (the sharpest strong-consistency requirement in this document)</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Browse, reserve, pay, auto-release; no overselling ever; 50K-seat venue, 1M+ concurrent on-sale requests, fast checkout, fair admission</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Atomic conditional update / row-level lock for the seat hold — the database's own transactional guarantees, not a bespoke or external lock</td></tr>
+<tr><td><strong>Purchase flow</strong></td><td>Two-phase: atomic hold first, idempotent payment charge second — never charge before or during the hold</td></tr>
+<tr><td><strong>Hold expiry</strong></td><td>TTL-driven automatic release (no polling), bounded to a short checkout window</td></tr>
+<tr><td><strong>Extreme spike handling</strong></td><td>Virtual waiting room as deliberate admission control — not a workaround, since more compute can't create more seats</td></tr>
+<tr><td><strong>Browse/display</strong></td><td>Cached/replica-backed, deliberately eventually consistent — kept off the strongly-consistent reservation path entirely</td></tr>
+<tr><td><strong>Fairness</strong></td><td>Human-verification + per-account purchase limits + rate limiting, layered alongside (not instead of) seat-level atomicity</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Two-call check-then-write races; charging before holding; treating spikes as a pure compute-scaling problem; no hold expiry; ignoring fairness/bots</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>A full resale/secondary marketplace or dynamic pricing engine — name them as separate, out-of-scope systems built on top of the Order entity</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p7.html">&larr; 7. Video Streaming (YouTube)</a><a class="prevnext-link next" href="p9.html">9. Google Docs (Collaborative Editing) &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

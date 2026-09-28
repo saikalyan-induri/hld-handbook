@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>15. Payment System (Stripe-like) — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">15. Payment System (Stripe-like) <span class="badge">Advanced + Financial Correctness</span></h1>
+
+<div class="section-toc">
+<a href="#p15-a">A. Interview Prompt</a><a href="#p15-b">B. Difficulty</a><a href="#p15-c">C. What It Tests</a>
+<a href="#p15-d">D. Requirements</a><a href="#p15-e">E. Clarifying Questions</a><a href="#p15-f">F. Assumptions</a>
+<a href="#p15-g">G. Capacity Estimation</a><a href="#p15-h">H. Core Entities</a><a href="#p15-i">I. API Design</a>
+<a href="#p15-j">J. Basic Design (V1)</a><a href="#p15-k">K. Data Model &amp; Store Choice</a><a href="#p15-l">L. End-to-End Flow</a>
+<a href="#p15-m">M. Deep Dive 1: Idempotency at the API Boundary</a><a href="#p15-n">N. Deep Dive 2: Double-Entry Ledger</a><a href="#p15-o">O. Deep Dive 3: Processor Timeout Ambiguity</a>
+<a href="#p15-p">P. Deep Dive 4: The Saga Pattern</a><a href="#p15-q">Q. Deep Dive 5: Async Reconciliation</a><a href="#p15-r">R. Deep Dive 6: Idempotent Webhooks</a>
+<a href="#p15-s">S. Deep Dive 7: Refunds &amp; Partial Refunds</a><a href="#p15-t">T. Full Solution at Scale</a><a href="#p15-u">U. Design Evolution</a>
+<a href="#p15-v">V. Consistency Model</a><a href="#p15-w">W. Failure Scenarios</a><a href="#p15-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p15-y">Y. Trade-Offs</a><a href="#p15-z">Z. Common Bad Designs</a><a href="#p15-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p15-ab">AB. Interviewer Evaluation</a><a href="#p15-ac">AC. Interview Simulation</a><a href="#p15-ad">AD. Source Comparison</a>
+<a href="#p15-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p15">Jump to section:</label><select id="jump-p15" class="jump-select" data-jump-select><option value="p15-a">A. Realistic Interview Prompt</option><option value="p15-b">B. Difficulty</option><option value="p15-c">C. What This Problem Tests</option><option value="p15-d">D. Requirements</option><option value="p15-e">E. Clarifying Questions</option><option value="p15-f">F. Assumptions</option><option value="p15-g">G. Capacity Estimation</option><option value="p15-h">H. Core Entities</option><option value="p15-i">I. API Design</option><option value="p15-j">J. Basic / Naive High-Level Design (V1)</option><option value="p15-k">K. Data Model &amp; Store Choice</option><option value="p15-l">L. End-to-End Flow — A Customer Pays a Merchant: Charge, Ledger, Notification, All Idempotently</option><option value="p15-m">M. Deep Dive 1 — Idempotency at the API Boundary</option><option value="p15-n">N. Deep Dive 2 — The Double-Entry Ledger as the Single Source of Truth</option><option value="p15-o">O. Deep Dive 3 — Handling Processor Timeout Ambiguity</option><option value="p15-p">P. Deep Dive 4 — The Saga Pattern for Multi-Step Transactions</option><option value="p15-q">Q. Deep Dive 5 — Async Reconciliation Jobs</option><option value="p15-r">R. Deep Dive 6 — Idempotent Webhooks from the Payment Processor</option><option value="p15-s">S. Deep Dive 7 — Handling Refunds &amp; Partial Refunds</option><option value="p15-t">T. Full Solution at Scale — Final Architecture</option><option value="p15-u">U. Design Evolution</option><option value="p15-v">V. Consistency Model</option><option value="p15-w">W. Failure Scenarios</option><option value="p15-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p15-y">Y. Design Trade-Offs</option><option value="p15-z">Z. Common Bad Designs</option><option value="p15-aa">AA. Interviewer Follow-Ups</option><option value="p15-ab">AB. Interviewer Evaluation Rubric</option><option value="p15-ac">AC. Interview Simulation</option><option value="p15-ad">AD. Online Solution Comparison</option><option value="p15-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p15-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a payment processing system like Stripe: a merchant integrates an API to charge a customer's card, refund it partially or in full, and get notified when a payment's status changes — and no matter how a client's request is retried, or where in the pipeline a network call fails, a customer must never be charged twice for the same purchase, and every dollar the system has ever moved must be independently reconstructable and auditable after the fact, by someone who trusts nothing but the raw records."</div>
+<p>Every other problem in this document treats "eventually correct" as an acceptable, even desirable, default — a stale feed, a slightly-late notification, a seat map that catches up a second later are all harmless. This problem is the one place in the set where that default is simply wrong for the core of the system: money that appears to move but didn't, or moves twice when it should have moved once, isn't a UX rough edge, it's an incorrect fact the business is now on the hook for. The load-bearing decision this design is built around is: <strong>treat an append-only, double-entry ledger as the single source of truth for every dollar that moves — balances are always computed from it, never stored and mutated directly; require a client-supplied idempotency key on every mutating request at the API boundary, non-negotiably, because "retry" is the normal behavior of every real network client; sequence a payment's multiple steps (charge the card, write the ledger, notify the merchant) as an explicit saga with a defined compensating action for any step whose side effect already happened when a later step fails; and run asynchronous reconciliation jobs that independently compare the internal ledger against the payment processor's own records, on the assumption that "should never happen" and "cannot happen" are different claims, and this domain is exactly the one where you build the safety net for the gap between them anyway.</strong></p>
+
+<h3 id="p15-b">B. Difficulty</h3>
+<p><strong>Advanced</strong> — almost none of the individual mechanisms here are exotic (an idempotency key, a ledger table, a background reconciliation job are each independently simple to describe), but the domain has essentially zero tolerance for the small approximations that make every other problem in this document tractable. A candidate who reflexively reaches for "eventually consistent, we'll converge" without first identifying exactly which piece of this system cannot be allowed to converge <em>after the fact</em> — because by then real money has already moved incorrectly — is the most common way this problem goes wrong at the senior level.</p>
+
+<h3 id="p15-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognizing idempotency (<a href="#prereq-o">Prerequisites O</a>, <a href="#patterns-e">Patterns Playbook E</a>) not as a nice-to-have but as the load-bearing, non-negotiable mechanism for this specific domain — and being able to say precisely why a domain like Chat System (<a href="#p4">P4</a>) can tolerate the rare, harmless duplicate that a payment system structurally cannot</li>
+<li>Recognizing that "store a balance, update it" is the naive answer that a candidate without financial-systems exposure reaches for by default, and knowing the concrete reason a real system never does this — auditability and the ability to detect corruption after the fact, not just performance</li>
+<li>Distinguishing an ambiguous outcome (a network call timed out — did the side effect happen or not?) from a definite failure, and knowing that only one of those two situations is ever safe to blindly retry</li>
+<li>Recognizing when a multi-step process with real, already-happened side effects needs a formal saga with per-step compensation, rather than an ad hoc sequence of calls with a vague "roll it back somehow" gesture at the end</li>
+<li>Building a genuine second line of defense (reconciliation) on top of a first line of defense (idempotency, the saga) that is expected to already be correct — and explaining why a mature financial system still builds the second line anyway</li>
+</ul>
+
+<h3 id="p15-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>A merchant can charge a customer's stored payment method for a specified amount, in a specified currency</li>
+<li>A merchant can refund a charge, in full or in part, and can issue multiple partial refunds against the same original charge as long as their total doesn't exceed it</li>
+<li>A merchant (or the merchant's own system) can query the current status of any payment or refund at any time</li>
+<li>The system notifies a merchant asynchronously (via webhook) whenever a payment's status changes, including changes driven by the payment processor itself after the fact (e.g. a dispute)</li>
+<li>Every mutating request is safe to retry any number of times without repeating its real-world financial effect</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>No double effect, ever</strong> — the single hardest constraint in this document: a retried charge or refund request must never result in the money moving twice</li>
+<li><strong>Auditable and reconstructable</strong> — any account's balance, and the full history of how it got there, must be independently derivable from durable records alone, without trusting any single cached number</li>
+<li><strong>Strongly consistent at the ledger core</strong> — a transaction's financial entries either all commit together or none do; there is no acceptable "partially happened" state for a movement of money</li>
+<li><strong>Resilient to partial failure mid-transaction</strong> — if a multi-step payment fails partway through, whatever already happened must be either completed or correctly unwound, never left in an ambiguous middle state</li>
+<li><strong>Highly available on the read/query path</strong> — checking a payment's status should not be gated behind the same strict consistency the ledger write itself requires</li>
+</ul>
+<p><strong>Out of scope:</strong> actual card-network/PCI-compliant tokenization internals (assumed handled by a compliant vendor or sub-processor); fraud/risk scoring models; full multi-entity accounting/tax reporting; building the payment processor itself — this system is the layer that sits in front of and orchestrates a processor, mirroring Stripe's own position in front of the underlying card networks.</p>
+
+<h3 id="p15-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Are we building the payment processor itself, or a layer that orchestrates calls to an existing processor (a Visa/Mastercard-connected acquirer)?</td><td>Determines whether "the card network" is an external dependency this system treats as a black box with its own latency and failure modes, or something we're modeling internally</td><td>API Design (I), Deep Dive 3 (O)</td></tr>
+<tr><td>2</td><td>Does this need to support multi-party money movement — platform fee, marketplace split payouts to a sub-seller — or just simple merchant-charges-customer?</td><td>Shapes how many ledger accounts a single transaction touches, and whether the ledger schema needs to support an arbitrary fan-out of legs per transaction from day one</td><td>Core Entities (H), Deep Dive 2 (N)</td></tr>
+<tr><td>3</td><td>What's the acceptable latency for a charge to be confirmed back to the merchant — synchronous within the checkout request, or can it be "pending" and confirmed asynchronously?</td><td>Determines whether the saga's first step (authorization) must complete inline before responding, or can itself be deferred</td><td>End-to-End Flow (L), Deep Dive 4 (P)</td></tr>
+<tr><td>4</td><td>Is multi-currency support required, or is everything settled in one reporting currency?</td><td>A cross-currency transaction needs an explicit FX-conversion leg to keep the ledger balanced in a single reporting currency for consolidated views</td><td>Data Model (K), Interviewer Follow-Ups (AA)</td></tr>
+<tr><td>5</td><td>How long does an idempotency key need to remain valid — how long could a realistic client legitimately keep retrying the same logical request?</td><td>Directly sets the idempotency-key TTL, trading protection window against unbounded key-store growth</td><td>Deep Dive 1 (M)</td></tr>
+</table>
+
+<h3 id="p15-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> charge, refund (full and partial), status query, and async merchant notification, with zero tolerance for a duplicated financial side effect.</li>
+<li><strong>Assumption:</strong> this system sits in front of an already-PCI-compliant, external card-network-connected payment processor (E's clarifying question 1) — card tokenization, the actual card-network rails, and PCI scope are the processor's problem, not this design's; this system's job is orchestrating charges, ledger correctness, and notification against that processor as a dependency with its own latency and its own failure modes.</li>
+<li><strong>Assumption:</strong> multi-party splits (platform fee, marketplace payouts) are a real, in-scope requirement, not a hypothetical extension (E's clarifying question 2) — the ledger schema (K) is designed from the outset to let one transaction fan out across an arbitrary number of accounts, not just two.</li>
+<li><strong>Assumption:</strong> a charge can be confirmed asynchronously — the merchant's checkout gets an immediate "processing" response and a webhook once the outcome is known, rather than the whole saga completing inline within one HTTP request (E's clarifying question 3) — this is what lets the saga's later steps (ledger write, notification) run reliably in the background rather than under the pressure of a single request's timeout budget.</li>
+<li><strong>Assumption:</strong> multi-currency is in scope (E's clarifying question 4) — every ledger entry carries a currency and, for cross-currency transactions, an explicit conversion leg.</li>
+<li><strong>Assumption:</strong> a realistic idempotency-key retry window is bounded to roughly 24 hours (E's clarifying question 5) — long enough to cover a client that legitimately retries hours later after being offline, short enough to keep the key store's size proportional to a single day's request volume.</li>
+</ul>
+
+<h3 id="p15-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Active merchants</td><td>Illustratively, ~4M</td><td>The baseline scale driver for transaction volume below</td></tr>
+<tr><td>Charges per day, platform-wide</td><td>~250M charges/day → ~250M / 86,400 ≈ 2,900/sec average</td><td>The write volume the charge/saga path (L, P) must sustain on an ordinary day</td></tr>
+<tr><td>Peak-to-average ratio</td><td>Illustratively ~15x during a major shopping event, ≈ 43,000 charges/sec sustained for the peak window</td><td>The real design target — a system correct only at average load, but which corrupts state under a spike, has effectively failed at the one thing this problem cares about most</td></tr>
+<tr><td>Ledger entries/day</td><td>~250M charges × ≥2 balanced entries each (debit + credit, more with fees/splits, F) ≈ 550M-750M entries/day</td><td>Sets the write volume the ledger store (K) itself must sustain — an order of magnitude above the charge count because every transaction is, by construction, at least two rows, never one</td></tr>
+<tr><td>Refunds/day</td><td>~5% of charges ≈ 12.5M/day, each its own balanced ledger transaction (S)</td><td>A meaningfully large secondary write stream, but a strictly smaller one than charges, and structurally identical to one (S)</td></tr>
+<tr><td>Idempotency-key store, live keys</td><td>~250M keys/day retained for a 24h TTL (F) ≈ ~250M live keys at any moment, each a small row (key, request hash, status, response snapshot) ≈ ~150 bytes ≈ ~38GB live</td><td>Bounded and modest specifically because of the TTL (M) — without one, this store would grow without limit</td></tr>
+<tr><td>Ledger storage growth</td><td>~650M entries/day × ~250 bytes/entry ≈ ~160GB/day ≈ ~58TB/year, retained for years for audit/regulatory purposes</td><td>Large but comfortably within reach of a well-sharded relational store (K) — smaller by an order of magnitude than Dropbox's chunk-byte footprint (<a href="#p14">P14</a>), because ledger rows are small, structured facts, not payloads</td></tr>
+<tr><td>Webhook events, outbound to merchants</td><td>~3-4 lifecycle events per charge (created, succeeded/failed, later refunded/disputed) ≈ ~1B events/day platform-wide</td><td>The volume the notification/webhook path (R) and its dedup/retry logic must handle reliably, at-least-once</td></tr>
+<tr><td>Ledger-write latency budget</td><td>Low tens of milliseconds for the ACID commit itself — the strongly-consistent core (V) — versus low seconds acceptable for the full charge-to-merchant-notified round trip</td><td>A deliberately narrow, fast, strongly-consistent island (patterns-j) inside an otherwise much more loosely-timed end-to-end flow</td></tr>
+</table>
+
+<h3 id="p15-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>Merchant</code></td><td>The party receiving funds; owns its own payable account in the ledger</td><td><code>merchant_id</code>, <code>payout_account_id</code>, <code>webhook_url</code></td></tr>
+<tr><td><code>PaymentIntent</code></td><td>The customer-facing representation of one attempt to collect money — the unit a merchant actually integrates against (I, L)</td><td><code>intent_id</code>, <code>merchant_id</code>, <code>amount</code>, <code>currency</code>, <code>status</code> (created/processing/succeeded/failed), <code>idempotency_key</code></td></tr>
+<tr><td><code>Account</code></td><td>One node in the internal chart of accounts the ledger moves money between — never itself a mutable balance, only an identity ledger entries reference (K, N)</td><td><code>account_id</code>, <code>type</code> (e.g. <code>processor_clearing</code>, <code>merchant_payable</code>, <code>platform_revenue</code>, <code>refunds_payable</code>), <code>owner_id</code></td></tr>
+<tr><td><code>LedgerTransaction</code></td><td>One balanced financial event grouping two or more entries that must sum to zero (K, N)</td><td><code>transaction_id</code>, <code>related_intent_id</code> or <code>refund_id</code>, <code>created_at</code>, <code>reason</code></td></tr>
+<tr><td><code>LedgerEntry</code></td><td>One immutable debit or credit line — the actual, append-only unit of financial truth (N)</td><td><code>entry_id</code>, <code>transaction_id</code>, <code>account_id</code>, <code>direction</code> (debit/credit), <code>amount</code>, <code>currency</code></td></tr>
+<tr><td><code>IdempotencyKeyRecord</code></td><td>Tracks which client-supplied keys have already been seen, and with what outcome (M)</td><td><code>key</code> (scoped per merchant), <code>request_fingerprint</code>, <code>status</code> (in_progress/completed), <code>response_snapshot</code>, <code>expires_at</code></td></tr>
+<tr><td><code>Refund</code></td><td>A request to reverse some or all of a charge's amount — its own saga, its own ledger transaction (S)</td><td><code>refund_id</code>, <code>payment_intent_id</code>, <code>amount</code>, <code>status</code>, <code>idempotency_key</code></td></tr>
+<tr><td><code>WebhookEvent</code></td><td>One inbound async event from the processor, or one outbound notification to a merchant — deduplicated independently of the API-boundary idempotency key (R)</td><td><code>event_id</code> (processor- or system-assigned), <code>type</code>, <code>payload</code>, <code>received_at</code>/<code>delivered_at</code>, <code>processed</code></td></tr>
+<tr><td><code>ReconciliationDiscrepancy</code></td><td>A flagged mismatch found by comparing the internal ledger against the processor's settlement records (Q)</td><td><code>discrepancy_id</code>, <code>internal_ref</code>, <code>processor_ref</code>, <code>type</code>, <code>resolved</code></td></tr>
+</table>
+
+<h3 id="p15-i">I. API Design</h3>
+<pre><code>-- merchant-facing (all mutating calls require an Idempotency-Key header):
+POST /payment_intents { amount, currency, customer_payment_method_id }
+     Idempotency-Key: &lt;client-generated&gt;  -&gt; { intent_id, status: "processing" }        (M, L)
+GET  /payment_intents/{intent_id}          -&gt; { status, amount, ledger_summary }         (L)
+POST /payment_intents/{intent_id}/refunds { amount (optional, partial) }
+     Idempotency-Key: &lt;client-generated&gt;  -&gt; { refund_id, status: "processing" }        (S)
+GET  /refunds/{refund_id}                  -&gt; { status, amount }                          (S)
+-- outbound, system-to-merchant:
+POST {merchant.webhook_url} { event_id, type: "payment_intent.succeeded" | ".failed" | ".refunded", ... }   (R)
+-- inbound, processor-to-system:
+POST /internal/webhooks/processor { event_id, type, payment_reference, ... }             (O, R)
+-- internal, cluster-facing:
+(saga orchestrator) drives: authorize -&gt; ledger write -&gt; notify, with compensations       (P)
+(reconciliation worker) periodic: diff ledger vs processor settlement report              (Q)
+</code></pre>
+<p><strong>Why every mutating endpoint requires <code>Idempotency-Key</code>, not just recommends it:</strong> this is the one API-design decision this entire problem is built around (<a href="#prereq-o">Prerequisites O</a>, <a href="#patterns-e">Patterns Playbook E</a>) — a request without a key isn't a convenience trade-off the way an optional header might be elsewhere, it's a request the system has no way to protect against a client's own retry, and is rejected outright rather than processed unprotected.</p>
+<p><strong>Why <code>GET /payment_intents/{id}</code> and the refund/status endpoints are safe without an idempotency key:</strong> they're pure reads with no side effect to protect against duplication — idempotency keys guard mutations specifically, the same distinction Prerequisites O draws generally.</p>
+
+<h3 id="p15-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: a single <code>accounts</code> table with a <code>balance</code> column per merchant; charging a customer calls the payment processor directly, and on success runs <code>UPDATE accounts SET balance = balance + amount WHERE merchant_id = ?</code>. No idempotency key is required anywhere in this flow.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Client(["Merchant's Checkout"]) -- "charge request" --> API["Payment API"]
+  API -- "charge card" --> Proc[("Payment Processor")]
+  Proc -- "success" --> API
+  API -- "UPDATE balance += amount" --> DB[("accounts table<br/>(mutable balance column)")]
+</div>
+<p class="diagram-caption">V1 — a direct, synchronous charge-then-mutate-balance flow, with nothing protecting against a retried request.</p>
+<p class="callout"><strong>Why this breaks, in the two ways that matter most:</strong> first, and most dangerously, a client whose charge request times out — the processor charged the card, but the response never made it back — has no safe way to retry: calling the same endpoint again with no idempotency key charges the customer a second time, and there is nothing in this design that can tell the difference between "this is a genuinely new charge" and "this is the same charge, retried." Second, even setting retries aside, mutating a <code>balance</code> column directly destroys the one thing a financial system is obligated to preserve: a reconstructable history. If that balance is ever wrong — a bug in the update logic, a partially-applied migration, a race no one noticed — there is no way to determine <em>how</em> it became wrong, or what the correct value should have been, because the individual facts that produced it were never recorded, only their net effect. Both flaws point at the same root cause: this design has nothing durable and immutable underneath the number it reports, and nothing distinguishing a repeated request from a new one.</p>
+<h3 id="p15-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>The double-entry ledger schema, the central structural decision this entire design is built around:</strong> every financial event is recorded as a <code>LedgerTransaction</code> grouping two or more <code>LedgerEntry</code> rows, each tagged <code>debit</code> or <code>credit</code> against a specific <code>Account</code> (H) — and the one invariant enforced on every single write is that a transaction's entries must sum to zero (every debit balanced by an equal credit, the literal accounting definition of "double-entry"). A simple merchant charge touches at least two accounts — debit <code>processor_clearing</code> (money now sitting with the processor, not yet settled), credit <code>merchant_payable:{merchant_id}</code> (what the platform now owes that merchant) — and a transaction with a platform fee or a marketplace split (F, E's clarifying question 2) simply adds more balanced legs to the same transaction, crediting <code>platform_revenue</code> and debiting the merchant's payable proportionally, with the invariant holding regardless of how many accounts a single transaction ultimately touches.</p>
+<p><strong>Why this lives in a relational database with real ACID transactions (<a href="#prereq-b">Prerequisites B</a>), not a document store or a loosely-consistent key-value store:</strong> writing a <code>LedgerTransaction</code>'s several balanced entries must be all-or-nothing — if the process crashes after writing the debit but before the credit, the ledger is left in a state that structurally cannot exist under the double-entry invariant, and any account balance derived from it (N) is now silently wrong. Wrapping every entry belonging to one <code>transaction_id</code> in a single database transaction, committed atomically, is what makes "the ledger can never be observed in an unbalanced state" a guarantee enforced by the storage layer itself, not a discipline hoped for at the application layer.</p>
+<p><strong>Sharding the ledger:</strong> partitioned by <code>merchant_id</code> (the same natural-ownership-key reasoning as <a href="#patterns-g">Patterns Playbook G</a>) so one merchant's transaction volume doesn't contend with another's, with the platform-wide accounts (<code>platform_revenue</code>, <code>processor_clearing</code>) either replicated read-heavy or handled by a small set of dedicated high-throughput shards, since nearly every transaction touches one of them. A single transaction that spans a merchant-owned account and a platform-wide account still commits atomically because both live inside the reach of one database transaction on the shard that owns that specific write.</p>
+<p><strong>Why <code>Account</code> itself carries no balance field at all:</strong> this is the direct, deliberate fix for V1's core flaw (J) — an account is purely an identity that ledger entries reference; its balance is never a column anyone writes to, only a value computed from the entries that reference it (N).</p>
+
+<h3 id="p15-l">L. End-to-End Flow — A Customer Pays a Merchant: Charge, Ledger, Notification, All Idempotently</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant M as Merchant Checkout
+  participant API as Payment API
+  participant Idem as Idempotency Store (M)
+  participant Saga as Saga Orchestrator (P)
+  participant Proc as Payment Processor
+  participant Ledger as Ledger DB (K, N)
+  participant Notify as Webhook Sender (R)
+  M->>API: POST /payment_intents (Idempotency-Key: K1)
+  API->>Idem: has K1 been seen?
+  Idem-->>API: no — record K1 as in_progress
+  API->>Saga: start saga for new PaymentIntent
+  Saga->>Proc: authorize + capture charge (passing K1 downstream too, O)
+  Proc-->>Saga: succeeded
+  Saga->>Ledger: write balanced LedgerTransaction (debit clearing, credit merchant_payable)
+  Ledger-->>Saga: committed (ACID, K)
+  Saga->>Notify: enqueue merchant webhook (payment_intent.succeeded)
+  Saga->>API: mark PaymentIntent succeeded
+  API->>Idem: store final response against K1
+  API-->>M: 200 { status: "processing" } (immediate) / webhook later confirms success
+  Notify-->>M: webhook: payment_intent.succeeded
+</div>
+<p class="diagram-caption">Every step downstream of the idempotency check is itself idempotent or safely retryable — a retried request with the same key at any point simply returns the already-recorded outcome instead of re-running any step.</p>
+
+<h3 id="p15-m">M. Deep Dive 1 — Idempotency at the API Boundary</h3>
+<p><strong>Requirement this addresses:</strong> the no-double-effect NFR (D) — the single most consequential mechanism in this entire design, directly fixing V1's fatal flaw (J).</p>
+<p><strong>Why this is non-negotiable here specifically, more than anywhere else this document uses the same mechanism:</strong> <a href="#prereq-o">Prerequisites O</a> establishes the general case — a client can't tell "my request never arrived" apart from "it arrived, succeeded, and the response was lost" — and <a href="#patterns-e">Patterns Playbook E</a> catalogs three prior instances of the fix (Chat's <code>client_msg_id</code>, Ticketmaster's payment-confirmation key, Job Scheduler's execution key). What's different here is the cost of getting it wrong: a duplicated chat message is a harmless annoyance a user can delete; a duplicated job execution is often reversible; a duplicated charge is money that has to be manually identified, refunded, and apologized for, and it erodes the one thing a payment provider is fundamentally selling — trust that the number it reports is correct. This is why idempotency keys are <em>mandatory</em> and rejected-if-absent here (I), not merely supported.</p>
+<p><strong>Storage and the request-fingerprint check:</strong> an <code>IdempotencyKeyRecord</code> (H) is keyed by <code>(merchant_id, key)</code> — scoped per merchant, since two unrelated merchants independently choosing the same key string must not collide — and stores a hash of the full request body alongside the key. A repeat request with the same key and the same request fingerprint returns the original cached response with no side effect repeated; a repeat request with the same key but a <em>different</em> body (a client bug reusing a key for a genuinely different charge) is rejected outright with a clear conflict error, rather than either silently executing a second charge or silently returning the wrong cached result for a different request.</p>
+<p><strong>The concurrent, still-in-flight case — a second race, one level up from Pattern 1:</strong> if a second request with the same key arrives while the first is still being processed (a client that fires a fast, automatic retry before the first attempt has even finished, not after a timeout), simply checking "has this key been seen" isn't enough — both requests could observe "not yet seen" and both proceed. The fix is the same check-then-act discipline as <a href="#patterns-b">Patterns Playbook B</a>, applied to the idempotency record itself: a unique constraint on <code>(merchant_id, key)</code> combined with an atomic insert-if-absent means the second request's insert fails immediately, and it's told to wait for or poll the first request's outcome rather than being allowed to also attempt the charge.</p>
+<p><strong>TTL, and why it's bounded rather than permanent:</strong> keys expire after roughly 24 hours (G, F) — long enough to cover a client that legitimately retries after being offline for hours, short enough that the key store's size stays proportional to a single day's request volume rather than growing forever. This mirrors the same trade Ticketmaster's reservation-hold TTL makes (<a href="#p8">P8</a>, Deep Dive N) for a different resource entirely — a bounded window that's generous for the real, legitimate case and cheap to eventually reclaim.</p>
+
+<h3 id="p15-n">N. Deep Dive 2 — The Double-Entry Ledger as the Single Source of Truth</h3>
+<p><strong>Requirement this addresses:</strong> the auditable/reconstructable NFR (D) — the second half of V1's core flaw (J), independent of and complementary to idempotency (M): idempotency prevents a bad write from happening twice; the ledger design is what makes every write that <em>does</em> happen permanently, independently verifiable.</p>
+<p><strong>Why a balance is a computed value, never a stored, mutated field:</strong> an account's balance at any point in time is <code>SUM(credits) - SUM(debits)</code> over every <code>LedgerEntry</code> referencing that account (K) — not a column anyone ever runs <code>UPDATE ... SET balance = balance + x</code> against. This is the direct, structural fix for V1's second flaw: because every entry that ever affected an account is preserved, permanently and unmodified, that account's balance at any past moment is independently reconstructable by literally anyone with read access to the ledger — an internal auditor, an external regulator, a support engineer investigating a customer's complaint — without needing to trust that some other piece of code correctly maintained a running total. A cached, precomputed balance is a legitimate performance optimization (a materialized summary table, refreshed by a background job) but it is never the source of truth — it's always re-derivable from, and checkable against, the entries themselves.</p>
+<p class="callout"><strong>Why "just add an audit log next to the mutable balance" doesn't get you the same guarantee:</strong> a common instinct is to keep V1's <code>balance</code> column for fast reads, and bolt on a separate log of "what changed" for audit purposes. This is subtly, importantly different from the ledger being the source of truth: if the balance column and the log can ever drift — a bug that updates one but not the other, a crash between the two writes — there is no way to know, after the fact, which one is correct, because neither is defined as authoritative over the other. The double-entry ledger design doesn't have this problem because there is only one write path and only one source of truth; a "current balance" is a query against it, not a second, independently-maintained fact that could disagree with it.</p>
+<p><strong>Why the double-entry invariant itself (debits = credits, always) is what makes reconciliation (Q) possible at all:</strong> because every transaction is mechanically checkable for internal balance at write time, and the sum of every account's net position across the whole ledger is mathematically guaranteed to be zero, a reconciliation job has a precise, checkable property to test against — "does this match the processor's records" is a well-posed question specifically because the internal side of the comparison is a rigorously balanced structure, not an arbitrary mutable number that could be wrong in ways nobody can even characterize.</p>
+
+<h3 id="p15-o">O. Deep Dive 3 — Handling Processor Timeout Ambiguity</h3>
+<p><strong>Requirement this addresses:</strong> the no-double-effect NFR (D), for the specific case where the ambiguity originates <em>outside</em> this system's own boundary — the call to an external payment processor times out.</p>
+<p class="callout"><strong>The exact ambiguity, stated precisely:</strong> the saga (P) calls the processor to authorize and capture a charge; the call times out before a response arrives. Three things could actually be true: the processor never received the request at all; the processor received it and is still processing; or the processor received it, successfully charged the card, and the response confirming that was simply lost on the way back. From this system's side, these three cases are indistinguishable by the timeout alone — and blindly retrying the charge call is only safe in the first case. Retrying in the third case charges the customer's card twice, entirely outside the reach of this system's own idempotency-key store (M), because the duplication would happen on the processor's or card network's side, not at this system's API boundary.</p>
+<p><strong>The fix — query status, don't guess:</strong> the same idempotency key generated at this system's API boundary (M) is also passed downstream to the processor on the original charge call, so the processor itself can deduplicate a retried call carrying the same key — most real processors support exactly this (<a href="#p15-ad">AD</a>). But relying on that alone still leaves this system without a definite answer to act on. The correct move on an ambiguous timeout is not to immediately retry the charge call — it's to query the processor's own transaction-status endpoint for that specific reference, and read back a definite answer (succeeded, failed, or still processing) before the saga decides what to do next. Only once that answer is known does the saga either proceed down the success path (ledger write, notification) or safely retry the original call, now knowing it genuinely never landed.</p>
+<p><strong>Why this is the single most consequential deep dive for preventing an actual double charge:</strong> idempotency keys (M) protect against a client-initiated retry at this system's own boundary; this mechanism protects against the different, equally real failure mode of this system's own outbound call to the processor being ambiguous. Both are necessary; neither alone is sufficient — a design with perfect API-boundary idempotency but a "just retry on timeout" policy toward the processor is still exposed to exactly the failure this deep dive exists to close.</p>
+
+<h3 id="p15-p">P. Deep Dive 4 — The Saga Pattern for Multi-Step Transactions</h3>
+<p><strong>Requirement this addresses:</strong> the resilient-to-partial-failure NFR (D) — a payment is never really one atomic step; it's authorize-with-processor, then write-the-ledger, then notify-the-merchant, and each of those can fail independently, after the ones before it already produced a real, external side effect.</p>
+<p><strong>Orchestration, chosen over choreography:</strong> in a <strong>choreographed</strong> design, each service reacts to events published by the one before it (the processor-adapter service publishes "charge succeeded," the ledger service listens and writes, then publishes its own "ledger written" event, and so on) — appealingly decoupled, but the direct cost is that no single place holds the full picture of one specific payment's progress; reconstructing "what exactly happened to this $47.20 charge, step by step" means piecing it together from a scattered event trail across services. In an <strong>orchestrated</strong> design, a central saga coordinator explicitly issues each step in sequence and explicitly persists which step a given <code>PaymentIntent</code> is currently on — the same durable-workflow-orchestration concept named for Ride-Sharing's multi-step match/accept sequence (<a href="#p5-q">P5-Q</a>), reused here for a financial chain instead of a matching retry loop. For a domain where an auditor, a support engineer, or a regulator will eventually ask exactly that "what happened, step by step" question, having one durable, queryable record of a transaction's progress is worth the coupling cost choreography avoids.</p>
+<table>
+<tr><th>Step</th><th>Side Effect if It Succeeds</th><th>Compensating Action if a Later Step Fails</th></tr>
+<tr><td>1. Authorize/capture charge with processor</td><td>Customer's card is actually charged — a real, external, hard-to-reverse effect</td><td>Issue a refund/void call back to the processor (S) — the compensation for a real external side effect must itself be a real external action, not merely an internal state change</td></tr>
+<tr><td>2. Write the balanced ledger transaction</td><td>Internal accounts now reflect the money having moved (N)</td><td>Never delete or mutate the entries just written (N) — write a new, reversing <code>LedgerTransaction</code> that cancels out the original's effect, itself balanced</td></tr>
+<tr><td>3. Notify the merchant (webhook)</td><td>Merchant's own system learns the payment succeeded</td><td>None required — a failed or delayed notification is simply retried (R); notifying twice is harmless (protected by its own event-level idempotency), so there is nothing here that needs undoing, unlike steps 1 and 2</td></tr>
+</table>
+<p><strong>Why step 3 deliberately needs no compensation, and why that distinction matters:</strong> steps 1 and 2 move real money or record a real financial fact — failing to compensate them leaves an incorrect state that persists. Step 3 only moves information about a fact that's already correctly settled by steps 1-2; failing to notify delays visibility, it doesn't corrupt anything, so retrying without compensating is the right, cheaper answer specifically because the failure mode is fundamentally different in kind, not just in severity.</p>
+<p><strong>The direct relationship to Ticketmaster's payment sequencing (<a href="#p8">P8</a>, Deep Dive Q):</strong> Ticketmaster deliberately sequences its own payment step strictly after the seat hold succeeds — and, notably, is the one explicit exception in this document to reflexively moving slow work off the hot path (<a href="#patterns-c">Patterns Playbook C</a>), because the user is actively waiting on a definitive yes/no. That two-step sequence (hold, then charge, with a single compensating action — release the seat — if the charge fails) is the minimal case of exactly this pattern: one point of failure, one compensation. This design generalizes the identical idea to an arbitrary-length chain, with its own explicit compensation defined per step, which is precisely the point at which an ad hoc "hold then charge" sequence stops being sufficient and a formally named saga, with an orchestrator that persists progress durably, becomes the right tool to reach for.</p>
+<h3 id="p15-q">Q. Deep Dive 5 — Async Reconciliation Jobs</h3>
+<p><strong>Requirement this addresses:</strong> auditability (D) — a deliberate second line of defense, built on the assumption that idempotency (M) and the saga's compensations (P) are already correct, but that "should never happen" and "cannot happen" are different claims, and this is exactly the domain where you build the safety net for the gap between them anyway.</p>
+<p><strong>The mechanism:</strong> a periodic batch job (daily, or more frequently for higher-value merchants) pulls the payment processor's own settlement report — a file or API listing every transaction the processor believes it processed and settled — and diffs it against the corresponding internal ledger transactions. Three categories of mismatch matter:</p>
+<ul>
+<li><strong>Internal ledger shows succeeded; processor has no matching record.</strong> Most likely a bug somewhere in the saga (P) or a misread response — this is the scariest category, because it implies this system believes money moved that never actually did.</li>
+<li><strong>Processor settled a different amount than the ledger recorded.</strong> Often a currency-conversion or fee-calculation discrepancy — smaller in impact, but still a real drift between what the system believes and what actually happened.</li>
+<li><strong>Processor has a settled transaction with no corresponding internal record at all.</strong> Frequently traces back to a dropped or unprocessed webhook (R) — money moved, and this system doesn't yet know it.</li>
+</ul>
+<p><strong>Auto-resolve narrowly, escalate everything else:</strong> a mismatch within an explicitly tolerated, well-understood bound (a sub-cent rounding difference from currency conversion) can be auto-corrected with a small, explicitly-tagged correcting <code>LedgerTransaction</code> (N) — never a silent mutation, always a new, attributable entry. Anything outside that narrow, well-understood category goes to a manual review queue rather than being auto-corrected on a guess, because guessing wrong here isn't a UX inconvenience, it's a real, incorrect movement of money layered on top of the first mistake.</p>
+<p><strong>Why this is explicitly a second line of defense, not the primary mechanism:</strong> reconciliation runs hours after the fact, at best — it is far too slow to be the thing that prevents a double charge in the moment (that's M and O's job) or that unwinds a failed multi-step transaction promptly (that's P's job). Its value is entirely in catching whatever slips past those first-line mechanisms anyway — a bug in the saga orchestrator, a webhook silently dropped, an edge case nobody anticipated — which is precisely why a mature financial system runs it unconditionally, not as an afterthought bolted on only once a discrepancy is first discovered the hard way.</p>
+
+<h3 id="p15-r">R. Deep Dive 6 — Idempotent Webhooks from the Payment Processor</h3>
+<p><strong>Requirement this addresses:</strong> the async-notification functional requirement (D) — but inbound this time: the processor telling this system that something changed, not this system telling a merchant.</p>
+<p><strong>At-least-once, out-of-order delivery is the expected default, not an edge case:</strong> the processor delivers webhook events for state changes (a charge settling, a later dispute, a refund confirming) the same way every real-world async delivery mechanism in this document works — at-least-once, per the same underlying admission named in <a href="#prereq-o">Prerequisites O</a> that exactly-once delivery isn't achievable over a network. A slow acknowledgment from this system triggers the processor's own redelivery, so the same event can legitimately arrive more than once; a network partition on the processor's side can deliver events out of their logical order (a dispute notification arriving before the succeeded event that logically precedes it).</p>
+<p><strong>Dedup by the processor's own event ID, a different key from the API-boundary idempotency key:</strong> each inbound <code>WebhookEvent</code> (H) carries an <code>event_id</code> assigned by the processor itself — a distinct identifier from the <code>Idempotency-Key</code> a merchant supplied when originally creating the charge (M). A <code>WebhookEvent</code> row keyed by that <code>event_id</code>, checked before any processing logic runs, means a redelivered event is acknowledged with a <code>200 OK</code> immediately, with no side effect repeated, regardless of how many times the processor resends it.</p>
+<p><strong>Handling out-of-order arrival without assuming delivery order matches logical order:</strong> a <code>PaymentIntent</code> is modeled as a small, explicit state machine with a defined set of valid transitions (<code>created → processing → succeeded → refunded</code>, or <code>created → processing → failed</code>). An incoming event that doesn't represent a valid transition from the record's <em>current</em> state — a refund-confirmed event arriving before the succeeded event that logically precedes it — is not blindly applied; it's queued or retried briefly rather than forced through, on the reasonable expectation that the missing predecessor event is likely already in flight and will arrive shortly. This is a cheaper, more targeted fix than trying to impose a strict global order on webhook delivery itself, which the processor doesn't guarantee and this system can't control.</p>
+
+<h3 id="p15-s">S. Deep Dive 7 — Handling Refunds &amp; Partial Refunds</h3>
+<p><strong>Requirement this addresses:</strong> refund and partial-refund functional requirements (D) — and a direct test of whether N's ledger discipline was actually internalized, not just applied to the happy-path charge.</p>
+<p><strong>A refund is a new, balanced <code>LedgerTransaction</code>, never a deletion or a mutation of the original:</strong> exactly the same principle N establishes for the original charge — the original charge's entries are permanent history and are never touched. A refund reverses the charge's economic effect by writing a fresh transaction whose entries move the same amount in the opposite direction (credit back toward the customer-facing side, debit out of <code>merchant_payable</code>), explicitly referencing the original <code>transaction_id</code> it reverses. The ledger after a refund shows both the original charge <em>and</em> its reversal, in full — the honest, complete history of what actually happened, rather than a record edited to look as if the charge never occurred.</p>
+<p><strong>Partial refunds are the identical mechanism at a lesser amount, with one derived value that matters:</strong> a charge's <em>remaining refundable balance</em> is computed, not stored, as <code>original_amount − SUM(refund amounts already issued against it)</code> — read live from the ledger each time it's needed, the exact same "derive, don't mutate" discipline N applies to account balances generally, reapplied here to a different number. A second partial refund attempt is validated against this freshly-computed remaining balance, which is what correctly prevents refunding more than was ever charged even across several independent partial refunds issued at different times.</p>
+<p><strong>Refunds get their own idempotency key and their own saga, not a shortcut through the charge's existing machinery:</strong> a refund is exactly as much a mutating financial side effect as the original charge (I) — it moves real money back toward the customer and deserves identical protection: a client-supplied <code>Idempotency-Key</code> (M) so a retried refund request never issues the refund twice, and its own saga sequence (call the processor to reverse the charge, write the reversing ledger transaction, notify the merchant) with the same per-step compensation reasoning as P, applied to the refund's own steps rather than assumed to be automatically covered by the original charge's machinery.</p>
+
+<h3 id="p15-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  Merchant["Merchant Checkout / API Client"] --> Gateway["Payment API / Gateway"]
+  Gateway --> IdemStore[("Idempotency Key Store<br/>durable, TTL'd, M")]
+  Gateway --> Saga["Saga Orchestrator<br/>(durable per-PaymentIntent state, P)"]
+
+  Saga --> ProcAdapter["Processor Adapter"]
+  ProcAdapter --> Processor[("External Payment Processor")]
+  ProcAdapter -->|"ambiguous timeout -> query status, O"| Processor
+
+  Saga --> LedgerRouter["Ledger Router<br/>(shard by merchant_id, K)"]
+  LedgerRouter --> LedgerShard1[("Ledger Shard 1<br/>append-only, double-entry, N")]
+  LedgerRouter --> LedgerShard2[("Ledger Shard 2")]
+  LedgerRouter --> LedgerShard3[("Ledger Shard 3")]
+
+  Saga --> WebhookSender["Outbound Webhook Sender<br/>(retries, per-event idempotency, R)"]
+  WebhookSender --> Merchant
+
+  Processor -.->|"async status events"| WebhookReceiver["Inbound Webhook Receiver<br/>(dedup by event_id, R)"]
+  WebhookReceiver --> Saga
+
+  subgraph Recon [" Async Reconciliation (Q) "]
+    direction LR
+    Puller["Pull processor settlement report"] --> Differ["Diff vs ledger"]
+    Differ --> Review["Manual review queue<br/>(unexplained drift)"]
+  end
+  LedgerShard1 --> Differ
+  LedgerShard2 --> Differ
+  LedgerShard3 --> Differ
+  Processor -.-> Puller
+</div>
+<p class="diagram-caption">The idempotency store and the ledger's ACID core are the two genuinely strongly-consistent pieces (V); the saga durably tracks progress across everything downstream of them, and reconciliation independently double-checks the whole picture after the fact.</p>
+<h3 id="p15-u">U. Design Evolution</h3>
+<table>
+<tr><th>Version</th><th>What Changed</th><th>Why</th></tr>
+<tr><td>V1</td><td>Direct charge, then mutate a merchant's <code>balance</code> column; no idempotency key anywhere (J)</td><td>Simplest possible thing that satisfies the functional requirement in isolation</td></tr>
+<tr><td>V2</td><td>Mandatory client-supplied idempotency key at the API boundary, checked and stored before any charge attempt</td><td>Closes the single most dangerous flaw in V1 — a retried request can no longer double-charge a customer (M)</td></tr>
+<tr><td>V3</td><td>The mutable <code>balance</code> column is replaced by an append-only, double-entry ledger; balances become a computed aggregate</td><td>Closes V1's second flaw — every account balance is now independently reconstructable and auditable from immutable history, not trusted as a single cached number (N)</td></tr>
+<tr><td>V4</td><td>The charge → ledger-write → notify sequence is formalized as an explicit saga with a defined compensating action per step</td><td>A multi-step process with real, already-happened side effects needs more than an ad hoc "try, then roll back somehow" gesture once a later step can fail (P)</td></tr>
+<tr><td>V5</td><td>An ambiguous processor timeout triggers a status query, never a blind retry of the charge call itself</td><td>Idempotency at this system's own boundary (M) doesn't protect against ambiguity on the far side of an external call (O)</td></tr>
+<tr><td>V6</td><td>Inbound processor webhooks are deduplicated by the processor's own event ID and validated against a defined state-machine of valid transitions</td><td>At-least-once, possibly out-of-order webhook delivery is the expected default, not a rare edge case (R)</td></tr>
+<tr><td>V7</td><td>Refunds and partial refunds are modeled as their own new, balanced ledger transactions, with their own idempotency key and saga</td><td>A refund is exactly as much a mutating financial side effect as the original charge, and gets identical protection rather than a shortcut (S)</td></tr>
+<tr><td>V8</td><td>An asynchronous reconciliation job independently diffs the internal ledger against the processor's own settlement records</td><td>A second line of defense for whatever slips past every prior mechanism anyway — "should never happen" isn't "cannot happen" (Q)</td></tr>
+</table>
+<p><strong>What stays stable throughout:</strong> the small, idempotency-key-gated <code>PaymentIntent</code>/<code>Refund</code> contract from I — every later refinement changes how a request's side effects are sequenced, recorded, or double-checked, never the basic shape of what a merchant actually sends and receives.</p>
+
+<h3 id="p15-v">V. Consistency Model</h3>
+<p>This is, alongside Ticketmaster (<a href="#p8">P8</a>), one of the two most strongly-consistency-weighted designs in this document — but for a genuinely different underlying reason, worth stating precisely rather than lumping the two together. <strong>Ticketmaster's strong consistency (<a href="#p8-v">P8-V</a>) protects a scarce, physically singular resource</strong> — a seat that cannot exist in two "sold" states, because only one buyer can ever actually sit in it. <strong>This system's strong consistency protects a mathematical invariant</strong> — a transaction's debits and credits must sum to zero, or the ledger's own record of reality is simply false, independent of any resource being contended for. Every <code>LedgerTransaction</code> commits as a single ACID unit (K, N) — there is no acceptable "partially written" or "eventually balances" state, which is a materially stronger requirement than <a href="#prereq-l">Prerequisites L</a>'s general CAP/PACELC framing allows for the rest of this design: this is not a system choosing availability over consistency for its ledger core, full stop.</p>
+<p>And yet — this is the detail worth making explicit in an interview — nearly everything <em>surrounding</em> that strongly-consistent core is deliberately asynchronous and only eventually consistent: outbound merchant notification (R) can lag by seconds without harm; the reconciliation job (Q) runs hours after the fact by design; even the idempotency key store (M), while itself requiring an atomic insert-if-absent, only needs to be consistent for the duration of its TTL, not forever. The strong-consistency requirement is scoped as narrowly as possible (<a href="#patterns-j">Patterns Playbook J</a>) — to the ledger commit itself, and nothing wider — precisely because delay in <em>telling someone about</em> a financial fact is harmless, while the fact itself ever being wrong, even briefly, is not. This narrow-island shape is the same general pattern Patterns Playbook J catalogs elsewhere, applied here to the single highest-stakes island in the entire document.</p>
+
+<h3 id="p15-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>The idempotency key store is unavailable when a charge request arrives:</strong> the request is rejected outright rather than processed unprotected — failing closed, not open, is the only acceptable choice when the alternative is an unprotected charge attempt (M).</li>
+<li><strong>The processor call times out with an ambiguous outcome:</strong> the saga queries the processor's status endpoint for a definite answer before deciding whether to proceed or retry — never a blind retry (O).</li>
+<li><strong>The saga orchestrator crashes mid-sequence:</strong> because its progress per <code>PaymentIntent</code> is durably persisted, not held only in memory, it resumes from the last completed step on restart — no step is blindly re-executed, and no step is silently skipped (P).</li>
+<li><strong>A ledger write partially fails (some but not all of a transaction's balanced entries would commit):</strong> the enclosing ACID transaction rolls back atomically (K) — an unbalanced ledger state is structurally impossible to observe, not merely unlikely.</li>
+<li><strong>A processor webhook is redelivered many times:</strong> dedup by <code>event_id</code> (R) makes every redelivery beyond the first a pure no-op — no repeated state transition, no repeated side effect.</li>
+<li><strong>Reconciliation finds a discrepancy with no obvious explanation:</strong> it's escalated to manual review, never auto-corrected on a guess (Q) — an unexplained mismatch in a financial system is exactly the case where a wrong automated fix is worse than a delayed correct one.</li>
+</ul>
+
+<h3 id="p15-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 mutable balance column</td><td>No durable, immutable history underneath the reported number — a bug or race corrupts it silently and irrecoverably</td><td>Append-only, double-entry ledger; balances become a derived query, never a stored, mutated field (N)</td></tr>
+<tr><td>A single, unsharded ledger table at global transaction volume</td><td>One merchant's write volume contends with every other merchant's on the same rows/pages</td><td>Shard the ledger by <code>merchant_id</code> (K), the natural ownership key, while still committing each single transaction's entries atomically within one shard's reach</td></tr>
+<tr><td>Idempotency key store under a merchant's own traffic spike</td><td>A naive periodic-sweep expiry adds latency and unnecessary load scanning mostly-unexpired rows</td><td>Native TTL-driven expiry (the same principle as Ticketmaster's Redis-backed hold expiry, <a href="#p8">P8</a>, Deep Dive N), not a scheduled scan</td></tr>
+<tr><td>A single saga-orchestrator instance as a choke point</td><td>All in-flight payments funnel through one process's throughput ceiling</td><td>Horizontally scaled orchestrator workers, with each <code>PaymentIntent</code>'s durable state partitioned by <code>intent_id</code>, so any worker can pick up any transaction's next step</td></tr>
+<tr><td>Reconciliation re-diffing the entire ledger history on every run</td><td>Cost grows without bound as retained ledger history grows across years</td><td>Incremental, windowed reconciliation — only the period since the last successful run is diffed each time (Q)</td></tr>
+</table>
+
+<h3 id="p15-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Ledger schema</td><td>Mutable balance column per account</td><td>Append-only, double-entry ledger (chosen)</td><td>A mutable column is simpler and faster to read, but destroys reconstructable history and has no mechanically checkable invariant; the ledger costs more storage and a computed-balance query, in exchange for genuine auditability (N)</td></tr>
+<tr><td>Multi-step transaction coordination</td><td>Choreography (event-driven, decoupled)</td><td>Orchestration (chosen)</td><td>Choreography is more decoupled and scales each service independently, but no single place holds one transaction's full progress; orchestration adds a coordinating dependency in exchange for a durable, queryable record of exactly what happened, step by step (P)</td></tr>
+<tr><td>Idempotency key durability</td><td>In-memory cache with TTL</td><td>Durable relational row (chosen)</td><td>An in-memory cache is faster, but a cache-node restart loses in-flight protection at the worst possible moment; a durable row survives that restart, at a modest added write cost (M)</td></tr>
+<tr><td>Ambiguous processor timeout</td><td>Blindly retry the charge call</td><td>Query processor status first (chosen)</td><td>Blind retry is simpler and faster in the common case, but risks a real double charge in the ambiguous case; querying first adds one extra round trip in exchange for a definite answer before acting (O)</td></tr>
+<tr><td>Refund modeling</td><td>Mutate the original charge's recorded amount</td><td>New, separate reversing ledger transaction (chosen)</td><td>Mutating the original destroys the historical record of what was actually charged; a new transaction preserves both facts in full, at the cost of one more row than the naive approach (S)</td></tr>
+</table>
+
+<h3 id="p15-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Mutating a balance column directly with plain <code>UPDATE</code> statements.</strong> The single most important mistake to avoid on this problem — it destroys the reconstructable history a financial system is obligated to preserve, independent of any concurrency concern.</li>
+<li><strong>Treating a disabled submit button as sufficient duplicate protection.</strong> Client-side UI state has nothing to do with what happens at the network and server layer — a dropped connection and an automatic client retry happen well below where a disabled button could ever intervene; only a server-side idempotency key actually protects against this (M).</li>
+<li><strong>Blindly retrying a timed-out call to the payment processor.</strong> The single most common way this specific problem produces an actual double charge — an ambiguous timeout must be resolved by querying status, not by assuming the safest guess (O).</li>
+<li><strong>Treating a refund as decrementing the original charge's amount field.</strong> Erases the historical record of what was actually charged and destroys the audit trail the same way V1's mutable balance does (S).</li>
+<li><strong>Treating reconciliation as optional or "nice to have, if we have spare engineering time."</strong> A financial system's whole design philosophy is that "should never happen" and "cannot happen" are different claims — skipping the second line of defense because the first line is believed to be correct is exactly the complacency this problem is built to test for (Q).</li>
+<li><strong>Assuming webhooks arrive at-most-once or in logical order.</strong> Both assumptions are false in practice for any real async delivery mechanism, and a design built on them silently mishandles retried or out-of-order events instead of deliberately deduplicating and sequencing them (R).</li>
+</ul>
+<h3 id="p15-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"How would you support multi-currency transactions?"</td><td>Every ledger entry carries a currency; a cross-currency transaction adds an explicit FX-conversion leg so the whole transaction still balances within a single reporting currency for consolidated views</td><td>Ledger schema, transaction construction (K)</td><td>Idempotency, saga structure, reconciliation logic — none of it is currency-dependent</td></tr>
+<tr><td>"What about disputes and chargebacks initiated by the card network, well after the original charge?"</td><td>Modeled as another saga, triggered by an inbound processor webhook (R), that writes its own reversing ledger transaction and places the disputed amount into a hold account pending resolution</td><td>A new saga type, a new <code>Account</code> category for held/disputed funds</td><td>The core idempotency, ledger, and reconciliation machinery — a dispute is just another financial event flowing through the same pipes</td></tr>
+<tr><td>"How does this handle marketplace-style split payments — pay the merchant, platform takes a fee, remainder pays out to a sub-seller?"</td><td>The ledger already models this without a new mechanism — a single transaction simply fans out across more accounts (customer-facing clearing, platform revenue, sub-seller payable), each leg still balanced against the others</td><td>None structurally — just more legs on the same <code>LedgerTransaction</code></td><td>Idempotency keys, the saga's step sequence, reconciliation — genuinely nothing changes in kind, only in the width of one transaction</td></tr>
+<tr><td>"What happens if the payment processor itself has an extended outage?"</td><td>New charge attempts queue with backoff or fail fast per merchant-configured tolerance, but never bypass the idempotency-key or saga machinery to "work around" the outage — a slower correct answer beats a fast incorrect one here</td><td>Retry/backoff policy in the processor adapter</td><td>Everything downstream of a successful charge — ledger, notification, reconciliation — is entirely unaffected by how the processor call itself was scheduled</td></tr>
+</table>
+
+<h3 id="p15-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes a mutable balance column updated directly on each charge, with no idempotency protection anywhere, and has no answer for what happens when a client retries a timed-out request.</li>
+<li><strong>Mid-level:</strong> adds an idempotency key at the API boundary correctly, but still models balances as a mutated column rather than a computed ledger aggregate, and treats "roll back a failed multi-step charge" as a vague gesture rather than a concrete, per-step compensating action.</li>
+<li><strong>Senior:</strong> proactively reaches for an append-only, double-entry ledger and can explain why a balance must be computed, not stored; separates the idempotency-key concern from the ledger concern cleanly; recognizes the processor-timeout ambiguity as a distinct failure mode from a client-side retry, requiring a status query rather than a blind retry.</li>
+<li><strong>Staff+:</strong> is unprompted and explicit about the saga pattern's orchestration-vs-choreography trade-off and why orchestration fits a domain that will eventually need a single, queryable "what happened, step by step" answer; treats reconciliation as a deliberate, always-on second line of defense rather than a response to a specific incident; correctly scopes strong consistency to the ledger commit alone and can defend why the surrounding system is safely, deliberately async.</li>
+</ul>
+
+<h3 id="p15-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a payment processing system like Stripe — a merchant charges a customer's card, and needs that charge to be handled correctly no matter what goes wrong along the way.</div>
+<div class="dialog"><span class="who">Candidate:</span> The first thing I want to nail down is idempotency, because it's the one thing this domain can't compromise on. Every mutating request — a charge, a refund — has to carry a client-generated idempotency key. If a client's request times out and it retries, the server needs to recognize "I've already handled this exact key" and just return the original result instead of charging the card again. Without that, a network retry — which is completely normal client behavior — becomes a real double charge.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Okay, and how do you actually store the money movement itself?</div>
+<div class="dialog"><span class="who">Candidate:</span> Not as a balance column that gets updated in place — that's the naive version, and it has a real problem: if that number is ever wrong, there's no way to figure out how it got wrong, because you only kept the final total, not the history that produced it. Instead I'd use a double-entry ledger — every transaction is at least two balanced rows, a debit and a credit against specific accounts, and it's append-only, nothing ever gets updated or deleted. A balance is just a sum over those rows, computed on demand. That means an auditor, or even just an engineer debugging a customer complaint, can reconstruct exactly what happened from nothing but the raw entries.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What if the call to the actual card processor times out? How do you know whether the charge went through?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's genuinely the trickiest part. A timeout is ambiguous — the charge might have succeeded and the response just got lost. Retrying blindly is dangerous, because if it did succeed, I'd be charging the card a second time, and my own idempotency key doesn't help here since the duplication would happen on the processor's side, outside my system. So instead of retrying the charge call, I'd query the processor's own status endpoint for that transaction and get a definite answer — succeeded, failed, or still processing — before deciding what to do. I only retry once I actually know it never went through.</div>
+<div class="dialog"><span class="who">Interviewer:</span> A payment isn't just one step, though — charge, then ledger, then notify the merchant. How do you handle one of those steps failing after an earlier one already succeeded?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd treat that whole sequence as a saga, with a central orchestrator that persists which step a given payment is currently on, and a defined compensating action for any step that needs one. If the charge succeeds with the processor but the ledger write fails, the compensation is issuing an actual refund back through the processor — because that step's side effect was real and external, so undoing it has to be a real action too, not just flipping an internal flag. If the merchant notification step fails, though, there's no compensation needed at all — I just retry sending it, because notifying twice is harmless and failing to notify only delays visibility, it doesn't leave any incorrect state behind.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Given all that, would you say you're fully confident this system never has an incorrect ledger?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd want to build like it might still have bugs, honestly — idempotency and the saga are the first line of defense, but I'd also run an async reconciliation job that periodically pulls the payment processor's own settlement report and diffs it against my ledger. If something doesn't match and I can't explain why, that goes to a manual review queue rather than getting auto-corrected on a guess. "Should never happen" and "cannot happen" aren't the same claim, and this is exactly the kind of system where you build the second line of defense anyway.</div>
+
+<h3 id="p15-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://docs.stripe.com/api/idempotent_requests" target="_blank">Stripe — "Idempotent Requests" (official API documentation)</a></td><td>Documents Stripe's own real, production idempotency-key mechanism: a client-supplied key attached to any mutating request, a defined retention window (24 hours), and explicit handling of a request replayed with the same key but a different body</td><td>A direct, first-party confirmation that mandatory client-generated idempotency keys with a bounded TTL — not an interview simplification — is exactly how a real, at-scale payment API protects against duplicate charges</td><td>Documents the client-facing contract thoroughly but not the internal storage/locking implementation behind it</td><td>Confirms the 24-hour TTL and the "same key, different body → error" behavior this design's Deep Dive 1 (M) adopts almost exactly</td></tr>
+<tr><td><a href="https://brandur.org/idempotency-keys" target="_blank">Brandur Leach — "Idempotency Keys" (brandur.org)</a></td><td>A widely-cited, detailed walkthrough of implementing idempotency keys correctly, including the specific race of two concurrent requests carrying the same key arriving before either has finished processing</td><td>Goes deeper than most vendor docs specifically on the concurrent in-flight case (M) — the exact same check-then-act race named generally in <a href="#patterns-b">Patterns Playbook B</a>, applied here to the idempotency record itself</td><td>Written from one engineer's implementation experience rather than as an official specification — worth treating as a strong, well-reasoned pattern rather than a standard</td><td>Confirms that handling the in-flight concurrent-retry case is a real, non-obvious detail worth naming explicitly, not just the simpler "already-completed" case</td></tr>
+<tr><td><a href="https://martin.kleppmann.com/2011/03/07/accounting-for-computer-scientists.html" target="_blank">Martin Kleppmann — "Accounting for Computer Scientists"</a></td><td>Explains double-entry bookkeeping from first principles for a software-engineering audience, framing an append-only ledger of balanced debit/credit entries as the correct data structure for any system that needs to track money movement reliably</td><td>A rigorous, independent explanation of exactly why this design's central decision (N) — balances as a computed aggregate over immutable entries, never a mutated field — is the standard, correct answer in real accounting systems, not an invented interview construct</td><td>Written as a conceptual primer, not a distributed-systems-scale implementation guide — doesn't address sharding or multi-region concerns directly</td><td>The clearest available explanation of <em>why</em> double-entry accounting's balance invariant is what makes a ledger auditable at all</td></tr>
+<tr><td><a href="https://microservices.io/patterns/data/saga.html" target="_blank">Chris Richardson — "Saga" (microservices.io)</a></td><td>Catalogs the saga pattern formally, including the explicit orchestration-vs-choreography distinction and the requirement for a compensating transaction per step with a real side effect</td><td>The standard, widely-referenced description of exactly the pattern this design's Deep Dive 4 (P) applies — confirms orchestration vs. choreography is a well-established trade-off, not a false dichotomy invented for this problem</td><td>Describes the pattern generally, across many possible domains — doesn't address payment-specific concerns like idempotency-key propagation to an external processor</td><td>Confirms the vocabulary (saga, compensating transaction, orchestration vs. choreography) this design's Deep Dive 4 uses is the field's actual standard terminology</td></tr>
+</table>
+
+<h3 id="p15-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Payment System (Stripe-like)</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced — individually simple mechanisms, but zero tolerance for the small approximations that make most other problems in this set tractable</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Charge, refund (full/partial), status query, async merchant notification — with an absolute, non-negotiable prohibition on any duplicated financial side effect</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Append-only double-entry ledger as sole source of truth; mandatory client-supplied idempotency keys on every mutation; a saga with per-step compensation for the multi-step charge/ledger/notify sequence; async reconciliation against the processor's own records as a second line of defense</td></tr>
+<tr><td><strong>Why not a mutable balance column</strong></td><td>Destroys reconstructable history — a bug or race silently corrupts the number with no way to determine how or what the correct value should be</td></tr>
+<tr><td><strong>Idempotency</strong></td><td>Client-generated key, scoped per merchant, checked via atomic insert-if-absent, TTL'd (~24h) — mandatory, not optional (<a href="#prereq-o">P.O</a>, <a href="#patterns-e">Pl.E</a>)</td></tr>
+<tr><td><strong>Processor timeout</strong></td><td>Query the processor's status endpoint on ambiguity — never blindly retry a charge call that might have already succeeded</td></tr>
+<tr><td><strong>Multi-step failure handling</strong></td><td>Orchestrated saga, durable per-transaction state, explicit compensating action per step with a real side effect (refund the charge, reverse the ledger entry) — no compensation needed for a merely-informational step like notification</td></tr>
+<tr><td><strong>Consistency</strong></td><td>Strongly consistent, ACID ledger commits at the core (alongside Ticketmaster, <a href="#p8-v">P8-V</a>, as the two strongest islands in the document) — everything wrapping that core (notification, reconciliation) is deliberately async</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Mutable balance columns; trusting client-side UI as duplicate protection; blind retries on processor timeout; mutating a charge's amount to represent a refund; treating reconciliation as optional</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Building the payment processor itself, or a full risk/fraud-scoring engine — name this system's scope as orchestrating and recording around an external processor, not replacing one</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p14.html">&larr; 14. Distributed File Storage (Dropbox)</a><a class="prevnext-link next" href="p16.html">16. Ad Click Aggregation &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

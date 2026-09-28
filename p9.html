@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>9. Google Docs (Collaborative Editing) — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">9. Google Docs (Collaborative Editing) <span class="badge">Advanced</span></h1>
+
+<div class="section-toc">
+<a href="#p9-a">A. Interview Prompt</a><a href="#p9-b">B. Difficulty</a><a href="#p9-c">C. What It Tests</a>
+<a href="#p9-d">D. Requirements</a><a href="#p9-e">E. Clarifying Questions</a><a href="#p9-f">F. Assumptions</a>
+<a href="#p9-g">G. Capacity Estimation</a><a href="#p9-h">H. Core Entities</a><a href="#p9-i">I. API Design</a>
+<a href="#p9-j">J. Basic Design (V1)</a><a href="#p9-k">K. Data Model &amp; Store Choice</a><a href="#p9-l">L. End-to-End Flow</a>
+<a href="#p9-m">M. Deep Dive 1: Real-Time Sync</a><a href="#p9-n">N. Deep Dive 2: OT vs CRDT</a><a href="#p9-o">O. Deep Dive 3: Ordering &amp; Causality</a>
+<a href="#p9-p">P. Deep Dive 4: Presence &amp; Cursors</a><a href="#p9-q">Q. Deep Dive 5: Offline Editing</a><a href="#p9-r">R. Deep Dive 6: Persistence &amp; Snapshots</a>
+<a href="#p9-s">S. Deep Dive 7: Scaling to Many Docs</a><a href="#p9-t">T. Full Solution at Scale</a><a href="#p9-u">U. Design Evolution</a>
+<a href="#p9-v">V. Consistency Model</a><a href="#p9-w">W. Failure Scenarios</a><a href="#p9-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p9-y">Y. Trade-Offs</a><a href="#p9-z">Z. Common Bad Designs</a><a href="#p9-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p9-ab">AB. Interviewer Evaluation</a><a href="#p9-ac">AC. Interview Simulation</a><a href="#p9-ad">AD. Source Comparison</a>
+<a href="#p9-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p9">Jump to section:</label><select id="jump-p9" class="jump-select" data-jump-select><option value="p9-a">A. Realistic Interview Prompt</option><option value="p9-b">B. Difficulty</option><option value="p9-c">C. What This Problem Tests</option><option value="p9-d">D. Requirements</option><option value="p9-e">E. Clarifying Questions</option><option value="p9-f">F. Assumptions</option><option value="p9-g">G. Capacity Estimation</option><option value="p9-h">H. Core Entities</option><option value="p9-i">I. API Design</option><option value="p9-j">J. Basic / Naive High-Level Design (V1)</option><option value="p9-k">K. Data Model &amp; Store Choice</option><option value="p9-l">L. End-to-End Flow — Two Users Editing Concurrently</option><option value="p9-m">M. Deep Dive 1 — Real-Time Sync &amp; Transport</option><option value="p9-n">N. Deep Dive 2 — Operational Transformation vs. CRDTs</option><option value="p9-o">O. Deep Dive 3 — Ordering &amp; Causality</option><option value="p9-p">P. Deep Dive 4 — Presence &amp; Live Cursors</option><option value="p9-q">Q. Deep Dive 5 — Offline Editing &amp; Reconciliation</option><option value="p9-r">R. Deep Dive 6 — Persistence &amp; Snapshotting</option><option value="p9-s">S. Deep Dive 7 — Scaling to Many Documents</option><option value="p9-t">T. Full Solution at Scale — Final Architecture</option><option value="p9-u">U. Design Evolution</option><option value="p9-v">V. Consistency Model</option><option value="p9-w">W. Failure Scenarios</option><option value="p9-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p9-y">Y. Design Trade-Offs</option><option value="p9-z">Z. Common Bad Designs</option><option value="p9-aa">AA. Interviewer Follow-Ups</option><option value="p9-ab">AB. Interviewer Evaluation Rubric</option><option value="p9-ac">AC. Interview Simulation</option><option value="p9-ad">AD. Online Solution Comparison</option><option value="p9-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p9-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a collaborative document editor like Google Docs: multiple users open the same document at the same time, type simultaneously, and see each other's changes appear live."</div>
+<p>This problem's difficulty is almost entirely conceptual, not volumetric. A single document is small (kilobytes to low megabytes of text) and has, realistically, a handful to a few dozen concurrent editors — nothing like the billion-user scale of earlier problems. The hard part is that <strong>two people can type in the same place at the same time</strong>, and every replica of the document — every open browser tab — must converge on the exact same final text, in the same order, without a human ever noticing a conflict dialog. That single requirement is what pulls in operational transformation or CRDTs, the central technical decision of this entire design.</p>
+
+<h3 id="p9-b">B. Difficulty</h3>
+<p><strong>Advanced</strong> — not because any individual component is exotic, but because the core conflict-resolution algorithm (N) is genuinely subtle to get right, and a design that "sounds reasonable" (last-write-wins, or naive full-document overwrites) silently loses user keystrokes rather than failing loudly, which is a uniquely dangerous failure mode for a writing tool.</p>
+
+<h3 id="p9-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognizing that concurrent edits to shared, ordered, mutable content (text) is a fundamentally different problem than concurrent writes to a single value (a counter, a seat status) — the conflict isn't "who wins," it's "how do two edits at different positions compose into one coherent document"</li>
+<li>Real judgment on operational transformation (OT) versus CRDTs — not just naming both, but reasoning about why Google Docs itself picked a central-server OT model over a peer-to-peer CRDT one, and when the opposite choice would be correct</li>
+<li>Designing for optimistic local echo — the local editor must feel instantaneous even though the "real," reconciled state is decided somewhere else a network round-trip away</li>
+<li>Comfort with presence/ephemeral state (cursors, "who's online") as a deliberately different data-consistency class than the document content itself</li>
+<li>Handling offline editing as a bounded special case of the same conflict-resolution machinery already needed for the online case, not a separate system</li>
+</ul>
+
+<h3 id="p9-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Multiple users can open and edit the same document concurrently</li>
+<li>Edits made by one user propagate to all other active viewers in near real time</li>
+<li>Users can see other active editors' presence and live cursor/selection position</li>
+<li>A user who edits while offline (or disconnected) has their edits merged in correctly once they reconnect</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Convergence</strong> — every client must end up with the byte-identical document content, regardless of the order in which concurrent edits happened to arrive over the network; this is the one non-negotiable correctness property of the whole system, playing the same role overselling-prevention played in Ticketmaster</li>
+<li><strong>Low-latency propagation</strong> — other users should see an edit within roughly 100-200ms under normal conditions, so collaboration feels live rather than "eventually synced"</li>
+<li><strong>Instant local responsiveness</strong> — a user's own keystrokes must render immediately, never blocked on a network round-trip, regardless of how the eventual reconciliation with others' edits is resolved</li>
+<li><strong>No lost updates</strong> — a legitimate edit from any user, online or reconnecting from offline, must never silently vanish because it collided with someone else's edit</li>
+</ul>
+<p><strong>Out of scope:</strong> rich formatting/embedded objects (treated as an extension of the same text-operation model), commenting/suggestion mode, access control and sharing permissions, full version-history UI.</p>
+
+<h3 id="p9-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Plain text content only, or rich formatting/embedded images too?</td><td>Rich content is a strictly larger version of the same core problem — the conflict-resolution model must extend to structured, not just linear, content</td><td>Core Entities (H)</td></tr>
+<tr><td>2</td><td>Roughly how many concurrent editors per document, realistically?</td><td>This problem's true scale is small (tens, not millions) per document — it reframes the challenge as algorithmic correctness under concurrency, not raw throughput</td><td>Capacity Estimation (G)</td></tr>
+<tr><td>3</td><td>Must offline edits be supported, or is a persistent connection assumed?</td><td>Offline support means the same reconciliation machinery must work with an arbitrarily large gap between "edit made" and "edit synced," not just a few hundred milliseconds of network jitter</td><td>Deep Dive 5 (Q)</td></tr>
+<tr><td>4</td><td>Is perfect real-time cursor/selection sharing required, or is basic "who's viewing" presence enough?</td><td>Live cursor positions are high-frequency, ephemeral, and loss-tolerant — a materially different data path than the document content itself</td><td>Deep Dive 4 (P)</td></tr>
+<tr><td>5</td><td>Is full edit history / version restore in scope?</td><td>History is a natural extension of an append-only operation log this design already needs, but is a distinct feature surface from live collaboration itself</td><td>Deep Dive 6 (R)</td></tr>
+</table>
+
+<h3 id="p9-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> multiple concurrent editors on one document, live propagation, presence/cursors, offline-edit reconciliation.</li>
+<li><strong>Assumption:</strong> plain text content (E's clarifying question 1) — the conceptually hardest and most commonly discussed version of this problem; rich formatting is noted as a structural extension, not solved from scratch.</li>
+<li><strong>Assumption:</strong> a realistic concurrency level of tens of simultaneous editors per document (E's clarifying question 2) — this is a small-N, correctness-heavy problem, not a large-N throughput problem, and that shapes every subsequent decision.</li>
+<li><strong>Assumption:</strong> offline editing is in scope (E's clarifying question 3) — the more interesting and complete version of the problem, and what makes Q a first-class deep dive.</li>
+<li><strong>Assumption:</strong> full version-history UI is out of scope (E's clarifying question 5), though the underlying operation log (R) would trivially support it.</li>
+</ul>
+
+<h3 id="p9-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Concurrent editors per document</td><td>Tens, illustratively (F's assumption) — not millions</td><td>Confirms the per-document hot path is small-N; the real scale challenge is the <em>number of documents</em>, not editors-per-document</td></tr>
+<tr><td>Total documents platform-wide</td><td>Hundreds of millions, most almost never edited concurrently</td><td>The system must cheaply support a huge count of mostly-idle documents while giving a small number of "hot" documents fast, correct real-time sync</td></tr>
+<tr><td>Edit operation size</td><td>A single character insert/delete: position + character + metadata ≈ tens of bytes</td><td>Individual operations are tiny — the challenge is correctness and volume of operations per second on a hot document, not per-operation payload size</td></tr>
+<tr><td>Operations per second on a "hot" document</td><td>Tens of editors × a few keystrokes/sec each ≈ low hundreds of ops/sec, peak</td><td>Comfortably within a single server's capacity to sequence and broadcast for one document — reinforces that per-document load is never the bottleneck</td></tr>
+<tr><td>Document size</td><td>Typical document: tens of KB to a few MB of text</td><td>Small enough to hold entirely in memory on whichever server is actively coordinating that document (S)</td></tr>
+</table>
+
+<h3 id="p9-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>Document</code></td><td>A single editable text document</td><td><code>doc_id</code>, <code>latest_snapshot_ref</code>, <code>revision</code></td></tr>
+<tr><td><code>Operation</code></td><td>One atomic edit (insert/delete at a position), the unit of the conflict-resolution model (N)</td><td><code>op_id</code>, <code>doc_id</code>, <code>author_id</code>, <code>type</code> (insert/delete), <code>position</code>, <code>content</code>, <code>base_revision</code></td></tr>
+<tr><td><code>Snapshot</code></td><td>A periodic, materialized full document state (R), avoiding replaying the entire operation history</td><td><code>doc_id</code>, <code>revision</code>, <code>content_blob</code>, <code>created_at</code></td></tr>
+<tr><td><code>Presence</code> (ephemeral)</td><td>A user's live cursor position/selection and online status while viewing a document (P)</td><td><code>doc_id</code>, <code>user_id</code>, <code>cursor_pos</code>, <code>last_seen_at</code></td></tr>
+</table>
+
+<h3 id="p9-i">I. API Design</h3>
+<pre><code>WS   /v1/documents/{id}/edit             -> bidirectional stream:
+                                             client sends: { op, base_revision }              (M, N)
+                                             server sends: { transformed_op, new_revision }    (broadcast to all)
+WS   /v1/documents/{id}/presence         -> bidirectional stream: { cursor_pos }               (P, not persisted)
+GET  /v1/documents/{id}                  -> { content, revision }                              (initial load, from R)
+GET  /v1/documents/{id}/history          -> [{ revision, snapshot_ref, created_at }]            (extension, out of scope per F)
+</code></pre>
+<p><strong>Why WebSocket streams, not request/response REST calls, for the edit path:</strong> this is fundamentally a bidirectional, server-push problem — the server must proactively deliver other users' operations to a client the instant they're committed, not wait for that client to poll for them. A persistent connection per active editor is exactly the connection-management problem already solved in the Chat System design, reused directly rather than reinvented (M).</p>
+<p><strong>Why presence is a separate stream from edit operations:</strong> cursor positions change far more frequently than actual content edits (every mouse movement or arrow key), and are entirely disposable if a message is dropped — mixing them into the same stream as durable, must-not-be-lost content operations would force the wrong reliability guarantee onto both.</p>
+
+<h3 id="p9-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: whenever a user edits, the client sends the <em>entire</em> updated document content to a server, which overwrites the stored document and pushes the full new content to every other connected client.</p>
+<div class="mermaid diagram">
+flowchart LR
+  A(["User A edits"]) -- "full document content" --> Server["Doc Server"]
+  Server -- "overwrite" --> Store[("Document Store")]
+  Server -- "push full content" --> B(["User B's client"])
+</div>
+<p class="diagram-caption">V1 — whole-document last-write-wins. Looks fine with one editor; silently destroys work with two.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> if User A and User B are both typing at the same moment, each sends their own full copy of the document reflecting only their own edit. Whichever write reaches the server second simply overwrites the first in its entirety — User A's keystrokes vanish completely, with no error, no conflict warning, and no way to recover them. Unlike Ticketmaster's overselling race, which produces a visible, loud failure (two people show up for one seat), this failure mode is silent — the product looks like it's working right up until a user notices their paragraph is gone.</p>
+
+<h3 id="p9-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Two distinct stores for two distinct access patterns:</strong> an <strong>append-only operation log</strong> (every individual insert/delete, ordered by revision number for a given <code>doc_id</code>) is the actual source of truth for how the document reached its current state, while a <strong>periodic snapshot store</strong> (R) holds materialized full-document content at checkpoints so a newly-joining client (or server restart) doesn't have to replay potentially thousands of tiny operations from the beginning of the document's history.</p>
+<p><strong>Why the operation log is the source of truth, not the "current content" field alone:</strong> the log is exactly what operational transformation (N) needs to reconcile a client's edit against everything that's happened since that client last synced — a bare "current content" string has already discarded the ordering and positional information required to transform a late-arriving concurrent operation correctly.</p>
+<p><strong>Sharding/routing by <code>doc_id</code>:</strong> all operations for one document must be sequenced by a single authority to have a well-defined order at all (O) — this is the same principle as Ticketmaster's per-event sharding and Chat System's per-conversation routing, here applied to keep one document's entire operation stream flowing through one coordinating point.</p>
+
+<h3 id="p9-l">L. End-to-End Flow — Two Users Editing Concurrently</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant A as User A (client)
+  participant B as User B (client)
+  participant DS as Doc Server (owns doc_id, O)
+  A->>A: apply own op locally (optimistic echo)
+  A->>DS: op_A (based on revision 5)
+  B->>B: apply own op locally (optimistic echo)
+  B->>DS: op_B (based on revision 5)
+  DS->>DS: transform op_B against op_A (N)<br/>assign revision 6, 7 in arrival order
+  DS-->>A: broadcast transformed op_B (rev 7)
+  DS-->>B: broadcast op_A (rev 6, already applied for A)
+  A->>A: apply transformed op_B
+  Note over A,B: both clients converge to identical<br/>document content, despite differing local histories
+</div>
+
+<h3 id="p9-m">M. Deep Dive 1 — Real-Time Sync &amp; Transport</h3>
+<p><strong>Requirement this addresses:</strong> the near-real-time propagation NFR (D) and the instant-local-responsiveness NFR (D) together — these pull in opposite directions and both must be satisfied at once.</p>
+<p><strong>Optimistic local echo:</strong> a user's own keystrokes are applied to their local in-memory document copy immediately, before any server round-trip completes — the edit is sent to the server asynchronously in the background. This is the only way to satisfy "instant" typing feel in a networked system; waiting for server acknowledgment before rendering a keystroke would make every character feel laggy.</p>
+<p><strong>Why a persistent WebSocket connection per active editor, not polling:</strong> polling either wastes requests when nothing changed or adds up to a full polling-interval's worth of latency to every edit's propagation — directly reusing the same connection-management reasoning already established in the Chat System design (long-lived, stateful connections held by dedicated connection servers, tracked in a shared session store for routing).</p>
+<p><strong>One coordinating server "owns" a given document (K, O):</strong> rather than any connected client's edit being validated against a globally-distributed source of truth, all operations for one <code>doc_id</code> flow through a single server instance holding that document's current state in memory — turning conflict resolution into a fast, local, single-machine operation instead of a distributed consensus problem.</p>
+
+<h3 id="p9-n">N. Deep Dive 2 — Operational Transformation vs. CRDTs</h3>
+<p><strong>Requirement this addresses:</strong> the convergence NFR (D) — the single central technical decision of this entire problem, and the one place a candidate's judgment is most directly tested.</p>
+<p class="callout"><strong>The actual problem being solved:</strong> two users each start from the same document state (revision 5) and each submit an operation — say, User A inserts "X" at position 10, and User B (unaware of A's edit) inserts "Y" at position 10 as well. Both operations are individually valid against revision 5, but applying them naively in whatever order they happen to arrive produces two different final documents on two different clients, unless something actively reconciles them.</p>
+<table>
+<tr><th>Approach</th><th>How</th><th>Trade-off</th></tr>
+<tr><td><strong>Operational Transformation, central server (chosen default)</strong></td><td>A single coordinating server (M) receives each operation along with the revision it was based on. If other operations were committed since that revision, the server mathematically <em>transforms</em> the incoming operation's position to account for them (e.g. shifting B's insert position by however many characters A's already-applied insert added before it), then assigns it the next sequential revision number and broadcasts the transformed result to everyone.</td><td>Requires a correct transformation function per operation type, and a single authority per document — but that authority is exactly what M already introduces, and matches how Google Docs itself is actually built (the Jupiter protocol)</td></tr>
+<tr><td>CRDT (e.g. a sequence CRDT like RGA/Logoot)</td><td>Every character is assigned a globally unique, immutable, totally-ordered identifier (typically a per-site counter plus a site ID) at creation time. Any two replicas that have seen the same set of characters converge to the same order automatically, purely from comparing IDs — no central arbiter needed at all.</td><td>Enables genuine peer-to-peer sync with no server in the loop, and merges offline edits from arbitrarily long disconnections trivially — at the cost of real per-character ID metadata overhead and materially harder correctness reasoning to implement from scratch</td></tr>
+<tr><td>Peer-to-peer OT (no central server)</td><td>Every client transforms every operation against every other client's concurrent operations directly</td><td>The transformation logic must handle transforming an operation against an <em>arbitrary set</em> of concurrent operations in any order — the complexity that made early peer-to-peer OT research impractical, and exactly what routing all operations through one central server (chosen default) sidesteps entirely</td></tr>
+</table>
+<p><strong>Why central-server OT is the right default answer here, not peer-to-peer OT or a CRDT:</strong> once M already establishes that one server owns a given document's authoritative state, that same server is perfectly positioned to be the single point of transformation — every incoming operation only ever needs to be transformed against operations the server itself already committed, in a known order, which is a far simpler problem than transforming against an unordered set of concurrent peer operations. This is the actual architecture real Google Docs uses. A CRDT becomes the more compelling choice specifically when the product requirement is genuine serverless peer-to-peer sync or truly long-lived offline-first editing with no reliable central authority — worth naming as the right answer to a different, adjacent set of requirements (Q revisits this for the bounded offline case actually required here).</p>
+
+<h3 id="p9-o">O. Deep Dive 3 — Ordering &amp; Causality</h3>
+<p><strong>Requirement this addresses:</strong> convergence (D) depends on every client applying operations in a way that respects what each operation was actually based on — the same ordering problem named explicitly in Chat System's message-ordering deep dive, here applied to edit operations instead of chat messages.</p>
+<p><strong>The fix — a per-document monotonic revision number, assigned at the coordinating server (M), not by the client:</strong> exactly the same principle as Chat System's per-conversation <code>seq_num</code> assigned at the point of persistence — each operation carries the revision it was <em>based on</em>, and the server assigns the next revision only once the operation is transformed (N) and committed. Clients never need wall-clock timestamps to agree on order; the server's assigned revision sequence is the single authoritative ordering, immune to clock drift between clients.</p>
+<p><strong>Why this only works because one server owns the document (K):</strong> a monotonic sequence is trivial to assign correctly from a single authority, and becomes a distributed-consensus problem the moment more than one server could commit revisions for the same document concurrently — another way K and M reinforce each other rather than being independent decisions.</p>
+
+<h3 id="p9-p">P. Deep Dive 4 — Presence &amp; Live Cursors</h3>
+<p><strong>Requirement this addresses:</strong> the presence/cursor-sharing functional requirement (D) — deliberately built as a separate, lower-guarantee data path from document content itself (I).</p>
+<p><strong>Why presence is ephemeral, in-memory, and never persisted:</strong> a cursor position five minutes ago is worthless information — there's no analog to the durable operation log (K) here, because there's nothing worth recovering after the fact. Presence state lives only in the coordinating server's memory (or a short-TTL cache) for as long as a user is actively connected, and simply disappears on disconnect with no cleanup job required beyond the TTL itself.</p>
+<p><strong>Why dropped presence updates are an acceptable trade-off but dropped edit operations are not:</strong> if a cursor-position packet is lost on the wire, the next one (arriving milliseconds later, since cursor updates are frequent) simply supersedes it with no visible impact — this is the same class of loss-tolerance as Ticketmaster's approximate seat-map display (R in that problem), applied here to presence instead of inventory counts. An edit operation, by contrast, must never be silently dropped, which is exactly why it travels over the same reliable, ordered channel that carries revision numbers (O), not the disposable presence channel.</p>
+
+<h3 id="p9-q">Q. Deep Dive 5 — Offline Editing &amp; Reconciliation</h3>
+<p><strong>Requirement this addresses:</strong> the offline-edit functional requirement (D) — the bounded special case where the gap between "edit made" and "edit reaches the coordinating server" can be minutes or hours instead of milliseconds.</p>
+<p><strong>Why this reuses N's machinery rather than needing a separate merge algorithm:</strong> a client that goes offline simply keeps applying operations to its local copy and queuing them, each still recording the revision it was based on. On reconnect, the client replays its queued operations to the coordinating server exactly as if they'd each arrived slightly late — the server transforms each one against everything committed in the meantime (N), the same way it already transforms operations that arrive milliseconds apart from two simultaneously-typing users. Offline editing is not a new problem; it's the existing conflict-resolution problem with a longer, more variable delay.</p>
+<p><strong>Where this stresses the OT-vs-CRDT decision (N) the hardest:</strong> a very long offline period means a very large batch of concurrent history to transform against on reconnect, which is the scenario where a CRDT's "just merge, no central coordination required" property is most attractive — worth explicitly naming as the boundary condition where the trade-off in N could tip toward a CRDT if offline periods were expected to be routinely long (days, not minutes) rather than the occasional dropped-connection case assumed here (F).</p>
+
+<h3 id="p9-r">R. Deep Dive 6 — Persistence &amp; Snapshotting</h3>
+<p><strong>Requirement this addresses:</strong> practical durability and fast document load times — not explicitly stated in D, but required to make K's operation log usable in practice rather than just in theory.</p>
+<p><strong>Why periodic full-document snapshots, not replaying the entire operation log on every load:</strong> a long-lived, heavily-edited document could accumulate many thousands of individual insert/delete operations over its lifetime — replaying all of them to reconstruct current content on every load would make opening an old, well-edited document progressively slower over its lifetime, which is exactly backwards. A snapshot taken periodically (e.g. every N operations, or on a time interval) captures full materialized content at that revision; loading a document means fetching the latest snapshot plus only the handful of operations committed since it.</p>
+<p><strong>This is the same metadata/blob-store pattern used elsewhere in this document</strong> (News Feed media, Chat System attachments, Web Crawler pages, Video Streaming files) — a compact, frequently-accessed pointer (the current revision number) alongside a larger, less-frequently-rewritten blob (the snapshot content), rather than reconstructing expensive state from scratch on every access.</p>
+
+<h3 id="p9-s">S. Deep Dive 7 — Scaling to Many Documents</h3>
+<p><strong>Requirement this addresses:</strong> G's observation that the real scale challenge is the sheer <em>number</em> of documents, not concurrency within any single one.</p>
+<p><strong>Why this is an assignment/routing problem, not a per-document throughput problem:</strong> since G established that even a "hot" document only sees low hundreds of operations per second, a single coordinating server instance can easily own many simultaneously-active documents at once — the actual scaling question is how a client's initial connection request for a given <code>doc_id</code> gets routed to whichever server instance currently owns (or should own) that document.</p>
+<p><strong>Consistent hashing of <code>doc_id</code> across a fleet of coordinating servers</strong> — the same technique used for shard/owner assignment in Rate Limiter and Chat System's connection routing — lets the fleet scale horizontally by adding servers, with each new server picking up ownership of a proportional slice of documents, while any single document's operations always land on the same server for as long as it stays active.</p>
+<p><strong>An idle document has no server holding it in memory at all:</strong> a coordinating server only needs to load a document's state (from the latest snapshot plus recent operations, R) when the first client connects to it, and can evict it from memory after a period with no active editors — keeping the vast majority of the hundreds of millions of mostly-untouched documents (G) from consuming any active-server resources at all.</p>
+
+<h3 id="p9-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  A(["User A"]) -- "WebSocket" --> LB["Connection Router<br/>(consistent hash on doc_id, S)"]
+  B(["User B"]) -- "WebSocket" --> LB
+  LB --> DS["Doc Server owning<br/>this doc_id (K, M)"]
+
+  DS -- "transform + assign revision (N, O)" --> DS
+  DS -- "broadcast transformed ops" --> A
+  DS -- "broadcast transformed ops" --> B
+
+  DS -- "append operation" --> OpLog[("Operation Log (K)")]
+  DS -- "periodic snapshot" --> SnapStore[("Snapshot Store (R)")]
+  DS -- "ephemeral cursor state" --> Presence[("Presence Cache (P)<br/>in-memory / short TTL")]
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p9-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — whole-document last-write-wins overwrite (J):</strong> silently destroys concurrent edits, with no warning.</li>
+<li><strong>V2 — operation-based edits with a central per-document coordinating server:</strong> turns "who wins" into a well-defined transformation problem instead of a destructive overwrite (M).</li>
+<li><strong>V3 — operational transformation on the coordinating server:</strong> the core correctness fix — concurrent operations are reconciled, not one discarded (N).</li>
+<li><strong>V4 — server-assigned monotonic revision numbers:</strong> gives every client the same authoritative ordering, immune to clock drift (O).</li>
+<li><strong>V5 — separate ephemeral presence channel:</strong> keeps high-frequency, disposable cursor data off the durable, must-not-lose content path (P).</li>
+<li><strong>V6 — offline operation queue + replay-on-reconnect:</strong> extends the same transformation machinery to arbitrarily delayed edits, no separate merge algorithm needed (Q).</li>
+<li><strong>V7 — periodic snapshots alongside the operation log:</strong> keeps document load times flat regardless of edit history length (R).</li>
+<li><strong>V8 — consistent-hash-routed fleet of coordinating servers:</strong> scales to hundreds of millions of documents by only holding active ones in memory (S).</li>
+</ul>
+<p><strong>What stays stable throughout:</strong> the operation-based edit model from M — every later refinement changes how operations are transformed, ordered, or routed, never the basic shape of "an edit is a small, positioned operation, not a full-document overwrite."</p>
+
+<h3 id="p9-v">V. Consistency Model</h3>
+<p>This design targets what the distributed-systems literature calls <strong>strong eventual consistency</strong>: any two replicas that have received the same set of operations converge to the identical document state, regardless of the order those operations happened to arrive in — but there is no requirement that all replicas see every operation at the exact same instant. The coordinating server (M) provides a stronger, additional guarantee on top of that baseline: a single authoritative order (via revision numbers, O) for the online, connected case, which is what OT specifically relies on. The offline case (Q) relaxes the timing further — a client's view can diverge from the server's for an arbitrarily long period — but never relaxes the eventual-convergence guarantee itself. This is a different consistency shape than Ticketmaster's hard strong-consistency requirement: there is no single "seat," no operation that must be rejected to preserve correctness — every legitimate concurrent edit is preserved and reconciled, never discarded.</p>
+
+<h3 id="p9-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>Two users edit the same position simultaneously:</strong> the coordinating server's transformation step (N) reconciles both edits into a well-defined combined result — neither is silently dropped.</li>
+<li><strong>A user's connection drops mid-edit:</strong> queued local operations are simply held (Q) and replayed against the current revision once the connection re-establishes.</li>
+<li><strong>The coordinating server for a document crashes:</strong> a new server picks up ownership (S) and reconstructs state from the latest snapshot plus any operations already durably appended to the log (R) — no committed edit is lost, though any operation that was in-flight but not yet acknowledged may need to be resent by the client.</li>
+<li><strong>A client reconnects after a very long offline period:</strong> the reconciliation step (Q) still functions correctly, just with a larger batch of history to transform against — a performance concern, not a correctness one.</li>
+<li><strong>Presence data is lost or stale:</strong> harmless by design (P) — the next presence update supersedes it within moments.</li>
+</ul>
+
+<h3 id="p9-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 whole-document overwrite</td><td>Concurrent edits destructively overwrite each other</td><td>Operation-based edits + OT on a central coordinating server (M, N)</td></tr>
+<tr><td>Single global document server</td><td>One server can't hold every document in memory, nor should it need to for idle documents</td><td>Consistent-hash-routed fleet, only active documents loaded (S)</td></tr>
+<tr><td>Operation log replay on every load</td><td>Load time grows unboundedly with a document's total edit history</td><td>Periodic snapshots (R)</td></tr>
+<tr><td>Presence mixed into the content channel</td><td>High-frequency ephemeral cursor traffic competes with must-not-lose content operations</td><td>Separate, disposable presence channel (P)</td></tr>
+</table>
+
+<h3 id="p9-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Conflict resolution</td><td>CRDT (peer-to-peer capable)</td><td>Operational transformation, central server (chosen)</td><td>A CRDT enables true serverless peer-to-peer sync and trivially long offline periods, at the cost of per-character ID metadata and harder implementation; central-server OT is simpler to reason about and matches how Google Docs is actually built, at the cost of requiring one authority per document</td></tr>
+<tr><td>Edit propagation</td><td>Polling</td><td>Persistent WebSocket connection (chosen)</td><td>Polling adds latency proportional to the poll interval and wastes requests when nothing changed; a persistent connection gives near-instant server-push delivery, reusing Chat System's connection-management design</td></tr>
+<tr><td>Document ownership</td><td>Any server can commit revisions for any document</td><td>Single coordinating server per active document (chosen)</td><td>Multi-writer ownership would turn revision assignment into a distributed-consensus problem; single ownership makes it a trivial local counter, at the cost of that one server being a temporary single point of coordination for that document</td></tr>
+<tr><td>Document load strategy</td><td>Replay the full operation log</td><td>Periodic snapshot + recent ops only (chosen)</td><td>Full replay is simpler but degrades over a document's lifetime; snapshots keep load time flat at the cost of periodic snapshot-generation work</td></tr>
+<tr><td>Presence channel</td><td>Same channel as content operations</td><td>Separate ephemeral channel (chosen)</td><td>Sharing a channel is simpler to build but forces the same reliability guarantee onto disposable and durable data alike; separating them lets each get the guarantee it actually needs</td></tr>
+</table>
+
+<h3 id="p9-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Sending the full document content on every edit and overwriting on the server.</strong> Silently destroys concurrent edits with no warning — the single most important mistake to avoid on this problem, and the one that looks correct in a single-user demo.</li>
+<li><strong>Last-write-wins at the operation level without transformation.</strong> Still discards one of two legitimate concurrent edits rather than reconciling them — better than whole-document overwrite, but still fundamentally wrong for a collaborative editor.</li>
+<li><strong>Using wall-clock timestamps to order operations across clients.</strong> Clock drift between clients (or servers) can misorder near-simultaneous edits — the same mistake called out in Chat System's ordering deep dive.</li>
+<li><strong>Treating presence/cursor data with the same durability guarantees as document content.</strong> Wastes engineering effort persisting and reliably delivering data that's worthless moments after it's superseded.</li>
+<li><strong>Blocking local keystroke rendering on a server round-trip.</strong> Defeats the entire point of optimistic local echo and makes the editor feel laggy regardless of how correct the underlying conflict resolution is.</li>
+</ul>
+
+<h3 id="p9-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"What if we need true peer-to-peer sync with no server at all?"</td><td>Revisit N's trade-off table — a CRDT becomes the right answer once there's no central authority to transform against</td><td>Conflict-resolution mechanism (N), removes the coordinating-server dependency (M)</td><td>Operation-based edit model itself, offline-reconciliation logic (Q)</td></tr>
+<tr><td>"Support rich formatting (bold, headers, embedded images), not just plain text."</td><td>Operations extend to structured content (e.g. a tree or block-based document model) instead of a flat character sequence — the same OT/transformation principle applies to structured operations</td><td>Operation/entity model (H), transformation function specifics (N)</td><td>Central-server ownership, ordering, presence, snapshotting</td></tr>
+<tr><td>"Add full version history with named restore points."</td><td>Directly exercises R's already-existing snapshot mechanism — expose snapshots (plus replay from a chosen point) as a first-class, user-facing feature</td><td>New history UI/API surface on top of R</td><td>Live-editing path entirely</td></tr>
+<tr><td>"A document goes viral and gets thousands of simultaneous viewers (mostly read-only)."</td><td>Separate the vastly larger read-only viewer population from the small set of active editors — serve viewers from a cached/broadcast read replica of current content rather than routing them through the full edit-coordination path</td><td>New read-only viewer path</td><td>Editor coordination, OT, presence for actual editors</td></tr>
+<tr><td>"What happens if the coordinating server for a hot document becomes a bottleneck?"</td><td>Directly exercises S's eviction/reassignment logic, plus confirms G's premise that a single document's true edit throughput is low — the fix is operational (rebalance, restart), not architectural</td><td>None new — this is what S already handles</td><td>Everything else</td></tr>
+</table>
+
+<h3 id="p9-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes sending the whole document on every keystroke and overwriting server-side; no recognition that concurrent edits are a real problem at all.</li>
+<li><strong>Mid-level:</strong> recognizes edits need to be operation-based rather than whole-document, and that ordering matters, but can't articulate a concrete mechanism for reconciling two truly concurrent operations.</li>
+<li><strong>Senior:</strong> proactively introduces operational transformation (or a CRDT) unprompted as the mechanism for reconciling concurrent operations; designs the optimistic-local-echo flow; separates presence from content correctly.</li>
+<li><strong>Staff+:</strong> reasons explicitly about <em>why</em> central-server OT versus peer-to-peer CRDT, tying the choice to concrete product requirements (is there a reliable central authority, how long can offline periods realistically get); designs the snapshot/operation-log split and the document-ownership routing scheme for scaling to many documents without being prompted.</li>
+</ul>
+
+<h3 id="p9-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a collaborative document editor like Google Docs — multiple people editing the same doc at once.</div>
+<div class="dialog"><span class="who">Candidate:</span> The core challenge is that two users can edit the same part of the document at nearly the same instant, and every client needs to end up with the identical final content regardless of the order those edits happened to arrive over the network. I wouldn't send whole-document content on every edit — that turns into last-write-wins and silently destroys someone's work. Instead, edits should be small operations — insert this character at this position — sent individually.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Two operations arrive that both insert text at the same position. How do you resolve that?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's exactly what operational transformation solves. I'd route all operations for one document through a single coordinating server that holds the authoritative state. When an operation arrives, the server checks what's already been committed since the revision that operation was based on, and mathematically transforms its position to account for that — for example, shifting an insert position forward if something was already inserted before it. Then it assigns the next revision number and broadcasts the transformed operation to everyone.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Why not a CRDT instead?</div>
+<div class="dialog"><span class="who">Candidate:</span> A CRDT is the right call if you genuinely need peer-to-peer sync with no reliable central server, or very long offline periods, since it converges without any central authority at all — every character gets a unique ordered ID and replicas merge automatically. But it comes with real per-character metadata overhead and is harder to get right. Since I already have one server owning each document to make revision numbering trivial, that same server is naturally positioned to do the transformation directly — which is actually the architecture real Google Docs uses.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What about a user editing while offline for an hour?</div>
+<div class="dialog"><span class="who">Candidate:</span> I wouldn't build a separate merge algorithm for that — their client just keeps queuing operations locally, each still recording what revision it was based on. On reconnect, it replays them to the coordinating server, which transforms each one against everything committed in the meantime, exactly like it would for two people typing milliseconds apart. It's the same mechanism, just with a longer gap. If offline periods were expected to be routinely long — days, not an occasional dropped connection — that's actually where I'd reconsider the CRDT trade-off.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you show live cursors without that adding load to the edit path?</div>
+<div class="dialog"><span class="who">Candidate:</span> Cursor positions get their own separate, ephemeral channel — they're high-frequency and completely disposable, since a stale cursor position is immediately replaced by the next update. I wouldn't give that the same durability or ordering guarantees as actual content edits, which do need to never be lost.</div>
+
+<h3 id="p9-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/google-docs" target="_blank">Hello Interview</a></td><td>OT-first framing with a central per-document server, explicit discussion of CRDT as the peer-to-peer alternative, and offline sync treated as reused reconciliation machinery</td><td>Clearest articulation of why central-server OT matches Google's actual real-world architecture — the core structure adopted for this section</td><td>Lighter on presence/cursor-sharing as its own explicit deep dive</td><td>The "one server owns a document, transformation becomes a local problem" framing reused directly as the spine of M, N, and O</td></tr>
+<tr><td><a href="https://github.com/Automerge/automerge" target="_blank">automerge (GitHub)</a> / <a href="https://github.com/yjs/yjs" target="_blank">yjs (GitHub)</a> — production CRDT libraries</td><td>Real, production-grade sequence-CRDT implementations used by actual local-first collaborative apps</td><td>Ground-truth confirmation that CRDT-based collaborative editing is a proven, real-world-deployed alternative, not just a theoretical interview talking point</td><td>Both are peer-to-peer/local-first-oriented, so translating their design choices back to this problem's central-server framing requires care</td><td>Confirms the genuine trade-off named in N is real and actively chosen differently by different real products (Google Docs vs. Figma/Notion-adjacent tooling), not a false dichotomy</td></tr>
+<tr><td>Google's original "Jupiter" collaborative editing paper (referenced conceptually — the algorithm underlying real Google Docs)</td><td>Client-server operational transformation with a central server resolving all concurrency, avoiding the O(n²) complexity of peer-to-peer OT</td><td>The actual, real-world precedent for the central-server-OT default chosen in N — not a hypothetical interview construct</td><td>Academic paper, not a system-design walkthrough — needs translation into interview-shaped components, which this section provides</td><td>Confirms that routing all operations through a single authoritative server specifically to simplify transformation (M, N) is deliberate, well-precedented engineering, not a shortcut</td></tr>
+</table>
+
+<h3 id="p9-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Google Docs (Collaborative Editing)</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced (conceptually hard, volumetrically small — small-N correctness, not big-N throughput)</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Concurrent multi-user editing, near-real-time propagation, live presence/cursors, offline-edit reconciliation, guaranteed convergence</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Operational transformation on a single coordinating server per document — not peer-to-peer OT, not (by default) a CRDT, though CRDTs are the right call for genuine peer-to-peer/long-offline requirements</td></tr>
+<tr><td><strong>Ordering</strong></td><td>Server-assigned monotonic revision number per document, never client timestamps — same principle as Chat System's per-conversation seq_num</td></tr>
+<tr><td><strong>Offline editing</strong></td><td>Reuses the same OT reconciliation machinery with a longer delay — not a separate merge algorithm</td></tr>
+<tr><td><strong>Presence</strong></td><td>Separate ephemeral, in-memory, non-persisted channel — deliberately lower guarantees than content operations</td></tr>
+<tr><td><strong>Persistence</strong></td><td>Append-only operation log as source of truth + periodic snapshots to bound document-load time</td></tr>
+<tr><td><strong>Scaling</strong></td><td>Consistent-hash-routed fleet of coordinating servers, one authority per active document, idle documents held by no server at all</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Whole-document last-write-wins overwrites; ordering by wall-clock timestamp; treating presence with content-grade durability; blocking local echo on the network</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Full version-history UI or rich structured-content formatting — name them as natural extensions of the operation log and operation model, not something to design from scratch</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p8.html">&larr; 8. Ticketmaster (Event Ticket Booking)</a><a class="prevnext-link next" href="p10.html">10. Distributed Job Scheduler &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

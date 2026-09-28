@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>2. Rate Limiter — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">2. Rate Limiter <span class="badge">Beginner → Advanced+Distributed</span></h1>
+
+<div class="section-toc">
+<a href="#p2-a">A. Interview Prompt</a><a href="#p2-b">B. Difficulty</a><a href="#p2-c">C. What It Tests</a>
+<a href="#p2-d">D. Requirements</a><a href="#p2-e">E. Clarifying Questions</a><a href="#p2-f">F. Assumptions</a>
+<a href="#p2-g">G. Capacity Estimation</a><a href="#p2-h">H. Core Entities</a><a href="#p2-i">I. API Design</a>
+<a href="#p2-j">J. Basic Design (V1)</a><a href="#p2-k">K. Data Model &amp; Store Choice</a><a href="#p2-l">L. End-to-End Flow</a>
+<a href="#p2-m">M. Deep Dive 1: Algorithm</a><a href="#p2-n">N. Deep Dive 2: Atomicity</a><a href="#p2-o">O. Deep Dive 3: Scale</a>
+<a href="#p2-p">P. Deep Dive 4: Availability</a><a href="#p2-q">Q. Deep Dive 5: Hot Keys</a><a href="#p2-r">R. Deep Dive 6: Multi-Region</a>
+<a href="#p2-s">S. Deep Dive 7: Placement</a><a href="#p2-t">T. Full Solution at Scale</a><a href="#p2-u">U. Design Evolution</a>
+<a href="#p2-v">V. Consistency Model</a><a href="#p2-w">W. Failure Scenarios</a><a href="#p2-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p2-y">Y. Trade-Offs</a><a href="#p2-z">Z. Common Bad Designs</a><a href="#p2-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p2-ab">AB. Interviewer Evaluation</a><a href="#p2-ac">AC. Interview Simulation</a><a href="#p2-ad">AD. Source Comparison</a>
+<a href="#p2-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p2">Jump to section:</label><select id="jump-p2" class="jump-select" data-jump-select><option value="p2-a">A. Realistic Interview Prompt</option><option value="p2-b">B. Difficulty</option><option value="p2-c">C. What This Problem Tests</option><option value="p2-d">D. Requirements</option><option value="p2-e">E. Clarifying Questions</option><option value="p2-f">F. Assumptions</option><option value="p2-g">G. Capacity Estimation</option><option value="p2-h">H. Core Entities</option><option value="p2-i">I. API Design</option><option value="p2-j">J. Basic / Naive High-Level Design (V1)</option><option value="p2-k">K. Data Model &amp; Store Choice</option><option value="p2-l">L. End-to-End Flow</option><option value="p2-m">M. Deep Dive 1 — Choosing the Rate-Limiting Algorithm</option><option value="p2-n">N. Deep Dive 2 — Atomicity Under Concurrency</option><option value="p2-o">O. Deep Dive 3 — Scaling to 1M Requests/Sec</option><option value="p2-p">P. Deep Dive 4 — High Availability &amp; the Fail-Open/Fail-Closed Decision</option><option value="p2-q">Q. Deep Dive 5 — The Hot-Key / Single Abusive Client Problem</option><option value="p2-r">R. Deep Dive 6 — Multi-Region / Global Rate Limiting</option><option value="p2-s">S. Deep Dive 7 — Where to Enforce the Limit</option><option value="p2-t">T. Full Solution at Scale — Final Architecture</option><option value="p2-u">U. Design Evolution</option><option value="p2-v">V. Consistency Model</option><option value="p2-w">W. Failure Scenarios</option><option value="p2-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p2-y">Y. Design Trade-Offs</option><option value="p2-z">Z. Common Bad Designs</option><option value="p2-aa">AA. Interviewer Follow-Ups</option><option value="p2-ab">AB. Interviewer Evaluation Rubric</option><option value="p2-ac">AC. Interview Simulation</option><option value="p2-ad">AD. Online Solution Comparison</option><option value="p2-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p2-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a rate limiter that restricts how many requests a client can make to an API within a given time window — for example, 100 requests per minute per user."</div>
+<p>This problem is a deliberate contrast to URL Shortener: there, the interesting complexity was mostly architectural (caching, sharding, service separation). Here, a huge fraction of the signal comes from a much narrower, more algorithmic question — <em>which counting algorithm, and how do you make counting atomic under concurrency</em> — before the architecture even matters. Candidates who skip straight to "I'll use Redis" without picking and justifying an algorithm are leaving most of the interview on the table.</p>
+
+<h3 id="p2-b">B. Difficulty</h3>
+<p><strong>Beginner-friendly entry point</strong> (everyone can describe "count requests, reject over the limit") that becomes <strong>Advanced + Distributed</strong> the moment a second server enters the picture — which happens almost immediately in any real follow-up. Unlike URL Shortener, this problem front-loads a genuine algorithms-and-data-structures decision (five real algorithms, each with a real flaw) before the distributed-systems layer even starts.</p>
+
+<h3 id="p2-c">C. What This Problem Tests</h3>
+<ul>
+<li>Whether you know more than one rate-limiting algorithm and can articulate each one's specific failure mode, not just "token bucket is popular"</li>
+<li>Race-condition reasoning at the data-store level — read-then-write across concurrent nodes is the same class of bug as double-spending a resource, just expressed as a counter instead of a physical object</li>
+<li>Judgment on where an infra component belongs in a request path (in-app vs. sidecar vs. gateway) — an architectural decision independent of the algorithm</li>
+<li>A concrete, defensible opinion on fail-open vs. fail-closed — there is no universally correct answer, and the interviewer is testing whether you can reason about the trade-off, not guess the "right" one</li>
+<li>Comfort admitting a problem (multi-region enforcement) has no single clean answer, and reasoning through the options anyway instead of hand-waving</li>
+</ul>
+
+<h3 id="p2-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Limit how many requests a client (identified by user ID, IP, or API key) can make within a configurable time window (e.g., 100 requests/minute per user)</li>
+<li>When a client exceeds its limit, reject the request with HTTP <code>429 Too Many Requests</code> and informative metadata (remaining quota, reset time) — not just a bare rejection</li>
+<li>Support different limit rules for different clients/endpoints (configurable, not one hardcoded global number)</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>High throughput</strong> — the limiter sits in front of every request to the protected service, so it must sustain the scale target itself; this document uses <strong>1M requests/sec across 100M DAU</strong> as a standard, illustrative target</li>
+<li><strong>Low overhead</strong> — the check itself should add <strong>&lt;10ms</strong> per request; a rate limiter that makes every request slower defeats its own purpose</li>
+<li><strong>High availability</strong> — the limiter failing should never be allowed to take the entire protected service down with it (see the fail-open/fail-closed decision, P)</li>
+<li><strong>Approximate correctness is acceptable</strong> — eventual consistency across nodes is fine; enforcing exactly 100 vs. occasionally letting through 101–105 during a node failure is an acceptable trade, not a bug worth heavy coordination to avoid</li>
+</ul>
+<p><strong>Out of scope:</strong> authenticating the client's identity itself (assume that already happened upstream — the limiter just consumes a client ID), billing/quota-purchase workflows.</p>
+
+<h3 id="p2-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Is this a standalone service in front of many backends, or a library embedded per-app?</td><td>Changes the entire placement discussion</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>2</td><td>Per-user, per-IP, or per-API-key? Can rules differ per endpoint?</td><td>Determines whether "one global counter" is even the right model</td><td>Core Entities (H)</td></tr>
+<tr><td>3</td><td>Should the response include remaining-quota metadata?</td><td>Lets well-behaved clients self-throttle instead of blindly retrying</td><td>API Design (I)</td></tr>
+<tr><td>4</td><td>Is slight overcounting during a node failure acceptable?</td><td>If yes, avoids expensive strong-consistency coordination entirely</td><td>Consistency Model (V)</td></tr>
+<tr><td>5</td><td>Single region or global enforcement from day one?</td><td>Multi-region rate limiting has no clean canonical answer — worth flagging early</td><td>Deep Dive 6 (R)</td></tr>
+<tr><td>6</td><td>What happens if the rate-limiting infrastructure itself goes down — block everything or allow everything?</td><td>A real product decision with no universally "correct" answer</td><td>Deep Dive 4 (P)</td></tr>
+<tr><td>7</td><td>Do legitimate clients need burst tolerance (e.g., batch jobs)?</td><td>Directly favors token bucket over stricter algorithms</td><td>Deep Dive 1 (M)</td></tr>
+</table>
+
+<h3 id="p2-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> per-client, configurable-window limiting with a 429+metadata response on rejection.</li>
+<li><strong>Assumption:</strong> standalone rate-limiting layer living at the API Gateway, not a library embedded per-application — the more common, more interesting version of this problem, and the default most sources converge on.</li>
+<li><strong>Assumption:</strong> eventual consistency across nodes is acceptable (per D) — this single assumption is what makes the whole design tractable without heavyweight distributed consensus.</li>
+<li><strong>Assumption:</strong> fail-closed on infrastructure failure (protect the backend over allowing all traffic) — defended in P, not just asserted.</li>
+<li><strong>Assumption:</strong> single-region base design (J–Q); multi-region is an explicit, clearly-flagged extension (R), not baked in from the start.</li>
+</ul>
+
+<h3 id="p2-g">G. Capacity Estimation</h3>
+<p class="callout"><strong>A key difference from URL Shortener:</strong> there, QPS was derived from user behavior (DAU × clicks/day). Here, the target QPS is really a <em>provisioning target for abuse/burst survival</em>, not a number you derive from "average" traffic — a rate limiter that's sized for average traffic and falls over during the exact burst it exists to defend against has failed at its one job. So the 1M req/sec figure below is stated as a design target (matching Hello Interview's own framing), not derived from DAU × avg-requests the way Deep Dive numbers elsewhere in this document are.</p>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Throughput target</td><td>1M requests/sec (design target, not DAU-derived)</td><td>Sets the Redis-sharding requirement in O</td></tr>
+<tr><td>Per-check latency budget</td><td>&lt;10ms</td><td>Rules out anything disk-backed; rules out an extra network hop per check if avoidable (O, S)</td></tr>
+<tr><td>Single Redis instance throughput</td><td>~100K–200K ops/sec (well-established Redis benchmark range)</td><td>1 instance can't hit 1M/sec alone → sharding is mandatory, not optional (O)</td></tr>
+<tr><td>Shards needed</td><td>1,000,000 ÷ ~100K per shard ≈ 10 shards</td><td>Concrete shard count to reason about in O</td></tr>
+<tr><td>Fixed-window counter memory</td><td>~44 bytes/client (8B ID + 4B window-timestamp + 2B count + ~30B store overhead) × 10M active clients ≈ 440MB</td><td>Trivially fits one node — memory is not the bottleneck for this algorithm</td></tr>
+<tr><td>Sliding-window-log memory (illustrative, sourced)</td><td>~120GB for a 500 req/hour limit across 10M users (storing one timestamp entry per request)</td><td>Shows exactly why sliding-window-log is memory-prohibitive at scale — motivates the hybrid algorithm in M</td></tr>
+<tr><td>Sliding-window-counter memory (same scenario)</td><td>~16GB (a ~92% reduction vs. the log approach)</td><td>The concrete payoff of choosing the hybrid algorithm over the "obviously correct" log approach</td></tr>
+</table>
+
+<h3 id="p2-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>Rule</code></td><td>A configured limit</td><td><code>rule_id</code>, <code>scope</code> (user/IP/API-key), <code>limit</code>, <code>window_seconds</code>, <code>algorithm</code></td></tr>
+<tr><td><code>Client</code></td><td>The entity being limited</td><td><code>client_id</code> (a user ID, IP, or API key — whatever the rule scopes on)</td></tr>
+<tr><td><code>Counter</code> (ephemeral)</td><td>The live, per-client-per-rule count state</td><td>lives entirely in the in-memory store (K) — never a durable row; losing it on restart is harmless</td></tr>
+</table>
+
+<h3 id="p2-i">I. API Design</h3>
+<pre><code>Internal check interface (called by the Gateway on every request):
+  isAllowed(client_id, rule_id) -> { allowed: bool, remaining: int, reset_at: timestamp }
+
+HTTP contract exposed to the end client of the protected service:
+  200 OK (allowed)
+    Headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
+  429 Too Many Requests (denied)
+    Headers: same as above, plus Retry-After
+    Body: { "error": "rate_limit_exceeded", "retry_after": &lt;seconds&gt; }
+</code></pre>
+<p><strong>Why return quota metadata instead of a bare 429:</strong> it lets well-behaved clients back off precisely until <code>reset_at</code> instead of blind-retrying (which just adds more load exactly when the system is already stressed) — a product decision as much as a technical one, and worth stating explicitly rather than assuming a bare rejection is enough.</p>
+
+<h3 id="p2-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirements in isolation: an in-process counter, local to each API server instance.</p>
+<div class="mermaid diagram">
+flowchart LR
+  C(["Client"]) --> LB["Load Balancer"]
+  LB --> S1["API Server A<br/>local in-memory counter"]
+  LB --> S2["API Server B<br/>local in-memory counter"]
+  S1 --> BE["Backend"]
+  S2 --> BE
+</div>
+<p class="diagram-caption">V1 — each server counts independently. Looks fine with one server; breaks the instant there are two.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> with N servers behind a load balancer, a client hitting different servers on different requests gets counted N separate times — effectively an N× larger limit than intended, with zero coordination between servers to catch it. Unlike URL Shortener's V1 (which works fine at small scale and degrades gracefully), this V1 is <em>already broken</em> the moment there's more than one server — which is true of essentially any real deployment. This is exactly why a shared external counter store is not an optimization here, it's a correctness requirement from step one.</p>
+
+<h3 id="p2-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Why Redis (or an equivalent in-memory KV store), not a relational DB:</strong> the access pattern is an extremely high-frequency read-and-increment on small, short-lived keys — exactly what an in-memory store with atomic single-command operations and native TTL/expiry is built for. A relational DB would add durability guarantees this data doesn't need (losing a rate-limit counter on restart is harmless — the client just gets a fresh window) and disk-backed latency this problem's &lt;10ms budget can't afford.</p>
+<p><strong>Key schema:</strong> <code>ratelimit:{rule_id}:{client_id}</code> — using Redis Cluster hash-tag braces (<code>{...}</code>) around the part of the key that must colocate on one shard, which matters specifically for the sliding-window-counter algorithm's two-key design (current + previous window) in M, since both keys for one client must live on the same shard to be read together.</p>
+
+<h3 id="p2-l">L. End-to-End Flow</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant C as Client
+  participant GW as API Gateway
+  participant R as Redis (sharded)
+  participant BE as Backend
+  C->>GW: Request
+  GW->>GW: extract client_id, resolve rule
+  GW->>R: EVALSHA rate_limit_script(client_id, rule)
+  R->>R: atomic read + calculate + write (Lua)
+  R-->>GW: {allowed, remaining, reset_at}
+  alt allowed
+    GW->>BE: forward request
+    BE-->>GW: response
+    GW-->>C: 200 + X-RateLimit-* headers
+  else denied
+    GW-->>C: 429 + Retry-After
+  end
+</div>
+
+<h3 id="p2-m">M. Deep Dive 1 — Choosing the Rate-Limiting Algorithm</h3>
+<p><strong>Requirement this addresses:</strong> the functional limiting itself — but the choice of algorithm is where most of the real trade-offs live, and it's worth resolving before any distributed-systems concern.</p>
+<table>
+<tr><th>Algorithm</th><th>How It Works</th><th>Memory</th><th>Burst Behavior</th><th>Fatal Flaw</th></tr>
+<tr><td>Fixed window counter</td><td>Increment a counter for the current time bucket (e.g. "12:01"), reset at each boundary</td><td>Lowest — one integer per client</td><td>Up to <strong>2× the limit</strong> at a window boundary (e.g. 100 requests at 12:00:59 + 100 more at 12:01:00)</td><td>The boundary-burst problem — simple but genuinely exploitable</td></tr>
+<tr><td>Sliding window log</td><td>Store a timestamp per request; count entries within the trailing window</td><td>O(n) — one entry per request, even rejected ones</td><td>None — exact enforcement</td><td>Memory cost scales with request volume itself (see G: ~120GB at modest scale) — exact, but expensive</td></tr>
+<tr><td>Sliding window counter</td><td>Two fixed-window counters (current + previous), blended by a weighted average based on how far into the current window we are</td><td>Two small keys per client</td><td>Smooths the boundary — no clean 2× exploit</td><td>Approximate, not exact — acceptable given D's NFR, but worth naming explicitly</td></tr>
+<tr><td>Token bucket</td><td>A bucket holds up to <em>capacity</em> tokens, refilling at a fixed rate; each request consumes one token</td><td>One hash per client (tokens + last-refill time)</td><td><strong>Controlled bursts up to capacity</strong> — a feature, not a bug, for legitimate bursty clients</td><td>Two parameters to tune (capacity, refill rate) instead of one — more configuration surface</td></tr>
+<tr><td>Leaky bucket</td><td>Requests queue and drain at a fixed rate (policing, not counting)</td><td>One hash per client</td><td>None — strictly steady output rate</td><td>Old queued requests can block newer ones during a surge — bad if recency matters more than strict ordering</td></tr>
+</table>
+<p><strong>A real accuracy data point worth citing:</strong> Cloudflare's own production measurement of their sliding-window-counter implementation found only <strong>0.003% of requests were wrongly allowed or rejected out of 400 million requests</strong> — strong evidence that the "approximate" algorithms are accurate enough in practice to justify their far lower memory cost over the exact-but-expensive sliding-window-log.</p>
+<p><strong>Recommendation:</strong> <strong>token bucket</strong> when burst tolerance for legitimate clients matters (the common case — most real APIs have some batch/retry-driven burstiness); <strong>sliding-window counter</strong> when the priority is smoothing out the fixed-window boundary exploit with minimal memory, and burst tolerance isn't a goal. Both are reasonable defaults — naming the boundary-burst flaw of fixed-window and the memory cost of sliding-log is the real signal, more than which of the remaining two you personally prefer.</p>
+
+<h3 id="p2-n">N. Deep Dive 2 — Atomicity Under Concurrency</h3>
+<p><strong>Requirement this addresses:</strong> correctness when multiple Gateway instances check the same client's counter concurrently — the single most important correctness property in this entire design.</p>
+<p class="callout"><strong>The race, explicitly:</strong> "read the current count," "check against the limit," and "increment" look like one operation but are three. If two Gateway instances both read the count as 99 (limit 100) at nearly the same instant, both may independently decide "allowed" and both increment — the client is now at 101, and the check that was supposed to prevent exactly this just failed. This is the identical shape of bug as two threads racing for the last parking spot in the LLD handbook's Parking Lot problem — a check-then-act race — just expressed here as a distributed counter instead of a shared object.</p>
+<p><strong>The fix — an atomic Lua script executed server-side inside Redis</strong>, not two separate round-trips from the application. A simplified token-bucket version (adapted from Redis's own published rate-limiter recipes):</p>
+<pre><code>-- runs atomically inside Redis; no other client's script can interleave
+local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
+local now = redis.call('TIME')[1]              -- server time, not the caller's clock
+local tokens, last_refill = tonumber(bucket[1]) or capacity, tonumber(bucket[2]) or now
+local refills = math.floor((now - last_refill) / refill_interval)
+if refills > 0 then
+  tokens = math.min(capacity, tokens + refills * refill_rate)
+  last_refill = last_refill + refills * refill_interval
+end
+local allowed = 0
+if tokens >= 1 then tokens = tokens - 1; allowed = 1 end
+redis.call('HMSET', key, 'tokens', tokens, 'last_refill', last_refill)
+return {allowed, tokens}</code></pre>
+<p><strong>Why Lua, not <code>MULTI</code>/<code>EXEC</code>:</strong> Redis transactions (<code>MULTI</code>/<code>EXEC</code>) queue a fixed batch of commands and run them atomically, but they can't <em>branch</em> on a value read earlier in the same transaction — you can't say "read the count, and only increment if it's below the limit" inside one <code>MULTI</code> block. A Lua script runs as a single atomic unit but is a real program: it can read, compute, and conditionally decide to write, all inside that one atomic step. That conditional-branch-on-a-just-read-value is exactly what this problem needs and <code>MULTI</code>/<code>EXEC</code> structurally cannot provide.</p>
+<p><strong>Why the script calls Redis's own <code>TIME</code> command instead of the caller passing a timestamp:</strong> if each Gateway instance used its own local clock, clock drift between instances could let a client be double-counted or under-counted right at a window boundary. Computing time inside Redis, on one clock, removes an entire class of subtle multi-node bugs for free.</p>
+
+<h3 id="p2-o">O. Deep Dive 3 — Scaling to 1M Requests/Sec</h3>
+<p><strong>Requirement this addresses:</strong> Throughput (D, G) — a single Redis instance's ~100K–200K ops/sec ceiling is well below the 1M/sec target.</p>
+<p><strong>Sharding via consistent hashing on <code>client_id</code>:</strong> ~10 Redis shards, each handling ~100K ops/sec, clear the 1M/sec target with room to spare. Consistent hashing (not simple modulo) is chosen specifically because it's the standard, well-understood way to add/remove shards later while only remapping a small fraction of keys — the same rationale used anywhere shards need to grow without a full rehash. Critically, a given client's key must always land on the same shard — you cannot split one client's counter across two shards and still check it atomically, so this isn't just a load-balancing choice, it's a correctness requirement (same principle as the hash-tag braces in K).</p>
+<div class="mermaid diagram">
+flowchart TB
+  GW["API Gateway"] -- "hash(client_id)" --> CH{"Consistent Hash Ring"}
+  CH --> R1[("Redis Shard 1")]
+  CH --> R2[("Redis Shard 2")]
+  CH --> R3[("Redis Shard 3")]
+  CH -.-> R10[("... Redis Shard 10")]
+</div>
+<p class="diagram-caption">A client's key always resolves to the same shard — required for the atomic check in N to mean anything.</p>
+<p><strong>Connection pooling:</strong> a fresh TCP handshake per check can cost ~20–50ms — several times the entire &lt;10ms per-check latency budget from D. Pooled, persistent connections between each Gateway instance and its Redis shards are not an optimization here, they're required to meet the stated latency NFR at all.</p>
+
+<h3 id="p2-p">P. Deep Dive 4 — High Availability &amp; the Fail-Open/Fail-Closed Decision</h3>
+<p><strong>Requirement this addresses:</strong> Availability (D) — specifically, what happens when the rate-limiting store itself is unreachable.</p>
+<table>
+<tr><th></th><th>Fail-Open (allow all traffic)</th><th>Fail-Closed (reject all traffic) — chosen</th></tr>
+<tr><td>Backend safety</td><td>Backend is fully exposed to unlimited traffic exactly when the limiter can't check it</td><td>Backend stays protected regardless of the limiter's own health</td></tr>
+<tr><td>API availability</td><td>The protected API stays up for legitimate users during the outage</td><td>The protected API becomes fully unavailable during the outage</td></tr>
+<tr><td>When it's worst</td><td>An infra outage often correlates with a traffic spike (e.g. everyone hammering "refresh" during an incident) — the exact moment fail-open removes the one thing preventing backend collapse</td><td>A rare Redis outage now takes down an otherwise-healthy backend too</td></tr>
+</table>
+<p><strong>Why fail-closed:</strong> the rate limiter's entire purpose is backend protection; choosing fail-open specifically fails at that purpose during the one event (infrastructure stress) most likely to coincide with the traffic spikes it exists to defend against. This is a defensible, opinionated choice — a candidate arguing fail-open with a clear justification (e.g., "this API's uptime SLA is more important than a rare overload") is equally strong, as long as the trade-off is named, not assumed away.</p>
+<p><strong>Making the fail-closed path rare in practice:</strong> Redis Cluster or Sentinel gives each shard a master-replica pair with automatic failover, so a single node failure — the common case — never actually reaches the fail-closed branch at all. Fail-closed is the safety net for the rare case where HA itself fails, not the primary defense.</p>
+
+<h3 id="p2-q">Q. Deep Dive 5 — The Hot-Key / Single Abusive Client Problem</h3>
+<p><strong>Requirement this addresses:</strong> a distinct scaling problem from O — O assumes well-distributed aggregate traffic; this addresses one concentrated source (an abusive client, or a DDoS from one IP range) overwhelming its single shard.</p>
+<p><strong>Why sharding (O) can't fix this on its own:</strong> consistent hashing on <code>client_id</code> is exactly what makes the atomic check correct (O) — but it also means one client's traffic can never be spread across multiple shards without breaking that same correctness guarantee. A hot key is hot by definition on exactly one shard.</p>
+<ul>
+<li><strong>Coarse pre-filtering at the edge/CDN</strong> (Cloudflare-style), before traffic ever reaches the sharded Redis layer — cheap, approximate blocking of obviously abusive patterns (packet rate, known bad IP ranges) that never needs per-client precision.</li>
+<li><strong>Auto-blocklisting</strong> — once a client has been rejected repeatedly, skip the Redis check entirely and reject immediately; cheaper than paying for a Lua-script round-trip for a client you already know you're going to reject.</li>
+<li><strong>Dedicated capacity for known high-volume legitimate clients</strong> (API partners) — so a large but legitimate client doesn't compete with the general pool's shard capacity in the first place.</li>
+</ul>
+
+<h3 id="p2-r">R. Deep Dive 6 — Multi-Region / Global Rate Limiting</h3>
+<p class="callout">This is genuinely the most open-ended part of the problem — there is no single canonical answer across sources, and naming that honestly, then reasoning through the real options, is stronger than picking one and pretending it's obviously correct.</p>
+<table>
+<tr><th>Approach</th><th>How</th><th>Trade-off</th></tr>
+<tr><td>Static per-region quota split</td><td>Global limit ÷ number of regions, enforced locally per region</td><td>Simplest, but penalizes a client whose traffic happens to concentrate in one region</td></tr>
+<tr><td><strong>Home-region pinning (recommended default)</strong></td><td>Consistent-hash the client to one "home" region; that region's local counter is authoritative for that client</td><td>Same principle as shard pinning in O, just one level up — avoids cross-region coordination entirely for the common case</td></tr>
+<tr><td>Local counters + async cross-region sync</td><td>Each region counts locally, publishes deltas to others periodically</td><td>Eventual consistency (~1–2s convergence); a client hitting multiple regions simultaneously can briefly exceed the global limit by roughly the number of regions — acceptable under D's "approximate is fine" NFR</td></tr>
+<tr><td>CRDT-based counters</td><td>Coordination-free, mathematically mergeable counters across regions</td><td>Elegant but adds real operational complexity most interviews don't need to go this deep on</td></tr>
+</table>
+<div class="mermaid diagram">
+flowchart LR
+  C(["Client"]) --> Router{"Home-Region Router<br/>consistent hash"}
+  Router -- "pinned" --> RegionA["Region: us-east<br/>local Redis shards"]
+  Router -.-> RegionB["Region: eu-west<br/>local Redis shards"]
+  RegionA -. "periodic async sync (fallback path)" .-> RegionB
+</div>
+<p><strong>Recommendation:</strong> home-region pinning as the default (it's the same sharding idea already used within a region, just applied globally); fall back to async cross-region sync only for the genuinely hard case of a single client's traffic legitimately spanning regions (e.g. a mobile user roaming) where a single "home" doesn't make sense.</p>
+
+<h3 id="p2-s">S. Deep Dive 7 — Where to Enforce the Limit</h3>
+<p><strong>Requirement this addresses:</strong> an architectural placement decision, independent of the algorithm (M) or the store (K) — revisits J's rejected in-process approach with the fuller comparison.</p>
+<table>
+<tr><th>Placement</th><th>Latency</th><th>Cross-Instance View</th><th>Verdict</th></tr>
+<tr><td>In-app / in-process</td><td>Fastest — zero network hop</td><td>None (J's fatal flaw)</td><td>Usable only as a cheap local pre-filter layered in front of the real check — never as the sole enforcement point</td></tr>
+<tr><td>Dedicated sidecar (e.g. Envoy-style, one per service instance)</td><td>Adds a local proxy hop</td><td>Shared, via a common backing store</td><td>Decouples limiting logic from application code (polyglot-friendly) at the cost of one more moving part to operate per instance</td></tr>
+<tr><td><strong>API Gateway (chosen)</strong></td><td>Zero <em>extra</em> hop — the Gateway is already on every request's path</td><td>Shared, via sharded Redis (O)</td><td>Centralizes rule configuration in one place; blocks bad traffic before it burns any backend compute at all</td></tr>
+</table>
+<p><strong>The trade-off worth naming for the Gateway choice:</strong> the Gateway itself must now scale to the full 1M req/sec target (it already had to handle this traffic anyway, so this is not new load, but it is new responsibility), and a Gateway-level bug or outage has a wider blast radius — it affects every downstream service uniformly, unlike a per-service sidecar failure which is contained to one service.</p>
+
+<h3 id="p2-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  C(["Client"]) --> Edge["CDN / Edge<br/>coarse pre-filter (Q)"]
+  Edge --> GW["API Gateway<br/>rule config + fail-closed policy (S, P)"]
+  GW -- "hash(client_id)" --> CH{"Consistent Hash Ring (O)"}
+
+  subgraph REDIS [" Sharded Redis — atomic Lua check (M, N) "]
+    direction LR
+    R1[("Shard 1")]
+    R2[("Shard 2")]
+    R3[("... Shard 10")]
+  end
+  CH --> REDIS
+
+  GW -- "allowed" --> BE["Backend Services"]
+  GW -. "denied: 429 + Retry-After" .-> C
+  BE -. "200 + X-RateLimit-* headers" .-> C
+
+  GW -.-> Region2["Home-region pinning<br/>for multi-region (R)"]
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p2-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — in-process local counter (J):</strong> broken the moment there's more than one server.</li>
+<li><strong>V2 — shared Redis, fixed-window counter:</strong> fixes cross-instance blindness, but inherits the 2× boundary-burst flaw (M).</li>
+<li><strong>V3 — switch to sliding-window-counter or token bucket:</strong> fixes the boundary-burst flaw (M).</li>
+<li><strong>V4 — atomic Lua script:</strong> fixes the concurrent read-then-write race (N).</li>
+<li><strong>V5 — shard via consistent hashing + connection pooling:</strong> hits the 1M req/sec target (O).</li>
+<li><strong>V6 — Redis HA + fail-closed policy:</strong> survives store failures without silently defeating the limiter's purpose (P).</li>
+<li><strong>V7 — edge pre-filter + blocklisting:</strong> handles concentrated abuse a shard-balanced design can't (Q).</li>
+<li><strong>V8 — home-region pinning:</strong> extends the design globally (R).</li>
+</ul>
+<p><strong>What stays stable throughout:</strong> the <code>isAllowed(client_id, rule_id)</code> check contract and the 429+headers response shape from I — every version below the surface changes without callers noticing.</p>
+
+<h3 id="p2-v">V. Consistency Model</h3>
+<p>Almost everything here is deliberately <strong>eventually/approximately consistent</strong> by design (D's NFR) — a client occasionally slipping through at 101/100 during a failover is an accepted, bounded inaccuracy, not a bug, because the system's job is coarse protection, not exact metering. The one place near-strong consistency is non-negotiable is <em>within a single shard's Lua-script execution</em> (N) — that step must be atomic or the entire limiter is pointless even at the smallest scale. This is the inverse emphasis of URL Shortener's model (strong uniqueness, eventual everything else) — here almost everything is eventual except one narrow, single-shard atomic operation.</p>
+
+<h3 id="p2-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>A Redis shard goes down:</strong> fail-closed protects the backend; HA (master-replica + auto-failover) keeps this rare (P).</li>
+<li><strong>One client's traffic is concentrated on one shard:</strong> edge pre-filtering and blocklisting absorb it before it reaches Redis (Q).</li>
+<li><strong>Clock drift between Gateway nodes:</strong> mitigated by computing time inside the Lua script via Redis's own <code>TIME</code> command, not the caller's clock (N).</li>
+<li><strong>Cross-region race briefly exceeds the global limit:</strong> accepted trade-off under async sync (R) — bounded by the sync interval, not unbounded.</li>
+<li><strong>The Gateway fleet itself is overloaded:</strong> a standard horizontal-scaling problem for the Gateway, distinct from the rate-limit store's own scaling story (O, X).</li>
+</ul>
+
+<h3 id="p2-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 in-process</td><td>No cross-instance view at all — broken with &gt;1 server</td><td>Shared Redis store (K)</td></tr>
+<tr><td>Single shared Redis</td><td>~100–200K ops/sec ceiling per instance</td><td>Consistent-hash sharding (O)</td></tr>
+<tr><td>Sharded Redis</td><td>One client's traffic concentrated on one shard</td><td>Edge pre-filter + blocklisting (Q)</td></tr>
+<tr><td>Single region at full shard capacity</td><td>Cross-region coordination cost</td><td>Home-region pinning (R)</td></tr>
+</table>
+
+<h3 id="p2-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Algorithm</td><td>Fixed window (simplest)</td><td>Token bucket / sliding-window counter (chosen)</td><td>Fixed window is trivial but has a real 2× boundary exploit; the alternatives cost a bit more complexity to remove it</td></tr>
+<tr><td>Exactness</td><td>Sliding window log (exact)</td><td>Sliding window counter (approximate, chosen)</td><td>Log is exact but memory cost scales with request volume (120GB-class); counter is ~92% cheaper at negligible (0.003%-class) error</td></tr>
+<tr><td>Infra failure policy</td><td>Fail-open</td><td>Fail-closed (chosen)</td><td>Fail-open keeps the API up but exposes the backend during the exact event it needs protection most; fail-closed protects the backend at the cost of full unavailability during the (rare, HA-mitigated) outage</td></tr>
+<tr><td>Placement</td><td>Sidecar per service</td><td>API Gateway (chosen)</td><td>Sidecar contains blast radius per service; Gateway is zero extra hops but centralizes risk</td></tr>
+<tr><td>Multi-region</td><td>Static quota split</td><td>Home-region pinning (chosen)</td><td>Static split is simpler but penalizes region-concentrated clients; pinning avoids cross-region coordination for the common case</td></tr>
+</table>
+
+<h3 id="p2-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>In-process counters with no shared store.</strong> Works in a single-server demo, is silently broken (not just slow) the moment a load balancer adds a second instance — the most common mistake specifically on this problem.</li>
+<li><strong>Fixed-window counter presented as "the" solution with no mention of the boundary-burst flaw.</strong> It's a fine algorithm to lead with, but not naming its 2× exploit is a missed signal.</li>
+<li><strong>Check-then-increment as two separate Redis calls</strong> (a <code>GET</code> followed by a separate <code>INCR</code>) instead of one atomic script — the same check-then-act race as the custom-alias mistake in the URL Shortener problem, recurring here at the counter level (N).</li>
+<li><strong>Fail-open by default, unexamined.</strong> Might be the right call for a specific product, but asserting it without naming the trade-off (backend exposure during exactly the event that triggered the outage) is the actual mistake, not the choice itself.</li>
+<li><strong>Sliding-window-log presented as the default "correct" choice</strong> without acknowledging its memory cost at scale — exact is not automatically better once the memory bill is 7.5× the alternative for a 0.003%-class accuracy difference.</li>
+</ul>
+
+<h3 id="p2-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"Legitimate clients need to burst occasionally."</td><td>Token bucket's <em>capacity</em> parameter directly models allowed burst size — no new mechanism needed</td><td>Rule configuration only</td><td>Everything else</td></tr>
+<tr><td>"Some API calls cost 10× more than others — weight them."</td><td>Consume N tokens instead of 1 per request; token bucket generalizes to this trivially</td><td>Lua script's decrement logic</td><td>Sharding, placement, HA policy</td></tr>
+<tr><td>"A client swears they didn't exceed the limit but got a 429."</td><td>Debug via the response headers — was this a failover-induced brief miscount, or the fail-closed path firing during a Redis blip</td><td>None — this is why I/N's observability exists</td><td>Everything</td></tr>
+<tr><td>"Now add per-tenant AND per-user limits simultaneously."</td><td>Two rule checks per request; check whichever is cheaper/likelier to reject first, to fail fast</td><td>Rule evaluation logic</td><td>Store, sharding, algorithm choice</td></tr>
+<tr><td>"We need real-time analytics on who's being rate-limited."</td><td>Same lesson as URL Shortener's analytics deep dive — async event pipeline, never on the hot check path</td><td>New async pipeline (Kafka → aggregator → analytics store)</td><td>The check path itself, entirely</td></tr>
+</table>
+
+<h3 id="p2-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> "I'll count requests and reject over N" with no algorithm named, no mention of concurrency, defaults to an in-process counter.</li>
+<li><strong>Mid-level:</strong> proposes fixed-window + shared Redis; doesn't yet know the boundary-burst flaw or the check-then-increment race.</li>
+<li><strong>Senior:</strong> proactively picks token bucket or sliding-window-counter and explains why over fixed-window; identifies the atomicity race unprompted and proposes a Lua script or equivalent atomic primitive; separates the placement decision (Gateway vs. sidecar) from the algorithm decision explicitly.</li>
+<li><strong>Staff+:</strong> discusses the hot-key problem and fail-open/closed trade-off without being asked; has a real, reasoned opinion on multi-region rather than deferring or hand-waving; can price out memory/throughput trade-offs with real numbers (as in G).</li>
+</ul>
+
+<h3 id="p2-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a rate limiter — 100 requests per minute per user.</div>
+<div class="dialog"><span class="who">Candidate:</span> Before the architecture, I want to pick the counting algorithm, since that drives everything else. A naive fixed-window counter lets a client send 100 requests at the very end of one window and another 100 right at the start of the next — effectively 200 in a few seconds. I'd use a token bucket instead, or a sliding-window counter if burst tolerance isn't actually wanted.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Fine, token bucket. Where does the count live?</div>
+<div class="dialog"><span class="who">Candidate:</span> Redis — it needs to be shared across every API server instance, or a client can just get counted separately per server and blow past the limit. And critically, the check-and-decrement has to be one atomic operation, not a separate read then write, or two concurrent requests can both read "99" and both get allowed.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you make that atomic?</div>
+<div class="dialog"><span class="who">Candidate:</span> A Lua script executed server-side inside Redis. Redis's <code>MULTI</code>/<code>EXEC</code> can't branch on a value it just read in the same transaction, but a Lua script can — read the bucket, compute refill, conditionally decrement, write back, all as one atomic step.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Now scale it to a million requests a second.</div>
+<div class="dialog"><span class="who">Candidate:</span> One Redis instance tops out around 100-200K ops/sec, so I'd shard across roughly 10 instances using consistent hashing on the client ID — and it has to be consistent hashing on client ID specifically, because a client's counter can't be split across two shards and still be checked atomically.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What if Redis itself goes down?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's a real product decision — fail open and risk the exact backend overload this component exists to prevent, or fail closed and take the API down until Redis recovers. I'd default to fail-closed, since an infra outage often coincides with a traffic spike — the worst possible time to remove protection — and then invest in Redis Cluster/Sentinel failover so that path is rarely actually hit.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last one — global deployment, multiple regions?</div>
+<div class="dialog"><span class="who">Candidate:</span> Honestly, there's no clean single answer here. My default would be pinning each client to one home region via the same consistent-hashing idea, so most clients never need cross-region coordination at all. For a client that genuinely spans regions — a roaming mobile user — I'd fall back to local counters with periodic async sync, and accept that they could briefly exceed the global limit by a small, bounded amount during the sync window.</div>
+
+<h3 id="p2-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/distributed-rate-limiter" target="_blank">Hello Interview</a></td><td>API-Gateway placement, Redis-backed counter, explicit fail-open/closed framing, staff-level multi-region discussion</td><td>Best framing of placement as its own decision, separate from algorithm</td><td>Doesn't compare all five algorithms as exhaustively as ByteByteGo</td><td>The explicit fail-open vs. fail-closed decision framing used throughout this section</td></tr>
+<tr><td><a href="https://bytebytego.com/courses/system-design-interview/design-a-rate-limiter" target="_blank">ByteByteGo</a></td><td>Full five-algorithm comparison with named fatal flaws; real Cloudflare accuracy data point</td><td>The most rigorous algorithm-trade-off treatment of any source reviewed</td><td>Lighter on the multi-region and hot-key angles</td><td>The 0.003%-accuracy Cloudflare data point and the "fatal flaw per algorithm" framing adopted in M</td></tr>
+<tr><td><a href="https://redis.io/docs/latest/develop/use-cases/rate-limiter/" target="_blank">Redis official docs</a></td><td>Actual, runnable Lua scripts for every algorithm (token bucket, fixed window, sliding log, sliding counter, leaky bucket), using server-side <code>TIME</code> for clock safety</td><td>The only source with real, correct, atomic implementation code rather than just conceptual description</td><td>No system-design framing — purely an implementation reference</td><td>The exact Lua-script structure and the "why Lua not MULTI/EXEC" reasoning used in N</td></tr>
+<tr><td><a href="https://github.com/gitgik/distributed-system-design/blob/master/designing_api_rate_limiter.md" target="_blank">gitgik/distributed-system-design (GitHub)</a></td><td>Concrete memory-sizing math for sliding-window-log vs. sliding-window-counter at a stated user/request scale</td><td>The source of the ~120GB vs. ~16GB memory comparison used in G</td><td>Less coverage of the availability/fail-open trade-off</td><td>Seeing algorithm choice translated into an actual memory bill, not just Big-O</td></tr>
+</table>
+<p style="font-size:11.5px; color:#666;">Additional cross-referenced repos (search-level only): <a href="https://github.com/Salah856/System-Design/blob/main/Design%20Rate%20Limiter.md" target="_blank">Salah856/System-Design</a>, <a href="https://github.com/sm2774us/System_Design/blob/master/009_Designing_an_API_Rate_Limiter/README.md" target="_blank">sm2774us/System_Design</a>, <a href="https://github.com/anshme/rate-limiter" target="_blank">anshme/rate-limiter</a> (a working implementation of Alex Xu's design), <a href="https://developer.konghq.com/plugins/rate-limiting/" target="_blank">Kong's rate-limiting plugin docs</a> (a real production API Gateway's own configuration model).</p>
+
+<h3 id="p2-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Rate Limiter</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Beginner → Advanced+Distributed</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Per-client configurable limits; 429+metadata on rejection; 1M req/sec target, &lt;10ms overhead, approximate correctness OK</td></tr>
+<tr><td><strong>Algorithm decision</strong></td><td>Token bucket (burst-tolerant) or sliding-window counter (boundary-smoothing) over fixed-window (2× exploit) or sliding-log (memory-expensive)</td></tr>
+<tr><td><strong>Atomicity fix</strong></td><td>Server-side Lua script (not MULTI/EXEC) for atomic read-calculate-write; server-side TIME to avoid clock drift</td></tr>
+<tr><td><strong>Scale fix</strong></td><td>Consistent-hash sharding on client_id across ~10 Redis shards + connection pooling</td></tr>
+<tr><td><strong>Availability decision</strong></td><td>Fail-closed (protect backend) + Redis HA/failover to make that path rare — a defensible, opinionated call</td></tr>
+<tr><td><strong>Placement decision</strong></td><td>API Gateway (zero extra hop, centralized config) over in-app (no cross-instance view) or sidecar (per-service hop)</td></tr>
+<tr><td><strong>Hardest open-ended follow-up</strong></td><td>Multi-region — no canonical answer; home-region pinning as default, async sync as fallback</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>In-process-only counters; unnamed fixed-window boundary flaw; two-call check-then-increment race; unexamined fail-open</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>CRDT counters, full distributed consensus for the counter itself — the NFR explicitly allows approximate correctness</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p1.html">&larr; 1. URL Shortener (Bitly)</a><a class="prevnext-link next" href="p3.html">3. Twitter / News Feed &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

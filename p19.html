@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>19. Real-Time Leaderboard — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">19. Real-Time Leaderboard <span class="badge">Intermediate &#8594; Advanced + Sorted-Set-Driven Scale-Out</span></h1>
+
+<div class="section-toc">
+<a href="#p19-a">A. Interview Prompt</a><a href="#p19-b">B. Difficulty</a><a href="#p19-c">C. What It Tests</a>
+<a href="#p19-d">D. Requirements</a><a href="#p19-e">E. Clarifying Questions</a><a href="#p19-f">F. Assumptions</a>
+<a href="#p19-g">G. Capacity Estimation</a><a href="#p19-h">H. Core Entities</a><a href="#p19-i">I. API Design</a>
+<a href="#p19-j">J. Basic Design (V1)</a><a href="#p19-k">K. Data Model &amp; Store Choice</a><a href="#p19-l">L. End-to-End Flow</a>
+<a href="#p19-m">M. Deep Dive 1: Sorted Set as the Core Data Structure</a><a href="#p19-n">N. Deep Dive 2: Getting a Player's Rank Efficiently</a><a href="#p19-o">O. Deep Dive 3: Sharding the Leaderboard</a>
+<a href="#p19-p">P. Deep Dive 4: Real-Time Score Updates at High Write Volume</a><a href="#p19-q">Q. Deep Dive 5: Handling Ties</a><a href="#p19-r">R. Deep Dive 6: Time-Windowed Leaderboards</a>
+<a href="#p19-s">S. Deep Dive 7: Persistence &amp; Durability</a><a href="#p19-t">T. Full Solution at Scale</a><a href="#p19-u">U. Design Evolution</a>
+<a href="#p19-v">V. Consistency Model</a><a href="#p19-w">W. Failure Scenarios</a><a href="#p19-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p19-y">Y. Trade-Offs</a><a href="#p19-z">Z. Common Bad Designs</a><a href="#p19-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p19-ab">AB. Interviewer Evaluation</a><a href="#p19-ac">AC. Interview Simulation</a><a href="#p19-ad">AD. Source Comparison</a>
+<a href="#p19-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p19">Jump to section:</label><select id="jump-p19" class="jump-select" data-jump-select><option value="p19-a">A. Realistic Interview Prompt</option><option value="p19-b">B. Difficulty</option><option value="p19-c">C. What This Problem Tests</option><option value="p19-d">D. Requirements</option><option value="p19-e">E. Clarifying Questions</option><option value="p19-f">F. Assumptions</option><option value="p19-g">G. Capacity Estimation</option><option value="p19-h">H. Core Entities</option><option value="p19-i">I. API Design</option><option value="p19-j">J. Basic / Naive High-Level Design (V1)</option><option value="p19-k">K. Data Model &amp; Store Choice</option><option value="p19-l">L. End-to-End Flow — A Player's Score Updates After a Match, and Another Player Queries Their Own Rank</option><option value="p19-m">M. Deep Dive 1 &#8212; Sorted Set as the Core Data Structure</option><option value="p19-n">N. Deep Dive 2 &#8212; Getting a Player's Rank Efficiently</option><option value="p19-o">O. Deep Dive 3 &#8212; Sharding the Leaderboard</option><option value="p19-p">P. Deep Dive 4 &#8212; Real-Time Score Updates at High Write Volume</option><option value="p19-q">Q. Deep Dive 5 &#8212; Handling Ties</option><option value="p19-r">R. Deep Dive 6 &#8212; Time-Windowed Leaderboards</option><option value="p19-s">S. Deep Dive 7 &#8212; Persistence &amp; Durability</option><option value="p19-t">T. Full Solution at Scale &#8212; Final Architecture</option><option value="p19-u">U. Design Evolution</option><option value="p19-v">V. Consistency Model</option><option value="p19-w">W. Failure Scenarios</option><option value="p19-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p19-y">Y. Design Trade-Offs</option><option value="p19-z">Z. Common Bad Designs</option><option value="p19-aa">AA. Interviewer Follow-Ups</option><option value="p19-ab">AB. Interviewer Evaluation Rubric</option><option value="p19-ac">AC. Interview Simulation</option><option value="p19-ad">AD. Online Solution Comparison</option><option value="p19-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p19-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a real-time leaderboard, like the one behind a mobile game, a fitness app's weekly step-count competition, or a competitive-gaming ranked ladder: players' scores change continuously as they play, and at any moment a player should be able to see the global top N, their own current rank among tens of millions of other players, and the handful of players immediately above and below them — all within tens of milliseconds, even during a launch-day traffic spike."</div>
+<p>Every functional requirement in this problem is really the same underlying operation asked three different ways — "where does this score rank among everyone else's" — and the entire design lives or dies on picking a data structure that answers that question natively instead of computing it from scratch on every request. The central technical decision this design is built around is <strong>Redis sorted sets (ZSET) as the core structure for every score and rank operation — <code>ZADD</code> for an O(log N) score update, <code>ZRANK</code>/<code>ZREVRANK</code> for an O(log N) rank lookup, and <code>ZRANGE</code>/<code>ZREVRANGE</code> for an O(log N + M) top-N or neighborhood query — combined with sharding the leaderboard by natural segment (per-game, per-region, or per-time-window) the moment one ZSET or one node's throughput stops being enough, accepting an approximate global rank across shards in exchange for that scale-out, and asynchronous write-behind persistence of scores to a durable store so Redis stays the fast path without quietly becoming the only copy of the data that exists.</strong> A candidate who reaches for a relational table and an <code>ORDER BY</code> here isn't missing a small optimization — they're missing the one decision the entire rest of the problem is downstream of.</p>
+
+<h3 id="p19-b">B. Difficulty</h3>
+<p><strong>Intermediate at the surface, advanced the moment sharding and write volume enter the conversation.</strong> The single-node version of this problem — one Redis sorted set, one game, tens of thousands of players — is a comparatively contained, well-known pattern that a candidate who has internalized <a href="#prereq-d">Prerequisites D</a> can produce quickly. What separates a mid-level answer from a senior one is everything that happens once a single ZSET stops being enough: sharding a data structure that was specifically chosen because it keeps everything in one globally-ordered set, and then having to reconstruct an approximate answer to a question ("what's my global rank") that no longer has one authoritative place to compute it. This problem rewards a candidate who can precisely say when the simple version breaks and what it costs to fix.</p>
+
+<h3 id="p19-c">C. What This Problem Tests</h3>
+<ul>
+<li>Whether a candidate reaches for a purpose-built ordered data structure (a sorted set, <a href="#prereq-d">Prerequisites D</a>) instead of a general-purpose relational table the moment "rank" and "top N" are the dominant access patterns — the single most consequential decision in this problem, made in J and K</li>
+<li>Real comfort with what a sorted set's skip-list backing actually buys — O(log N) inserts and O(log N + M) range/rank reads — versus reciting "Redis is fast" as an unexamined fact (M, N)</li>
+<li>Judgment about when a single node's capacity or throughput is genuinely exhausted, and the honest cost of what sharding gives up (an authoritative global rank) in exchange for scale-out (O) — directly building on the general sharding pattern named in <a href="#patterns-g">Patterns Playbook G</a></li>
+<li>Recognizing that Redis's speed is precisely what makes it unsuitable as a system of record on its own, and designing a durability path that doesn't sacrifice that speed to get it (S)</li>
+<li>Distinguishing problems that look similar but are not: a leaderboard's need for near-real-time, individually-visible score updates versus Ad Click Aggregation's tolerance for batched, minutes-later aggregate counts (<a href="#p16">P16</a>) — and being able to say precisely why the same batching trick doesn't transfer here (P)</li>
+</ul>
+
+<h3 id="p19-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li><code>submitScore(player_id, score, segment)</code> — record or update a player's score within a given leaderboard segment (e.g., a specific game mode, region, or time window)</li>
+<li><code>getRank(player_id, segment)</code> — return a player's current rank (1-indexed, highest score first) within a segment</li>
+<li><code>getTopN(segment, n)</code> — return the top N players and scores in a segment, ordered</li>
+<li><code>getScoresAround(player_id, segment, range)</code> — return the players immediately above and below a given player, e.g. "5 above, 5 below" — the "where do I stand relative to my neighbors" view most players actually look at</li>
+<li>Support multiple independent, concurrently-active leaderboard segments (per-game, per-region, and per-time-window, per R) from the same underlying system, not one hardcoded global list</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Low-latency reads on the hot path</strong> — a rank or top-N query is a foreground, user-facing request (opening the leaderboard tab mid-game); illustratively sub-100ms at p99, not a value a player will tolerate waiting seconds for</li>
+<li><strong>Near-real-time write visibility</strong> — a player's own score update should be reflected in their own next rank query essentially immediately (V), a materially different bar than "eventually, within minutes," which rules out the large-batch aggregation approach that a lower-stakes analytics problem could get away with (<a href="#p16-o">P16-O</a>, revisited in P)</li>
+<li><strong>High, bursty write throughput</strong> — score updates are not smooth traffic; they spike hard at predictable moments (a match ending, a raid boss going down simultaneously for thousands of players) and the design must absorb that spike without falling over or falling meaningfully behind</li>
+<li><strong>Horizontal scalability past a single node's memory and throughput ceiling</strong> — the defining scale requirement once a segment's player count or write rate outgrows what one Redis instance can hold or serve (O)</li>
+<li><strong>Durability of scores across a crash</strong> — a node restart or failure must not silently erase a meaningful amount of already-acknowledged score history, which rules out treating Redis as the sole system of record (S)</li>
+</ul>
+<p><strong>Out of scope:</strong> anti-cheat or score-validation logic beyond a basic sanity bound on submitted deltas (a real system would layer this on top, but it's a separate concern from the ranking structure itself); a social/friends-only leaderboard view (a straightforward filtered read on top of the same structure, not a new mechanism); active-active multi-region writes for the same segment (an explicit follow-up, AA); matchmaking or skill-rating computation (ELO/MMR) feeding the score itself.</p>
+
+<h3 id="p19-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Is this one single global leaderboard, or many independent ones (per-game, per-region, per-mode)?</td><td>Determines whether sharding is a scale-out concern for one dataset or a natural, already-present partitioning boundary</td><td>Capacity Estimation (G), Deep Dive 3 (O)</td></tr>
+<tr><td>2</td><td>How bursty are score-update writes — is there a predictable, simultaneous spike (a match, a season, an event) rather than smooth average load?</td><td>A capacity plan sized to average throughput alone would fall over exactly when the leaderboard matters most</td><td>Capacity Estimation (G), Deep Dive 4 (P)</td></tr>
+<tr><td>3</td><td>Is an exact global rank required once the data is sharded, or is a close approximation acceptable?</td><td>Determines whether the design needs an expensive exact cross-shard merge on every rank query or can settle for a cheaper aggregation tier</td><td>Deep Dive 3 (O), Consistency Model (V)</td></tr>
+<tr><td>4</td><td>How are ties broken — is "whoever reached that score first" meaningful, or is an arbitrary but stable tiebreak acceptable?</td><td>A plain score-only sorted set doesn't uniquely order tied players; this decides whether a secondary key needs to be encoded at all</td><td>Deep Dive 5 (Q)</td></tr>
+<tr><td>5</td><td>Do we need historical leaderboards (daily/weekly) in addition to all-time, and do old ones need to remain queryable after their window closes?</td><td>Drives whether time-windowed data is a separate rotating structure or folded into the same one</td><td>Deep Dive 6 (R)</td></tr>
+</table>
+
+<h3 id="p19-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> multiple independent segments rather than one monolithic leaderboard (E's clarifying question 1) — illustratively, one segment per (game title, region), each with its own player population and its own capacity profile.</li>
+<li><strong>Assumption:</strong> writes are genuinely bursty, not smooth (E's clarifying question 2) — a popular title's matches tend to end in loose clusters, and a live event can produce a synchronized spike across a huge fraction of concurrently active players at once; the design is sized and shaped around that peak, not the daily average (G, P).</li>
+<li><strong>Assumption:</strong> an approximate global rank is acceptable the moment a segment is sharded (E's clarifying question 3) — exact-at-all-times global ordering across shards is achievable but expensive, and this design treats "close, fast, and continuously refreshed" as the right default, with an explicit fallback to a slower exact computation as a fallback path (O).</li>
+<li><strong>Assumption:</strong> ties are broken deterministically by a secondary key — earliest timestamp at which the current score was reached — rather than left arbitrary (E's clarifying question 4), because "why is this player ranked above someone with the identical score" is a question players actually ask and a design should have a real, stable, explainable answer to (Q).</li>
+<li><strong>Assumption:</strong> both an all-time leaderboard and rotating daily/weekly leaderboards are required, and a closed time window's leaderboard remains queryable (E's clarifying question 5), e.g. "yesterday's top 100" — this shapes R's rotation-and-archival strategy rather than a single, ever-growing structure.</li>
+</ul>
+
+<h3 id="p19-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Active players per large segment</td><td>Illustratively 20M monthly active players in a single popular title's global all-time segment</td><td>The player count a single ZSET (or shard, per O) has to hold ranked at once</td></tr>
+<tr><td>Memory per ZSET member</td><td>~ 40-80 bytes (skip-list node overhead + a ~16-20 byte player-id member + an 8-byte score/tiebreak-encoded double)</td><td>20M members &#215; ~64 bytes &#8776; ~1.3 GB for one segment's all-time leaderboard — comfortably inside a single node, which is precisely why sharding is triggered by throughput or player-count growth, not by this baseline memory figure alone</td></tr>
+<tr><td>Peak write throughput</td><td>Illustratively 50K score updates/sec cluster-wide during a synchronized event spike, versus ~5K/sec average</td><td>A 10x peak-to-average ratio (E's clarifying question 2) — capacity has to be provisioned for the spike, not the average, and this is the number Deep Dive 4 (P) is built to absorb without falling behind</td></tr>
+<tr><td>Peak read throughput</td><td>Illustratively 200K rank/top-N/neighborhood queries/sec cluster-wide, heavily read-skewed relative to writes</td><td>Confirms this is a read-heavy system on top of a write-sensitive structure — every read is O(log N + M) against the same ZSET a write just touched, so read and write paths share the same hot node and can't be scaled independently without sharding (O)</td></tr>
+<tr><td>Write latency budget</td><td><code>ZADD</code> on a 20M-member set: O(log&#8322; 20,000,000) &#8776; 24 comparisons — sub-millisecond in practice</td><td>Confirms the sorted set's own operation cost is never the bottleneck at this scale; the bottleneck (P) is network fan-in and coordination under a write storm, not the data structure's algorithmic cost</td></tr>
+</table>
+
+<h3 id="p19-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>PlayerScoreEntry</code></td><td>One player's membership in one leaderboard segment's sorted set — the atomic unit every operation in this design reads or writes</td><td><code>player_id</code> (ZSET member), <code>encoded_score</code> (ZSET score — score plus tiebreak, per Q), <code>segment_id</code></td></tr>
+<tr><td><code>LeaderboardSegment</code></td><td>One independently-ranked leaderboard — a (game, region, time-window) tuple mapped to one or more backing shards</td><td><code>segment_id</code>, <code>shard_ids</code> (O), <code>window_start</code>/<code>window_end</code> (R, nullable for all-time)</td></tr>
+<tr><td><code>ShardAggregate</code></td><td>A lightweight, periodically-refreshed summary of one shard's local distribution, used to compute an approximate global rank without touching every shard on every query (O)</td><td><code>shard_id</code>, <code>local_count</code>, <code>score_histogram_buckets</code>, <code>refreshed_at</code></td></tr>
+<tr><td><code>DurableScoreRecord</code></td><td>The write-behind persisted copy of a score in the durable store — the system of record Redis itself deliberately isn't (S)</td><td><code>player_id</code>, <code>segment_id</code>, <code>score</code>, <code>achieved_at</code>, <code>version</code></td></tr>
+</table>
+
+<h3 id="p19-i">I. API Design</h3>
+<pre><code>POST /segments/{segment_id}/scores   { player_id, score }  -&gt; { rank, encoded_score }   -- ZADD under the hood (K)
+GET  /segments/{segment_id}/rank/{player_id}                -&gt; { rank, score }           -- ZREVRANK + ZSCORE (N)
+GET  /segments/{segment_id}/top?n=100                        -&gt; { entries: [ { player_id, score, rank } ] }  -- ZREVRANGE (M)
+GET  /segments/{segment_id}/around/{player_id}?range=5       -&gt; { entries: [ ... ] }      -- ZREVRANK then windowed ZREVRANGE (M)
+-- internal, not client-facing:
+(write-behind) score update &#8594; durable store, async, batched               (S)
+(aggregation) per-shard summary refresh &#8594; global-rank aggregation tier    (O)
+</code></pre>
+<p><strong>Why <code>submitScore</code> returns the caller's own rank directly, inline with the write:</strong> the single most common next action after a score update is "so where do I stand now" — returning it as part of the same response (computed off the same ZSET the write just landed in, per V's read-your-own-writes guarantee) saves the obvious, near-guaranteed follow-up request every client would otherwise make immediately.</p>
+<p><strong>Why <code>around</code> is a first-class endpoint rather than something clients reconstruct from <code>top</code> and <code>rank</code>:</strong> "players near me" is the view most players actually spend time looking at — the global top 10 is largely aspirational for the other 99.99% of players, but "who's just ahead of me" is directly actionable and the most frequently polled read in practice, so it earns its own efficient, purpose-built query path (M) instead of being an afterthought composed from two other calls.</p>
+
+<h3 id="p19-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: a single relational table <code>scores(player_id, segment_id, score)</code>, with an index on <code>(segment_id, score)</code>. A score update is an <code>UPDATE</code> (or <code>UPSERT</code>) statement; the top N is <code>SELECT * FROM scores WHERE segment_id = ? ORDER BY score DESC LIMIT N</code>; a player's rank is computed with <code>SELECT COUNT(*) FROM scores WHERE segment_id = ? AND score &gt; ?</code>.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Client["Client"] --> App["App Server"]
+  App -- "UPDATE scores SET score=... WHERE player_id=...<br/>ORDER BY score DESC LIMIT N<br/>COUNT(*) WHERE score &gt; ?" --> DB[("Relational DB<br/>scores table, index on (segment_id, score)")]
+</div>
+<p class="diagram-caption">V1 — every score update, top-N query, and rank query is a direct SQL statement against one indexed table. Correct in isolation, and the rank query in particular gets strictly, measurably worse as the segment grows, not just slower in a vague sense.</p>
+<p class="callout"><strong>Why this breaks specifically on the rank query, not just "under load" in general:</strong> <code>SELECT COUNT(*) WHERE score &gt; ?</code> is, even with a perfect B-tree index on <code>score</code>, fundamentally an operation whose cost scales with how many rows satisfy the predicate — for a player near the top of a 20M-player segment, that's a scan (or index range-count) touching a large fraction of the entire table, on every single rank request, from every single player, continuously, as scores keep changing underneath it. This isn't a query that's merely unoptimized; it's a query asking a b-tree index to answer a question — "what is this row's ordinal position among all rows" — that a b-tree index doesn't natively track at all, unlike a structure built specifically to keep that ordinal position current as a first-class property of every insert (K). The <code>ORDER BY ... LIMIT N</code> top-N query fares comparatively better (the index can satisfy it without a full scan), but it still re-sorts against live, constantly-mutating rows on every call rather than reading from a structure that stays sorted by construction — and under a write-heavy score-update workload, index contention on the same hot <code>(segment_id, score)</code> index that every rank query is also hammering compounds both problems together.</p>
+
+<h3 id="p19-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>The core structure: a Redis sorted set (ZSET) per leaderboard segment, member &#8594; score.</strong> Each <code>player_id</code> is a member of the segment's ZSET; its score is the ZSET's native numeric score. This single choice is what turns every operation in D into a native, purpose-built command instead of a query pattern the underlying store has to work against: <code>ZADD</code> for a score update, <code>ZREVRANK</code> for a rank lookup, and <code>ZREVRANGE</code> for a top-N or neighborhood read — each one backed by the sorted set's internal skip list plus hash table (<a href="#prereq-d">Prerequisites D</a>; deepened for a general caching structure in <a href="#p11">P11</a>, applied here as the primary data structure rather than a supporting cache), which keeps every member in sorted order as a standing property of the structure itself, continuously, rather than something recomputed per query.</p>
+<p><strong>Why a hash (<code>player_id &#8594; score</code>) alone doesn't work, even though it would satisfy the write path fine:</strong> a plain hash gives O(1) score lookup by player, but has no notion of order at all — computing a rank or a top-N from a hash means reading out every member and sorting them, on every request, which is exactly the "recompute order from scratch each time" cost this design exists to avoid. The sorted set is the one structure that gives both O(1)-ish membership semantics <em>and</em> maintained order simultaneously.</p>
+<p><strong>Score encoding carries more than just the raw score:</strong> the ZSET's score field stores a single 64-bit double, but that double is engineered to encode both the player's actual score and a tiebreak component in one sortable number (Q) — the sorted set only ever sorts on this one field, so anything that needs to influence ordering has to live inside it.</p>
+<p><strong>Redis's single-threaded command execution (<a href="#prereq-d">Prerequisites D</a>) is what makes a read-modify-rank sequence safe without extra locking:</strong> a <code>ZADD</code> updating a score and a concurrent <code>ZREVRANK</code> reading a different player's rank against the same set can never interleave in a way that produces a torn or inconsistent read — the same atomicity guarantee that backs Rate Limiter's atomic check-and-increment applies here to every sorted-set command.</p>
+
+<h3 id="p19-l">L. End-to-End Flow — A Player's Score Updates After a Match, and Another Player Queries Their Own Rank</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant P1 as Player A (just finished a match)
+  participant App as App Server
+  participant R as Redis (segment's ZSET)
+  participant Q as Write-Behind Queue
+  participant DB as Durable Store
+  participant P2 as Player B (checking their rank)
+  P1->>App: submitScore(player_id=A, score=4820, segment=global-eu)
+  App->>App: encode score + tiebreak timestamp (Q)
+  App->>R: ZADD global-eu A 4820.<i>&lt;tiebreak&gt;</i>
+  R-->>App: OK
+  App->>R: ZREVRANK global-eu A
+  R-->>App: rank = 1,204
+  App-->>P1: { rank: 1204, score: 4820 }
+  App->>Q: enqueue write-behind record (A, 4820, achieved_at)
+  Note over Q,DB: async, batched flush (S) — off the client-facing path entirely
+  Q->>DB: batched UPSERT
+  P2->>App: getRank(player_id=B, segment=global-eu)
+  App->>R: ZREVRANK global-eu B
+  R-->>App: rank = 88,912
+  App-->>P2: { rank: 88912, score: 3110 }
+</div>
+<p class="diagram-caption">Player A's write and its own rank read-back both hit the same in-memory ZSET synchronously and return in well under the latency budget (G); the durable write is queued and flushed asynchronously, entirely off that critical path. Player B's independent rank query, moments later, already reflects Player A's new score — no batching delay, no staleness window for anyone reading the same shard.</p>
+
+<h3 id="p19-m">M. Deep Dive 1 &#8212; Sorted Set as the Core Data Structure</h3>
+<p><strong>Requirement this addresses:</strong> low-latency reads and writes on the hot path (D) &#8212; the direct fix for V1's fundamental mismatch (J) between "how a relational index is built" and "what a leaderboard actually needs to ask of its data on every request."</p>
+<p><strong>What a sorted set actually is, underneath the command names:</strong> Redis implements a ZSET as a skip list paired with a hash table over the same members &#8212; the hash table gives O(1) lookup of a member's current score (used internally by commands like <code>ZSCORE</code>), and the skip list is what keeps every member reachable in sorted order without a full re-sort on each insert. A skip list is a linked structure with multiple "express lane" levels above the base list &#8212; inserting or searching can skip over large stretches of already-ordered elements by hopping between levels, the same logarithmic-search intuition a balanced tree gives, without a tree's rebalancing overhead on every mutation.</p>
+<p><strong>The two operation costs that matter, stated precisely (extending <a href="#prereq-d">Prerequisites D</a>'s introduction of sorted sets, and cross-referencing <a href="#p11">P11</a>'s general treatment of Redis's own internal structures):</strong> <code>ZADD</code> &#8212; inserting or updating a member's score &#8212; is O(log N), because the skip list only has to walk down through its levels to find the correct sorted position; <code>ZRANGE</code>/<code>ZREVRANGE</code> &#8212; reading M consecutive members starting from a position &#8212; is O(log N + M), the log N to locate the starting position plus a cheap linear walk across the M members actually being returned. Neither cost grows with how many members are ahead of or behind the ones actually being touched &#8212; a top-10 query against a 20-million-member set pays for 10 elements, not 20 million.</p>
+<p><strong>Why this is the correct structure specifically for this problem's access pattern, not just "a fast key-value store would also work":</strong> every functional requirement in D &#8212; submit a score, get a rank, get a top N, get a neighborhood &#8212; is a query against the set's <em>order</em>, not against an individual key's value in isolation. A structure that has to reconstruct that order per query (a hash, a plain relational table without a maintained rank column) pays a cost that scales with the dataset size on every read; a structure that maintains order as a standing property pays that cost once, at write time, amortized across every read that follows &#8212; precisely the trade a read-heavy, order-dependent workload (G) should make.</p>
+
+<h3 id="p19-n">N. Deep Dive 2 &#8212; Getting a Player's Rank Efficiently</h3>
+<p><strong>Requirement this addresses:</strong> the rank-lookup functional requirement (D) &#8212; the single query V1's naive <code>COUNT(*) WHERE score &gt; ?</code> approach (J) handles the worst of all.</p>
+<p class="callout"><strong>Why <code>ZREVRANK</code> is a fundamentally different operation from a <code>COUNT</code> query, not just a faster implementation of the same idea:</strong> a rank is precisely "how many members are ordered ahead of this one" &#8212; and a skip list's very structure already tracks, at each level, how many elements are being skipped over by each express-lane hop. Walking down to a member's position while summing those per-hop skip-counts <em>is</em> computing its rank, as a natural byproduct of the same traversal that would locate it for any other purpose &#8212; there is no separate counting pass, no scan, and no dependency on how many rows happen to satisfy a predicate. This is why <code>ZREVRANK</code> is O(log N): it costs exactly what locating the member costs, full stop, regardless of whether that member is ranked 1st or 19,999,999th.</p>
+<p><strong>The direct, quantitative contrast with V1:</strong> for a 20M-member segment, <code>COUNT(*) WHERE score &gt; ?</code> against a near-top player scans on the order of tens of millions of rows (or a large index range); <code>ZREVRANK</code> against the same player costs roughly 24 skip-list comparisons (log&#8322; 20,000,000), regardless of whether that player is ranked near the top or near the bottom of the set. The gap isn't a constant-factor speedup &#8212; it's the difference between a cost that scales with dataset size and one that scales with its logarithm, and that gap only widens as the segment grows.</p>
+<p><strong>What a rank query still cannot do cheaply, even with a sorted set:</strong> <code>ZREVRANK</code> answers "this member's position within <em>this one ZSET</em>" &#8212; it has no concept of a member's position relative to members that live in a different ZSET entirely. That limitation is exactly what O's sharding deep dive has to solve for once a segment's data no longer fits in one set.</p>
+
+<h3 id="p19-o">O. Deep Dive 3 &#8212; Sharding the Leaderboard</h3>
+<p><strong>Requirement this addresses:</strong> horizontal scalability past a single node's memory or throughput ceiling (D) &#8212; the point at which a segment's player count or write rate outgrows what M and N's single-ZSET model can serve from one Redis node, and the general "split the dataset across many machines" problem (<a href="#prereq-c">Prerequisites C</a>) meets a structure that was specifically chosen because it keeps everything globally ordered in one place.</p>
+<p><strong>Choosing the shard key &#8212; the natural ownership boundary, per <a href="#patterns-g">Patterns Playbook G</a>:</strong> the right shard key for a leaderboard is whatever boundary players are actually compared within &#8212; sharding a per-region leaderboard by region, or a per-game-mode leaderboard by mode, keeps the overwhelming majority of real queries (a player's rank within their own region) hitting exactly one shard, the same "match the shard key to the access pattern" reasoning <a href="#patterns-g">Patterns Playbook G</a> names generally for Ticketmaster's <code>event_id</code> and Job Scheduler's <code>job_id</code>. Only when even one such natural segment individually outgrows a single node &#8212; a truly massive single all-time global leaderboard, say &#8212; does the segment itself need to be split further, by a hash of <code>player_id</code> across N sub-shards.</p>
+<p class="callout"><strong>The hard problem this creates: once a segment is split across shards, no single shard knows the true global rank of any player, because each shard only sees its own slice.</strong> <code>ZREVRANK</code> against shard 3 tells you a player's rank <em>among shard 3's members only</em> &#8212; it has no way to know how many players on shards 1, 2, and 4 also outrank them. A naive fix &#8212; query every shard on every rank request and merge the results exactly &#8212; works, but turns every single rank query into a fan-out across every shard, reintroducing exactly the kind of full-scan cost per request this whole design exists to avoid, just spread across a cluster instead of one table.</p>
+<p><strong>The chosen approach: an approximate global rank, computed from periodically-refreshed per-shard aggregates, not an exact cross-shard merge on every request.</strong> Each shard periodically publishes a lightweight <code>ShardAggregate</code> (H) &#8212; its member count and a coarse histogram of how many members fall into each score bucket. A separate, small aggregation tier merges these per-shard histograms into one approximate global score distribution, refreshed on a short interval (illustratively every few seconds). A player's approximate global rank is then computed cheaply: their exact local rank within their own shard (an O(log N) <code>ZREVRANK</code>, per N) plus an estimate of how many higher-scoring players exist on every <em>other</em> shard, read directly off that shard's histogram bucket counts &#8212; no other shard needs to be queried live, at the cost of that estimate being a close approximation rather than an exact count.</p>
+<p><strong>Why this trade is the right one for this problem specifically, and not a corner cut for convenience:</strong> a player's own rank moving from "exactly 88,912th" to "approximately 88,900th-88,930th" is imperceptible and inconsequential to that player, while an exact cross-shard merge on every rank query would mean every single request pays a fan-out cost proportional to the shard count, permanently, for every player, forever &#8212; a cost paid on the hot, foreground read path (D) to buy a precision nobody asked for and no one can actually perceive. The one place exactness still matters &#8212; the literal top N global leaderboard, which is small and displayed prominently &#8212; is handled separately and cheaply: since top-N results only ever come from the highest-scoring end of each shard, merging each shard's own top N (a small, bounded ZREVRANGE per shard) into one final sorted list is exact, cheap, and only has to happen for the handful of requests actually asking for the global top N, not for every rank lookup.</p>
+
+<h3 id="p19-p">P. Deep Dive 4 &#8212; Real-Time Score Updates at High Write Volume</h3>
+<p><strong>Requirement this addresses:</strong> high, bursty write throughput (D) without sacrificing near-real-time visibility (D) &#8212; the two requirements this deep dive has to satisfy simultaneously, because the obvious fix for one (batch writes to smooth out a spike) directly threatens the other.</p>
+<p><strong>Why a single wildly popular event can genuinely threaten a single shard, even though the ZSET operation itself is cheap:</strong> a raid boss defeated simultaneously by thousands of players, or a match server flushing a whole lobby's final scores at once, produces a synchronized burst of <code>ZADD</code> calls against the very same segment's ZSET at the very same instant &#8212; the per-command cost (M) stays O(log N) throughout, but the aggregate request rate against one Redis node's single command-execution thread (<a href="#prereq-d">Prerequisites D</a>) can still exceed what that one thread can serialize through, queueing requests and adding latency exactly when the leaderboard is being watched the most.</p>
+<p><strong>The direct, explicit contrast with Ad Click Aggregation's async-batch approach (<a href="#p16-o">P16-O</a>) &#8212; and why that trick doesn't transfer here:</strong> P16's windowed aggregation deliberately buffers events for up to a minute before finalizing a rollup, because a dashboard showing "clicks in the last minute" a minute late is an acceptable, even unnoticed, staleness. A leaderboard cannot borrow that same trade: the entire point of a real-time leaderboard is that a player who just won a match sees their new rank <em>now</em>, not sixty seconds from now &#8212; the near-real-time-visibility NFR (D) is precisely the requirement P16 doesn't have to carry. So the fix here has to smooth <em>request volume</em> without introducing <em>score visibility</em> delay &#8212; a materially narrower target than P16's.</p>
+<p><strong>The actual fix: client-side and edge-side write coalescing on redundant intermediate updates, not delaying final ones.</strong> A single player's score frequently changes several times in rapid succession during active play (successive kills, successive checkpoints) before that player actually cares about seeing an updated rank &#8212; the application layer coalesces a burst of intermediate updates for the <em>same player</em> into a single <code>ZADD</code> carrying only the latest value, dropping the superseded intermediate ones entirely rather than writing (and rank-checking) after every single one. This is meaningfully different from P16's windowing: nothing here waits on a clock before becoming visible; multiple updates to one player collapse into one, and the one write that does happen lands and is immediately visible, with no player-perceptible delay at all.</p>
+<p><strong>Where genuine backpressure is still needed, distinct from coalescing:</strong> for a true synchronized-burst event (an entire lobby's final scores landing within the same second), the write path fans out across all of a segment's shards (O) rather than funneling through one, and a small, bounded write queue absorbs the peak of the burst with a queueing delay measured in low milliseconds &#8212; not the seconds-to-minutes P16's batching windows tolerate &#8212; before draining into the ZSETs, keeping the "visible almost immediately" guarantee intact even under a real spike.</p>
+
+<h3 id="p19-q">Q. Deep Dive 5 &#8212; Handling Ties</h3>
+<p><strong>Requirement this addresses:</strong> a deterministic, explainable rank for every player (D, E's clarifying question 4) &#8212; a gap a plain sorted set leaves genuinely open on its own.</p>
+<p class="callout"><strong>Why a ZSET alone doesn't resolve a tie the way a candidate might assume:</strong> when two members share the identical score, Redis's own tie-break for range and rank ordering falls back to lexicographic comparison of the member strings themselves &#8212; which means two tied players' relative order is effectively determined by how their player IDs happen to compare as strings, with no relationship whatsoever to anything meaningful about how or when they actually achieved that score. That's a real, deterministic, reproducible ordering &#8212; but not one any product requirement asked for, and not one that survives a "why is he ranked above me, we have the same score" support ticket.</p>
+<p><strong>The fix: encode the tiebreak directly into the score itself, so the ZSET's one native sort key does all the work.</strong> Rather than storing the raw score alone, the stored value is a single composite double engineered so that its primary digits are the actual score and its remaining precision encodes an inverted timestamp of when that score was achieved (inverted so that <em>earlier</em> achievement sorts as the "better" tiebreak, rewarding whoever got there first) &#8212; e.g. <code>encoded = score + (1 - normalized_achieved_at_fraction) &#215; epsilon</code>, chosen so the timestamp component can never be large enough to change which whole-number score bucket a member falls into, only the ordering within a tied bucket. Every ZSET operation (M, N) then continues to work completely unmodified &#8212; <code>ZADD</code>, <code>ZREVRANK</code>, and <code>ZREVRANGE</code> all still just compare one double, and get a meaningful, product-correct tiebreak entirely as a side effect, with zero additional commands or application-side merge logic per query.</p>
+<p><strong>Why this is preferable to a secondary, separate comparison step:</strong> the alternative &#8212; store the raw score alone, and have the application break ties itself by fetching and comparing timestamps whenever two adjacent members turn out equal &#8212; reintroduces exactly the "recompute order at read time" cost this entire design exists to avoid (K); encoding the tiebreak into the sort key itself keeps the sorted set's standing, maintained order the single source of truth for the complete, already-correctly-broken ranking, with no extra read-time work at all.</p>
+
+<h3 id="p19-r">R. Deep Dive 6 &#8212; Time-Windowed Leaderboards</h3>
+<p><strong>Requirement this addresses:</strong> daily, weekly, and all-time leaderboards existing simultaneously and independently (D, E's clarifying question 5) &#8212; a requirement the single-ZSET-per-segment model (K) needs an explicit answer for, because "today's leaderboard" and "all-time" are genuinely different rankings over genuinely different (if overlapping) data.</p>
+<table>
+<tr><th>Approach</th><th>How</th><th>Trade-off</th></tr>
+<tr><td><strong>Separate ZSET per time window, chosen default</strong></td><td>A distinct key per window &#8212; <code>leaderboard:global-eu:daily:2026-09-28</code>, <code>...:weekly:2026-W39</code>, <code>...:alltime</code> &#8212; each populated by the same write path (a score update issues a <code>ZADD</code> against every currently-open window's key it belongs to, not just one)</td><td>Every window is a first-class, independently queryable, natively-ordered ZSET with no extra read-time computation &#8212; but a single logical score update now fans out to N keys instead of one, and old daily/weekly keys accumulate unless actively expired or archived</td></tr>
+<tr><td>Single structure with time-bucketed scores</td><td>Encode a time-bucket identifier into the score or member itself and filter at read time</td><td>One write path, one key &#8212; but every windowed query (yesterday's top 10) now needs a filtering/scanning step the ZSET's native range commands don't do for free, reintroducing a version of the exact "recompute at read time" cost this design otherwise avoids</td></tr>
+</table>
+<p><strong>Rotation and archival, closing the "old keys pile up forever" gap the chosen approach otherwise leaves open:</strong> a daily key gets a TTL slightly longer than 24 hours (so "yesterday's leaderboard" stays queryable for a defined grace period after the day rolls over, per F's confirmed requirement) and is written to durable storage (S) before it expires, so a closed window's final standings remain available indefinitely from the durable store even after Redis has reclaimed the memory &#8212; the same "Redis is the fast path, not the permanent archive" posture S establishes for individual scores, applied here to entire closed windows.</p>
+<p><strong>Why fanning a write out to multiple windows at once is an acceptable cost, not a hidden scaling problem:</strong> a player is typically active in at most three or four open windows simultaneously (their daily, their weekly, and all-time, per segment) &#8212; a small, bounded, constant fan-out per score update, nothing close to the shard fan-out O deliberately avoids for reads; the write-side cost here is a flat multiplier, not something that grows with dataset size.</p>
+
+<h3 id="p19-s">S. Deep Dive 7 &#8212; Persistence &amp; Durability</h3>
+<p><strong>Requirement this addresses:</strong> durability of scores across a crash (D) &#8212; directly parallels <a href="#p11-s">P11-S</a>'s persistence deep dive for Distributed Cache, but starts from the opposite default: P11's cache is explicitly allowed to lose everything on a crash because the database behind it is already the source of truth; this design has no such database sitting behind it by default, so persistence here is not a warm-up optimization, it's the only thing standing between a crash and permanent data loss.</p>
+<p><strong>Why Redis alone, even with its own RDB/AOF persistence (<a href="#p11-s">P11-S</a>), still isn't the right place to be the sole system of record:</strong> RDB snapshots lose everything since the last snapshot; AOF replay is slower to recover from and the log grows unboundedly &#8212; both are real, useful safety nets for Redis's <em>own</em> data, but neither one gives this design a durable store that's independently queryable, backup-able, and analyzable the way a real database is, and neither addresses the deeper issue that Redis's actual job here is to be fast, not to be the permanent archive.</p>
+<p><strong>The chosen approach: asynchronous write-behind to a durable store, off the client-facing critical path entirely.</strong> Every score update lands in the segment's ZSET synchronously (L) and is acknowledged to the client immediately off of that in-memory write alone; the same update is also enqueued (a lightweight, durable queue, per <a href="#prereq-g">Prerequisites G</a>) for asynchronous, batched persistence into a durable store &#8212; a relational or wide-column database, chosen for the same reasons <a href="#prereq-b">Prerequisites B</a> generally favors a durable, disk-backed store for anything that must survive a crash. The client never waits on this second write; it happens moments later, batched for efficiency, entirely decoupled from the read-latency budget (G) that the whole ZSET-based design exists to protect.</p>
+<p><strong>The direct, honest cost of this choice, named rather than glossed over:</strong> a crash between "acknowledged the client" and "the write-behind queue actually flushed to the durable store" loses that specific update from the durable copy, even though the client was already told it succeeded &#8212; the same asynchronous-replication trade-off <a href="#p11-o">P11-O</a> names for a cache's leader-to-follower propagation, applied here to the Redis-to-durable-store direction instead. This is judged an acceptable, deliberate cost specifically because Redis's own in-memory ZSET is still correct and serving that score to every reader in the meantime &#8212; the durable copy briefly lagging behind doesn't corrupt or delay anything a live player actually sees; it only risks losing a handful of very recent updates in the rare case Redis itself is lost before the durable write catches up, a materially narrower and rarer failure than losing every score since the last snapshot.</p>
+<p><strong>Recovery, in priority order:</strong> if a live Redis replica exists for the segment (mirroring <a href="#p11-o">P11-O</a>'s leader-follower model per shard), promote it &#8212; no cold rebuild needed at all. If no replica survives, rebuild the ZSET directly from the durable store's current scores &#8212; slower than an in-memory promotion, but it never actually loses data, because the durable store, not Redis, is what this design ultimately trusts as the ground truth for "what score does this player actually have," even though Redis is what every live query is actually served from.</p>
+
+<h3 id="p19-t">T. Full Solution at Scale &#8212; Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  Client(["Client"]) -- "submitScore / getRank / getTopN / getAround" --> App["App / API Tier"]
+
+  App -- "ZADD (coalesced, per player, P)" --> Shard1[("Segment Shard 1<br/>Redis ZSET (K, M)")]
+  App -- "ZADD" --> Shard2[("Segment Shard 2<br/>Redis ZSET")]
+  App -- "ZADD" --> Shard3[("Segment Shard 3<br/>Redis ZSET")]
+
+  Shard1 -- "local ZREVRANK, exact (N)" --> App
+  Shard2 -- "local ZREVRANK, exact" --> App
+  Shard3 -- "local ZREVRANK, exact" --> App
+
+  Shard1 -. "periodic histogram publish (O)" .-> Agg["Global-Rank<br/>Aggregation Tier"]
+  Shard2 -. "periodic histogram publish" .-> Agg
+  Shard3 -. "periodic histogram publish" .-> Agg
+  Agg -- "approximate global rank estimate (O)" --> App
+
+  App -- "async, batched write-behind (S)" --> Queue[["Write-Behind Queue"]]
+  Queue --> DB[("Durable Store<br/>system of record, S")]
+
+  Windows[("Daily / Weekly ZSET keys, TTL'd (R)")] -.-> Shard1
+  Windows -.-> Shard2
+  Windows -.-> Shard3
+</div>
+<p class="diagram-caption">Every read and write against a player's own segment shard is synchronous and fast, off the in-memory ZSET alone; global-rank aggregation and durable persistence both happen off that critical path, asynchronously, feeding back only an approximate cross-shard estimate and a crash-safe archival copy respectively &#8212; neither one ever slows down or blocks the request a player is actually waiting on.</p>
+
+<h3 id="p19-u">U. Design Evolution</h3>
+<table>
+<tr><th>Version</th><th>What Changed</th><th>Why</th></tr>
+<tr><td>V1</td><td>A relational table with an index on <code>(segment_id, score)</code>, using <code>ORDER BY</code> and <code>COUNT(*)</code> for top-N and rank (J)</td><td>Simplest possible thing that satisfies the functional requirement in isolation</td></tr>
+<tr><td>V2</td><td>Replaced with a Redis sorted set (ZSET) per segment, using native <code>ZADD</code>/<code>ZREVRANK</code>/<code>ZREVRANGE</code></td><td>Closes V1's fundamental mismatch &#8212; a rank query's cost no longer scales with how many players outrank a given one (K, M, N)</td></tr>
+<tr><td>V3</td><td>Score is a composite (score + inverted-timestamp) encoded value, not the raw score alone</td><td>Gives every tie a deterministic, product-meaningful ordering with zero extra read-time computation (Q)</td></tr>
+<tr><td>V4</td><td>A segment outgrowing one node is split into hash-sharded sub-shards, with a separate aggregation tier estimating approximate global rank from per-shard histograms</td><td>Removes the single-node capacity and throughput ceiling, at the honest cost of exactness for the cross-shard rank case only (O)</td></tr>
+<tr><td>V5</td><td>Per-player write coalescing added on the ingest path ahead of the shards</td><td>Absorbs bursty, high-frequency updates from the same player without falling back to P16-style batching, which would sacrifice this problem's real-time-visibility requirement (P)</td></tr>
+<tr><td>V6</td><td>Separate, TTL'd ZSET keys added per time window (daily/weekly), alongside all-time</td><td>Gives every rotating leaderboard its own natively-ordered structure, and a defined archival path once a window closes (R)</td></tr>
+<tr><td>V7</td><td>Asynchronous write-behind persistence to a durable store added alongside the in-memory ZSETs</td><td>Redis stops being the sole copy of a player's score, closing the crash-data-loss gap without adding latency to the acknowledged write path (S)</td></tr>
+</table>
+<p><strong>What stays stable throughout:</strong> the minimal <code>submitScore</code>/<code>getRank</code>/<code>getTopN</code>/<code>getScoresAround</code> contract from I &#8212; every refinement underneath changes how many shards a segment spans, how a rank is estimated across them, and where the durable copy of a score actually lives, never the basic shape of what a caller invokes.</p>
+
+<h3 id="p19-v">V. Consistency Model</h3>
+<p><strong>Two different consistency questions get two different answers in this design, and conflating them is the single most common mistake a candidate makes on this problem.</strong> The first question &#8212; "how fresh does the global leaderboard need to be for everyone" &#8212; tolerates real, brief staleness: once a segment is sharded (O), the approximate global rank shown to any given player is computed from per-shard histograms that refresh on a short interval, not instantaneously on every write, and that's an entirely acceptable, even invisible, trade given G's read volume and O's honest cost analysis. The second question &#8212; "how fresh does <em>my own</em> just-submitted score need to be, to me, specifically" &#8212; does not tolerate that same staleness at all: a player who just finished a match and immediately checks their rank is reading against the exact same shard their write just landed in (L), synchronously, with no aggregation delay in between &#8212; a direct instance of <strong>read-your-own-writes</strong>, guaranteed for free by the fact that a player's own score and a player's own rank query are always served from the same authoritative shard, never from the approximate cross-shard aggregation tier.</p>
+<p><strong>Why this split is the right one, not an inconsistency to apologize for:</strong> the exact global rank of the player currently sitting in 4,412,003rd place is a number nobody is watching closely enough to notice a few seconds of staleness in; that same player's own rank, immediately after they've just changed it, is a number they are watching closely, right now, and expect to be correct instantly. Serving the first from a cheap, periodically-refreshed aggregate and the second from the one authoritative shard that actually owns that player's data is exactly the right place to spend consistency effort and exactly the right place not to.</p>
+<p><strong>The direct contrast worth naming explicitly:</strong> unlike Payment System's single, non-negotiable strong-consistency stance for every transaction (<a href="#p15-v">P15-V</a>), or Distributed Key-Value Store's fully tunable, per-keyspace PACELC dial (<a href="#p18-v">P18-V</a>), this design doesn't tune consistency per use-case at all &#8212; it applies one specific, fixed rule (own writes are exact and immediate; everyone else's aggregate view is fast and approximate) uniformly, because the two different guarantees map cleanly onto two genuinely different queries, not two different configurable preferences over the same one.</p>
+
+<h3 id="p19-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>A single shard's Redis node crashes:</strong> a live replica for that shard (mirroring <a href="#p11-o">P11-O</a>'s per-shard leader-follower model) is promoted, and the shard resumes serving reads and writes; if no replica survives, the shard's ZSET is rebuilt directly from the durable store (S), slower but lossless for anything that had already been write-behind persisted.</li>
+<li><strong>The write-behind queue backs up or its consumer falls behind during a write spike:</strong> live reads and writes against the in-memory ZSETs are entirely unaffected (S's write-behind path is fully decoupled from the client-facing critical path); the durable store simply lags further behind until the queue catches up, a bounded, self-correcting delay rather than a client-visible failure.</li>
+<li><strong>A shard's periodic histogram publish (O) is delayed or missed:</strong> the global-rank aggregation tier serves a slightly staler approximate rank estimate to every other shard's players querying their global position &#8212; each individual player's own exact, same-shard rank (V) is entirely unaffected, since it never depends on this path at all.</li>
+<li><strong>A synchronized write burst (a raid boss, a mass match-end) exceeds a shard's coalesced write throughput momentarily:</strong> the bounded write queue (P) absorbs the peak with a small, low-millisecond queueing delay rather than dropping or rejecting writes; players see their new rank moments later than usual, never never at all.</li>
+<li><strong>The durable store itself is briefly unreachable:</strong> write-behind records simply accumulate in the queue until it recovers; no client-facing operation is blocked by this at all, since the durable store is never on the read or acknowledged-write path (S).</li>
+</ul>
+
+<h3 id="p19-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1's relational table with <code>ORDER BY</code>/<code>COUNT(*)</code></td><td>Rank queries scale with how many rows outrank a given player &#8212; a full-table-proportional cost on every single request</td><td>Redis sorted set with native, order-maintaining <code>ZADD</code>/<code>ZREVRANK</code>/<code>ZREVRANGE</code> (K, M, N)</td></tr>
+<tr><td>A single segment's player count or write rate exceeding one node's capacity</td><td>One ZSET, one node, one command-execution thread absorbing all of a large segment's traffic</td><td>Sharding by natural ownership boundary, with hash-based sub-sharding when even one segment outgrows a node (O)</td></tr>
+<tr><td>Exact global rank across shards</td><td>A live, exact merge across every shard on every rank query reintroduces a full-fan-out cost per request</td><td>Approximate global rank from periodically-refreshed per-shard histograms; exact merge reserved only for the small, bounded top-N case (O)</td></tr>
+<tr><td>A synchronized burst of score updates for the same or nearby players</td><td>Redis's single command-execution thread serializing a spike of near-simultaneous writes</td><td>Per-player write coalescing plus a small bounded write queue absorbing peak bursts (P)</td></tr>
+<tr><td>Redis as the sole copy of every score</td><td>A node or shard loss between writes and the next snapshot/AOF flush risks real, permanent data loss</td><td>Asynchronous write-behind persistence to an independently durable store, off the critical path (S)</td></tr>
+</table>
+
+<h3 id="p19-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Core data structure</td><td>Relational table with an indexed <code>score</code> column</td><td>Redis sorted set (ZSET), chosen</td><td>A relational table is easier to query flexibly (joins, filters) but a rank query's cost scales with the dataset; a ZSET makes rank and range queries O(log N + M) at the direct cost of losing general-purpose query flexibility (J, K)</td></tr>
+<tr><td>Global rank once sharded</td><td>Exact, live cross-shard merge on every query</td><td>Approximate, aggregate-tier estimate, chosen</td><td>Exact merge never returns a wrong number but pays a fan-out cost on every single rank request; the approximate tier is nearly free per query at the cost of a small, imperceptible, self-correcting margin of error (O)</td></tr>
+<tr><td>Absorbing write bursts</td><td>P16-style windowed batching (delay visibility to smooth load)</td><td>Per-player write coalescing plus bounded queueing, chosen</td><td>Batching would smooth load trivially but directly violates this problem's near-real-time-visibility requirement (D); coalescing achieves most of the same smoothing without introducing any player-perceptible delay (P)</td></tr>
+<tr><td>Tie-breaking</td><td>Leave ties to Redis's default lexicographic member-order fallback</td><td>Encode a secondary key into the score itself, chosen</td><td>The default requires no extra work but produces an arbitrary, unexplainable ordering for tied players; encoding the tiebreak gives a deterministic, product-meaningful order with zero added read-time cost (Q)</td></tr>
+<tr><td>Durability</td><td>Rely solely on Redis's own RDB/AOF persistence</td><td>Asynchronous write-behind to an independent durable store, chosen</td><td>Redis's own persistence is simpler (nothing extra to build) but still makes Redis itself the sole system of record; write-behind adds a queue and a second store, in exchange for a genuinely independent, durable copy that can survive losing Redis entirely (S)</td></tr>
+</table>
+
+<h3 id="p19-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>A relational table with <code>ORDER BY score DESC LIMIT/OFFSET</code> and <code>COUNT(*) WHERE score &gt; ?</code> for rank.</strong> Works at small scale, and then degrades in a way that's structurally tied to dataset size, not fixable by adding more indexes or read replicas &#8212; the defining mistake on this problem (J).</li>
+<li><strong>Treating Redis's own persistence (RDB/AOF) as sufficient durability on its own.</strong> Confuses "Redis won't lose data quite as badly" with "Redis is now a real system of record" &#8212; it still leaves a meaningful data-loss window on a crash and no independently queryable, backed-up copy of scores (S).</li>
+<li><strong>Sharding a segment and then computing exact global rank via a live fan-out merge on every single request.</strong> Technically correct, but reintroduces almost the exact full-scan-per-query cost this design's entire structure was chosen to eliminate, just spread across a cluster of shards instead of one table (O).</li>
+<li><strong>Reaching for P16's windowed-batch aggregation approach to absorb write bursts.</strong> Solves the throughput problem cleanly but directly trades away the near-real-time visibility a leaderboard's players actually expect &#8212; the correct fix for a different requirement than this one has (P).</li>
+<li><strong>Leaving ties to whatever order the underlying structure happens to produce.</strong> Deterministic and reproducible, but arbitrary and unexplainable to the actual players it affects &#8212; a real, if quiet, correctness gap against the product's actual expectations (Q).</li>
+</ul>
+
+<h3 id="p19-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"What if a player wants to see only their friends' ranks, not the global leaderboard?"</td><td>A friends-scoped view doesn't need a new ranking structure &#8212; fetch each friend's score via <code>ZSCORE</code> (O(1) per friend) against the same segment ZSET and sort the small resulting list client-side or app-side; a friends leaderboard is a filtered read on top of the existing structure, not a new one</td><td>A thin read-time filtering layer</td><td>The core ZSET, sharding, and persistence design entirely</td></tr>
+<tr><td>"How would you support active-active writes for the same segment across two regions?"</td><td>Name this as a genuinely harder problem this design doesn't solve out of the box &#8212; two regions independently accepting writes for the same segment's ZSET need a conflict-resolution or single-writer-per-segment strategy (echoing <a href="#p18-n">P18-N</a>'s peer-replication reasoning), not just more shards</td><td>A cross-region replication/conflict layer, if added at all</td><td>The per-shard ZSET model, tiebreak encoding, and write-behind persistence for the single-region case</td></tr>
+<tr><td>"A specific segment is receiving wildly disproportionate traffic compared to every other segment — what happens?"</td><td>The same hot-partition problem Distributed Cache names explicitly for a hot key (<a href="#p11-p">P11-P</a>) &#8212; here at segment granularity; the fix is proactively sub-sharding that one hot segment further (O) rather than adding uniform capacity everywhere</td><td>Additional sub-shards for the identified hot segment</td><td>The ranking, tiebreak, and persistence machinery for every other segment</td></tr>
+<tr><td>"How would you detect and reject an obviously impossible score submission (a player claiming to have scored a billion points)?"</td><td>Acknowledge this as a real but largely orthogonal concern (D's stated scope boundary) &#8212; a bounds/anomaly check on the submitted delta ahead of the <code>ZADD</code>, separate from the ranking structure itself, which has no opinion at all about whether a given score is legitimate</td><td>A validation layer ahead of the write path</td><td>The entire ranking and rank-query design</td></tr>
+</table>
+
+<h3 id="p19-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes a relational table with <code>ORDER BY</code> and <code>COUNT(*)</code> for rank, without recognizing that the rank query's cost scales with the dataset and will not survive real player counts.</li>
+<li><strong>Mid-level:</strong> correctly reaches for Redis sorted sets and names <code>ZADD</code>/<code>ZRANK</code>/<code>ZRANGE</code> by their command names, but can't precisely explain why they're O(log N) rather than reciting "Redis is fast," and hasn't considered what happens once one segment outgrows a single node.</li>
+<li><strong>Senior:</strong> explains the skip-list mechanics behind the ZSET's complexity bounds, proactively raises sharding once a segment's scale is pushed, and correctly identifies that a naive exact cross-shard rank merge reintroduces the very cost the sorted set was chosen to avoid.</li>
+<li><strong>Staff+:</strong> designs the approximate global-rank aggregation tier explicitly, defends why approximation is the correct trade rather than a shortcut, distinguishes this problem's real-time-visibility requirement from Ad Click Aggregation's batch-tolerant one and explains precisely why the same batching fix doesn't transfer, and treats Redis's speed and its unsuitability as a sole system of record as two sides of the same coin rather than two unrelated facts.</li>
+</ul>
+
+<h3 id="p19-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a real-time leaderboard for a mobile game with tens of millions of players.</div>
+<div class="dialog"><span class="who">Candidate:</span> Before picking a data store, I want to name what every read in this system actually is: "where does this score rank relative to everyone else's" — a top-N, a specific player's rank, or the players right around them. That's an ordering question, not a lookup question, so I'd reach for Redis sorted sets instead of a relational table — a ZSET keeps every player's score maintained in sorted order as a standing property of the structure, backed by a skip list, so a score update is an O(log N) <code>ZADD</code> and a rank lookup is an O(log N) <code>ZREVRANK</code> — neither one scales with how many players are ahead of or behind the one being queried.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Why not just a SQL table with an index on score?</div>
+<div class="dialog"><span class="who">Candidate:</span> The top-N query would actually be tolerable with a good index — it's the rank query that breaks it. Getting a specific player's rank means counting how many rows have a higher score, and a B-tree index doesn't track ordinal position as a first-class thing — that count scales with how many players outrank you, which for a near-top player in a twenty-million-player leaderboard is a scan touching a huge fraction of the table, on every single rank check, from every player, continuously. A sorted set's skip list already tracks how many elements each traversal hop skips over, so computing rank is just a byproduct of the same walk that would locate the member for any other reason — that's the real reason it's O(log N) and a COUNT query isn't.</div>
+<div class="dialog"><span class="who">Interviewer:</span> One game mode gets so popular that its leaderboard outgrows a single Redis node. What now?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd shard it — by hash of player ID across sub-shards, since it's one already-natural segment that's simply outgrown one machine. But sharding breaks something important: no single shard knows a player's true global rank anymore, because each shard only sees its own slice. Querying every shard and merging exactly on every rank request would work, but it just moves the same full-scan cost I was trying to avoid onto a cluster instead of a table. So instead I'd have each shard periodically publish a lightweight histogram of its score distribution to a small aggregation tier, and compute a player's global rank as their exact local rank on their own shard plus an estimate of how many players outrank them on every other shard, read off those histograms. It's approximate, refreshed every few seconds — and that's fine, because nobody's watching their rank closely enough to notice being off by a handful of positions. The one place I would keep it exact is the literal top N, since that only ever needs each shard's own top handful merged together — small, cheap, and worth being exact about.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you handle a sudden burst — say a raid boss that a thousand players defeat in the same second?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's a request-volume problem, not an algorithmic one — each individual <code>ZADD</code> is still cheap. I'd coalesce intermediate score updates for the same player during a burst of rapid changes into a single write with the latest value, since a player rarely cares about every intermediate score, only the one they'll actually check. That's different from something like batching click events for an ad-analytics pipeline — there, a minute of staleness is invisible on a dashboard; here, a player expects their new rank the instant they check it, so I can't just buffer writes on a timer. For the genuine simultaneous case, I'd let writes fan out across the segment's shards and let a small bounded queue absorb the peak with a few milliseconds of delay, never dropping anything.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last question — is Redis alone durable enough here?</div>
+<div class="dialog"><span class="who">Candidate:</span> No, and I wouldn't want it to be the only copy. Redis is the fast path specifically because it's in-memory, which is exactly what makes it a risky sole system of record — a node loss between an update and its next snapshot loses that update outright. So every score update also gets pushed asynchronously, in batches, into a durable database — off the client's critical path entirely, so it never adds latency to the read or write the player is actually waiting on. If a shard is lost with no live replica, I'd rebuild its ZSET from that durable store rather than from Redis's own snapshot — slower, but it's the copy I actually trust as the source of truth, even though Redis is what serves every live query.</div>
+
+<h3 id="p19-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://redis.io/docs/latest/develop/data-types/sorted-sets/" target="_blank">Redis — official documentation, "Sorted Sets" data type</a></td><td>The first-party specification of the exact structure this problem is built around — <code>ZADD</code>, <code>ZRANK</code>/<code>ZREVRANK</code>, <code>ZRANGE</code>/<code>ZREVRANGE</code>, their complexity bounds, and leaderboard ranking named explicitly as a canonical use case</td><td>The definitive source for what a sorted set actually guarantees and costs — every complexity claim in M and N traces directly back to this documentation</td><td>Documents the single-node command surface only; says nothing about sharding a set across nodes once it outgrows one, which is this problem's own contribution on top</td><td>The essential primary reference for this entire problem — read this before anything else if the ZSET internals are unfamiliar</td></tr>
+<tr><td><a href="https://redis.io/solutions/use-cases/leaderboards/" target="_blank">Redis — official "Leaderboards" use-case / solutions page</a></td><td>Redis's own first-party framing of sorted sets as the intended structure for exactly this problem, including score-plus-tiebreak encoding as a named technique</td><td>Direct, first-party confirmation that this section's central decision (K) is the vendor's own documented, intended use of the structure, not an interview simplification</td><td>A vendor solutions page, understandably light on the sharding and approximate-global-rank concerns (O) that only appear once a single node's capacity is actually exceeded</td><td>Good, short confirmation that this problem's core data-structure choice matches real, documented production guidance</td></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/leaderboard" target="_blank">Hello Interview — "Leaderboard" system design breakdown</a></td><td>An interview-oriented breakdown covering the same core shape — sorted-set-backed ranking, and the sharding/approximation question once scale exceeds one node — aimed specifically at the system-design-interview framing this document also uses</td><td>Validates that this problem's core tension (exact single-node ranking vs. approximate sharded ranking) is the actual crux interviewers probe for on this exact question, not an invented emphasis</td><td>Interview-breakdown material generally trades some implementation precision for interview-pacing concerns — worth treating as a framing check, not a substitute for the Redis documentation's exact command semantics</td><td>Useful for calibrating how this problem is actually asked and evaluated in a real interview loop, distinct from the underlying mechanics themselves</td></tr>
+</table>
+
+<h3 id="p19-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Real-Time Leaderboard</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Intermediate at the single-node scale, advanced once sharding and write-burst absorption enter the picture</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Submit/update a score; get a player's rank; get the top N; get the players immediately around a given player; support many independent segments (per-game/region/time-window) — ~20M players per large segment, ~50K writes/sec peak, ~200K reads/sec peak</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Redis sorted sets (ZSET) as the core structure for O(log N) score updates and O(log N + M) rank/range queries; sharding by natural segment with an approximate cross-shard global-rank aggregation tier once one node isn't enough; asynchronous write-behind persistence so Redis stays the fast path, not the system of record</td></tr>
+<tr><td><strong>Why not SQL</strong></td><td><code>ORDER BY</code>/<code>LIMIT</code> and <code>COUNT(*) WHERE score &gt; ?</code> both re-derive order or count on every request; a rank query's cost scales with how many rows outrank the one being queried — a ZSET's skip-list-backed order is maintained continuously instead (J, K, M, N)</td></tr>
+<tr><td><strong>Sharding</strong></td><td>Shard by the natural ownership boundary first (region/mode, per <a href="#patterns-g">Patterns Playbook G</a>); hash-sub-shard only a segment that individually outgrows one node; global rank becomes an approximate, periodically-refreshed estimate from per-shard histograms, while top-N stays exact via a cheap per-shard merge (O)</td></tr>
+<tr><td><strong>Write bursts</strong></td><td>Per-player write coalescing plus a small bounded queue — not P16's minutes-tolerant batching, because this problem's near-real-time visibility requirement is strictly tighter (P)</td></tr>
+<tr><td><strong>Ties</strong></td><td>Encode a secondary tiebreak (inverted achievement timestamp) directly into the ZSET's one sortable score field, rather than leaving ties to an arbitrary lexicographic fallback (Q)</td></tr>
+<tr><td><strong>Consistency</strong></td><td>Read-your-own-writes is exact and immediate (same shard as the write); everyone else's global-rank view is fast and approximate — two different guarantees for two genuinely different questions, not a tunable dial (V)</td></tr>
+<tr><td><strong>Durability</strong></td><td>Asynchronous write-behind to an independent durable store, off the client-facing critical path — Redis's own RDB/AOF alone isn't sufficient because it never stops Redis from being the sole copy (S)</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>SQL <code>ORDER BY</code>/<code>COUNT(*)</code> for rank; trusting Redis's own persistence as sufficient durability; exact live cross-shard rank merges on every query; borrowing P16's batch-aggregation fix for write bursts; leaving ties to an arbitrary default order</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Friends-only leaderboards (a filtered read, not a new structure); anti-cheat/score-validation logic (a separate, orthogonal concern); active-active multi-region writes for one segment (a real but distinct, explicitly out-of-scope problem)</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p18.html">&larr; 18. Distributed Key-Value Store (Dynamo-style)</a><a class="prevnext-link next" href="p20.html">20. Distributed Message Queue (Build Kafka) &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

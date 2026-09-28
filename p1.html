@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>1. URL Shortener (Bitly) — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">1. URL Shortener (Bitly) <span class="badge">Beginner → Advanced+Scale</span></h1>
+
+<div class="section-toc">
+<a href="#p1-a">A. Interview Prompt</a><a href="#p1-b">B. Difficulty</a><a href="#p1-c">C. What It Tests</a>
+<a href="#p1-d">D. Requirements</a><a href="#p1-e">E. Clarifying Questions</a><a href="#p1-f">F. Assumptions</a>
+<a href="#p1-g">G. Capacity Estimation</a><a href="#p1-h">H. Core Entities</a><a href="#p1-i">I. API Design</a>
+<a href="#p1-j">J. Basic Design (V1)</a><a href="#p1-k">K. Data Model &amp; DB Choice</a><a href="#p1-l">L. End-to-End Flow</a>
+<a href="#p1-m">M. Deep Dive 1: ID Generation</a><a href="#p1-n">N. Deep Dive 2: Fast Redirects</a><a href="#p1-o">O. Deep Dive 3: Scale</a>
+<a href="#p1-p">P. Deep Dive 4: Availability</a><a href="#p1-q">Q. Deep Dive 5: Alias &amp; Expiry</a><a href="#p1-r">R. Deep Dive 6: Analytics</a>
+<a href="#p1-s">S. Deep Dive 7: Security</a><a href="#p1-t">T. Full Solution at Scale</a><a href="#p1-u">U. Design Evolution</a>
+<a href="#p1-v">V. Consistency Model</a><a href="#p1-w">W. Failure Scenarios</a><a href="#p1-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p1-y">Y. Trade-Offs</a><a href="#p1-z">Z. Common Bad Designs</a><a href="#p1-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p1-ab">AB. Interviewer Evaluation</a><a href="#p1-ac">AC. Interview Simulation</a><a href="#p1-ad">AD. Source Comparison</a>
+<a href="#p1-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p1">Jump to section:</label><select id="jump-p1" class="jump-select" data-jump-select><option value="p1-a">A. Realistic Interview Prompt</option><option value="p1-b">B. Difficulty</option><option value="p1-c">C. What This Problem Tests</option><option value="p1-d">D. Requirements</option><option value="p1-e">E. Clarifying Questions</option><option value="p1-f">F. Assumptions</option><option value="p1-g">G. Capacity Estimation (Back-of-Envelope)</option><option value="p1-h">H. Core Entities</option><option value="p1-i">I. API Design</option><option value="p1-j">J. Basic / Naive High-Level Design (V1)</option><option value="p1-k">K. Data Model &amp; Database Choice</option><option value="p1-l">L. End-to-End Flow (Basic)</option><option value="p1-m">M. Deep Dive 1 — Ensuring Short-Code Uniqueness at Scale</option><option value="p1-n">N. Deep Dive 2 — Ensuring Fast, Cheap Redirects</option><option value="p1-o">O. Deep Dive 3 — Scaling to 1B URLs and 100M DAU</option><option value="p1-p">P. Deep Dive 4 — High Availability &amp; Fault Tolerance</option><option value="p1-q">Q. Deep Dive 5 — Custom Aliases &amp; Expiration</option><option value="p1-r">R. Deep Dive 6 — Analytics / Click Tracking</option><option value="p1-s">S. Deep Dive 7 — Security &amp; Abuse Prevention</option><option value="p1-t">T. Full Solution at Scale — Final Architecture</option><option value="p1-u">U. Design Evolution</option><option value="p1-v">V. Consistency Model &amp; CAP Trade-offs</option><option value="p1-w">W. Failure Scenarios</option><option value="p1-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p1-y">Y. Design Trade-Offs</option><option value="p1-z">Z. Common Bad Designs</option><option value="p1-aa">AA. Interviewer Follow-Ups</option><option value="p1-ab">AB. Interviewer Evaluation Rubric</option><option value="p1-ac">AC. Interview Simulation</option><option value="p1-ad">AD. Online Solution Comparison</option><option value="p1-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p1-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a URL shortening service like Bit.ly or TinyURL. Users submit a long URL and get back a short one; visiting the short URL redirects to the original. Design it to work at scale."</div>
+<p>Note what is <em>not</em> specified: custom aliases, expiration, analytics, auth, exact scale numbers, latency target. A strong candidate treats this as an invitation to negotiate scope (section E) before drawing a single box — exactly the discipline Hello Interview's format is built around: agree on requirements, build the simplest thing that satisfies them, then let each requirement earn its own piece of complexity.</p>
+
+<h3 id="p1-b">B. Difficulty</h3>
+<p><strong>Beginner-friendly entry point</strong> that escalates fast. The basic version (single server, single DB, synchronous hash) is genuinely simple — this is why it's the most common "warm-up" system design question. But it hides a surprising amount of depth once you push on any single non-functional requirement: uniqueness at scale, sub-100ms redirects, 99.99% availability, and a 1000:1 read-heavy access pattern. Interviewers use this problem specifically <em>because</em> the basic version is trivial — it tests whether a candidate can recognize which requirement breaks the naive design first and fix only that, rather than either freezing on a trivial problem or over-building for scale nobody asked for.</p>
+
+<h3 id="p1-c">C. What This Problem Tests</h3>
+<ul>
+<li>Whether you can separate "does it work" (functional correctness) from "does it survive load" (non-functional requirements) and sequence your design around the latter</li>
+<li>Back-of-envelope capacity estimation and turning it into real decisions (cache size, code length, sharding-or-not)</li>
+<li>Recognizing a read-heavy workload and architecting asymmetric scaling instead of scaling everything uniformly</li>
+<li>Knowing when NOT to add complexity — sharding, edge compute, and Kafka are all wrong answers if introduced before the requirement that justifies them</li>
+<li>CAP/PACELC reasoning: picking availability over consistency for redirects, while still guaranteeing strong uniqueness where it actually matters</li>
+</ul>
+
+<h3 id="p1-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>A user can submit a long URL and receive a shortened URL</li>
+<li>A user can optionally specify a custom alias for the short code</li>
+<li>A user can optionally specify an expiration date/time for the short URL</li>
+<li>Visiting the short URL redirects the client to the original long URL</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Uniqueness</strong> — every short code maps to exactly one long URL, always, even under concurrent writes</li>
+<li><strong>Low latency</strong> — redirects should feel instant; target &lt;100ms end-to-end for the redirect hop specifically (creation can tolerate more latency — it's a rare, deliberate action, not a click-path)</li>
+<li><strong>High availability</strong> — 99.99% uptime (~52 minutes of downtime/year). A broken short link is a broken link everywhere it was ever shared (tweets, print media, SMS) — favor availability over strict consistency</li>
+<li><strong>Scale</strong> — support on the order of 1 billion stored URLs and 100 million daily active users, with a heavily read-skewed access pattern (redirects vastly outnumber new-URL creations)</li>
+</ul>
+<p><strong>Explicitly out of scope (the "below the line" cut, unless the interviewer pulls it back in — both come back as deep dives S and R):</strong> user authentication/account management, analytics dashboards on link clicks. Calling this out loud, and defending it, is itself a signal of scoping discipline — see AA for what happens when candidates build these unprompted.</p>
+
+<h3 id="p1-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Roughly what scale — total URLs stored, daily active users, read:write ratio?</td><td>Every later decision (code length, cache size, sharding-or-not) is a function of these numbers, not intuition</td><td>Capacity estimation (G)</td></tr>
+<tr><td>2</td><td>Is a strict latency SLA given, or should I assume one?</td><td>Determines how aggressively caching/CDN layers are justified</td><td>Deep Dive 2 (N)</td></tr>
+<tr><td>3</td><td>Do short codes need to be unguessable, or just unique?</td><td>Sequential counter IDs are fine for uniqueness but leak information if guessability matters</td><td>ID generation, Security (M, S)</td></tr>
+<tr><td>4</td><td>Are custom aliases in scope?</td><td>Adds a second, human-driven uniqueness path alongside the generated one</td><td>Deep Dive 5 (Q)</td></tr>
+<tr><td>5</td><td>Do links expire, and if so what happens to expired data — kept or purged?</td><td>Changes whether a cleanup job is needed and how cache TTLs are set</td><td>Deep Dive 5 (Q)</td></tr>
+<tr><td>6</td><td>Is click analytics in scope now or a likely follow-up?</td><td>If in scope, it must not be bolted onto the synchronous redirect path</td><td>Deep Dive 6 (R)</td></tr>
+<tr><td>7</td><td>Single region or multi-region from day one?</td><td>Changes whether the ID generator needs a cross-region coordination story immediately</td><td>Deep Dive 1, 3, 4 (M, O, P)</td></tr>
+<tr><td>8</td><td>Is deletion/update of an existing short URL supported?</td><td>Affects the redirect status code choice (301 vs 302) and cache invalidation strategy</td><td>API design, Deep Dive 2 (I, N)</td></tr>
+<tr><td>9</td><td>Do we need to defend against malicious/phishing long URLs?</td><td>A shortener that hides destinations is an attractive phishing vector</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>10</td><td>Is there a budget/preference constraint (e.g. "no external dependencies," "must run on our own infra")?</td><td>Affects whether Redis/CDN/managed services are even on the table</td><td>Whole design</td></tr>
+</table>
+
+<h3 id="p1-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed (from prompt):</strong> shorten + redirect are the core functional loop; "at scale" was explicitly said, so capacity estimation is not optional here.</li>
+<li><strong>Assumption:</strong> ~1 billion total stored URLs, ~100 million DAU, and a ~1000:1 read:write ratio — a standard, defensible scale for this problem, used consistently through this document so every later number is traceable (see G).</li>
+<li><strong>Assumption:</strong> custom alias and expiration ARE in scope (they were named in the base prompt phrasing used by most interviewers for this problem) — analytics and auth are NOT, until a follow-up asks (sections R and S cover them anyway, clearly marked as extensions).</li>
+<li><strong>Assumption:</strong> short codes should be reasonably resistant to enumeration (soft security requirement) even though nobody explicitly demanded encryption-grade unguessability — addressed cheaply in Deep Dive 1/7 rather than ignored.</li>
+<li><strong>Assumption:</strong> single primary region in the base design (V1–V5); multi-region is introduced explicitly as an extension (Deep Dive 3 and 4), mirroring how real interviews escalate this problem.</li>
+</ul>
+
+<h3 id="p1-g">G. Capacity Estimation (Back-of-Envelope)</h3>
+<p>Every number below is derived from the same three inputs so nothing is a "random" constant: <strong>1B total URLs</strong>, <strong>100M DAU</strong>, <strong>1000:1 read:write ratio</strong>.</p>
+<table>
+<tr><th>Metric</th><th>Calculation</th><th>Result</th></tr>
+<tr><td>Redirects/day</td><td>100M DAU × ~5 redirects/user/day (assumed click rate)</td><td>~500M redirects/day</td></tr>
+<tr><td>Average redirect QPS</td><td>500M ÷ 86,400s</td><td>~5,800 QPS</td></tr>
+<tr><td>Diurnal peak QPS</td><td>~10× average (normal daily peak hour, not a black-swan event)</td><td>~58,000 QPS</td></tr>
+<tr><td>Viral-burst worst case</td><td>~100× average (a single link goes viral — a real, distinct scenario from the daily peak)</td><td>~580,000–600,000 QPS</td></tr>
+<tr><td>New URLs/day</td><td>Redirects/day ÷ 1000 (the read:write ratio)</td><td>~500,000 writes/day</td></tr>
+<tr><td>Average write QPS</td><td>500,000 ÷ 86,400s</td><td>~6 QPS (trivial — writes are never the bottleneck here)</td></tr>
+<tr><td>Storage per row</td><td>short_code(8B) + long_url(~200B avg) + user_id(8B) + created_at/expires_at(16B) + flags/padding(~270B)</td><td>~500 bytes/row</td></tr>
+<tr><td>Total storage @ 1B rows</td><td>1,000,000,000 × 500 bytes</td><td>~500 GB</td></tr>
+<tr><td>Years to reach 1B at 500K/day</td><td>1B ÷ (500K × 365)</td><td>~5.5 years</td></tr>
+<tr><td>Short-code space @ 6 chars, base62</td><td>62<sup>6</sup></td><td>~56.8 billion combinations (57× headroom over 1B)</td></tr>
+<tr><td>Short-code space @ 7 chars, base62</td><td>62<sup>7</sup></td><td>~3.52 trillion combinations (3,520× headroom)</td></tr>
+</table>
+<p class="callout"><strong>The two numbers that actually drive the architecture:</strong> (1) 500GB total storage is trivially small — it fits on a single modern DB node's SSD with room to spare, which means <em>we do not need to shard for storage capacity reasons</em>. (2) The gap between 5,800 QPS average and 600,000 QPS viral-burst is 100×, and it's almost entirely reads — which means the entire scaling story of this system is about absorbing read spikes cheaply (caching), not about storage or write throughput. Every subsequent deep dive is a consequence of one of these two facts.</p>
+<p><strong>Code length: 6 vs. 7 characters — a genuine judgment call, not a rule.</strong> 6 characters already give 57× headroom over the 1B target, which is generous. 7 characters give 3,520× headroom for negligible extra cost (1 more byte × 1B rows ≈ 1GB, irrelevant at a 500GB scale) and remove any need to ever migrate code length later as the service grows past 1B. This document uses <strong>7 characters</strong> for that long-term-headroom reason, but 6 is an equally defensible answer if you say why.</p>
+
+<h3 id="p1-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th><th>Notes</th></tr>
+<tr><td><code>ShortUrl</code></td><td>The core mapping — the entire system exists to create and resolve these</td><td><code>short_code</code> (PK), <code>long_url</code>, <code>user_id</code> (nullable), <code>created_at</code>, <code>expires_at</code> (nullable), <code>is_custom_alias</code></td><td>The ONLY entity that must be strongly consistent (see V)</td></tr>
+<tr><td><code>User</code></td><td>Optional creator/owner of a link</td><td><code>user_id</code>, <code>email</code></td><td>Out of scope per D unless auth is pulled back in — included here only so ownership fields have somewhere to point</td></tr>
+<tr><td><code>ClickEvent</code></td><td>One redirect occurrence, for analytics only</td><td><code>short_code</code>, <code>timestamp</code>, <code>referrer</code>, <code>geo</code>, <code>user_agent</code></td><td>Lives in a <em>separate</em> analytics store, never the hot-path DB — see Deep Dive 6 (R)</td></tr>
+</table>
+
+<h3 id="p1-i">I. API Design</h3>
+<pre><code>POST /api/v1/urls
+  body: { long_url, custom_alias?, expires_at?, user_id? }
+  201 → { short_url, short_code, expires_at }
+  400 → invalid long_url
+  409 → custom_alias already taken
+  429 → rate limited (see S)
+
+GET /{short_code}
+  302 → Location: &lt;long_url&gt;
+  404 → unknown short_code
+  410 → short_code expired
+</code></pre>
+<p><strong>Why 302 (Found / temporary), not 301 (Moved Permanently) — the single most consequential API decision in this whole design:</strong></p>
+<table>
+<tr><th></th><th>301 Permanent</th><th>302 Temporary</th></tr>
+<tr><td>Browser caching</td><td>Browser caches the redirect itself — after the first click, the browser never contacts our server again for that link</td><td>Browser does not persist the redirect — every click hits our server</td></tr>
+<tr><td>Server load</td><td>Lower — repeat clicks from the same browser are free</td><td>Higher — every click is a real request, which is exactly why Deep Dive 2 (caching) exists</td></tr>
+<tr><td>Expiration support</td><td>Broken — a browser that cached the 301 will keep "redirecting" locally even after we expire/delete the link server-side</td><td>Works correctly — expiration is enforced on every request, not just the first</td></tr>
+<tr><td>Click analytics</td><td>Broken — we're only told about the very first click per browser, ever</td><td>Works — every click is observable server-side</td></tr>
+</table>
+<p>Given that expiration and click analytics are both stated or near-certain requirements, 302 is the correct choice — the extra server load it implies is the reason Deep Dive 2 exists, not a flaw to avoid by picking 301.</p>
+
+<h3 id="p1-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest design that satisfies the <em>functional</em> requirements alone, deliberately ignoring every non-functional one for now — this is the baseline every deep dive below is measured against.</p>
+<div class="mermaid diagram">
+flowchart LR
+  C(["Client"]) -- "1 . POST /urls" --> S["Primary Server<br/>(validate, hash+base62, write)"]
+  S -- "2 . INSERT short_code, long_url" --> DB[("Relational DB<br/>single node")]
+  C -- "3 . GET /{short_code}" --> S
+  S -- "4 . SELECT long_url" --> DB
+  S -. "5 . 302 redirect" .-> C
+</div>
+<p class="diagram-caption">V1 — everything on one server, one database. Satisfies function, fails every NFR (see callout below).</p>
+<p>V1 mechanics: on create, hash the <code>long_url</code> (e.g. MD5), take the first 7 characters of the base62-encoded hash as the <code>short_code</code>, check the DB for a collision, and on collision append a salt and rehash. On redirect, a single indexed SELECT by <code>short_code</code>, then a 302.</p>
+<p class="callout"><strong>Why this is fine as a starting point and exactly where it breaks:</strong> it satisfies all four functional requirements. It fails <strong>uniqueness</strong> guarantees cleanly (hash collisions require detect-and-retry, not prevention — M), fails <strong>latency</strong> the moment traffic exceeds what one DB node's disk I/O can serve (N), fails <strong>availability</strong> the moment that one server or DB dies (P), and fails <strong>scale</strong> the moment write and read load diverge enough that one fleet can't serve both efficiently (O). Each of those four failure points maps to exactly one deep dive below — this is not incidental, it's the whole point of the methodology.</p>
+
+<h3 id="p1-k">K. Data Model &amp; Database Choice</h3>
+<table>
+<tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+<tr><td><code>short_code</code></td><td>VARCHAR(7)</td><td>Primary key — gives us indexing and the uniqueness constraint for free, see M and Q</td></tr>
+<tr><td><code>long_url</code></td><td>VARCHAR(2048) or TEXT</td><td>URLs can legally be long; don't under-allocate</td></tr>
+<tr><td><code>user_id</code></td><td>BIGINT, nullable</td><td>Nullable because anonymous shortening is allowed</td></tr>
+<tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>—</td></tr>
+<tr><td><code>expires_at</code></td><td>TIMESTAMP, nullable</td><td>Null = never expires</td></tr>
+<tr><td><code>is_custom_alias</code></td><td>BOOLEAN</td><td>Distinguishes the two write paths in Q</td></tr>
+</table>
+<p><strong>Why a relational DB (Postgres/MySQL) over a pure key-value/NoSQL store:</strong> the access pattern is a single-key point lookup by <code>short_code</code> — something almost any datastore does well, so the "which DB" decision is genuinely low-stakes here (this matches what every source surveyed in AD independently concludes). A relational DB is chosen for the free <code>UNIQUE</code> constraint (does real work for us in M and Q — no application-level race condition to reason about) and because 500GB/1B rows (from G) is nowhere near the scale where a relational DB's vertical limits bite. A key-value store (DynamoDB, Cassandra) is an equally valid choice if the team already operates one at scale and wants to skip capacity planning for a relational primary — call this out as a legitimate alternative, not a mistake.</p>
+
+<h3 id="p1-l">L. End-to-End Flow (Basic)</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant C as Client
+  participant S as Primary Server
+  participant DB as Relational DB
+  C->>S: POST /urls {long_url}
+  S->>S: hash(long_url) -> base62 -> short_code
+  S->>DB: SELECT 1 WHERE short_code
+  DB-->>S: not found
+  S->>DB: INSERT short_code, long_url
+  DB-->>S: OK
+  S-->>C: 201 Created {short_url}
+  Note over C,DB: ...later, anyone clicks the link...
+  C->>S: GET /{short_code}
+  S->>DB: SELECT long_url WHERE short_code
+  DB-->>S: long_url
+  S-->>C: 302 Location: long_url
+</div>
+
+<h3 id="p1-m">M. Deep Dive 1 — Ensuring Short-Code Uniqueness at Scale</h3>
+<p><strong>Requirement this addresses:</strong> Uniqueness (D), under concurrent writes, without every write paying for a DB round-trip just to detect a collision.</p>
+<table>
+<tr><th>Approach</th><th>How It Works</th><th>Why Good</th><th>Why Bad</th></tr>
+<tr><td>Hash (MD5/SHA-256) + truncate + collision retry</td><td>Hash the long_url, base62-encode, take first 7 chars; on DB collision, salt and rehash</td><td>Stateless — purely a function of input, no coordination needed; identical long URLs naturally dedupe</td><td>Collision probability rises with N (birthday paradox); every write pays a DB check-then-maybe-retry loop even in the common case of no collision — the exact "detect and fix" pattern the counter approach below eliminates by construction; conflates dedup with per-user ownership unless salted</td></tr>
+<tr><td><strong>Unique counter + base62 encode (chosen)</strong></td><td>A single monotonically increasing integer ID is issued per URL; base62-encoding an integer is bijective, so distinct integers → distinct codes, always</td><td>Zero collisions <em>by construction</em> — no DB check, no retry loop, O(1); deterministic and simple to reason about</td><td>Needs one coordinated source of truth for "next ID" — a distributed-systems problem in itself; codes are sequential → guessable/enumerable (addressed in S)</td></tr>
+<tr><td>Snowflake-style ID (timestamp + worker-id + sequence)</td><td>Embed uniqueness into the ID's bit structure itself instead of a central counter</td><td>Removes the central counter service as a dependency entirely; well-proven at Twitter-scale</td><td>Longer IDs (64 bits ≈ 11 base62 chars, vs. 7 for a pure counter); requires synchronized clocks (NTP) across ID-generator nodes</td></tr>
+</table>
+<p><strong>Why the counter, not the hash, is the right default here:</strong> the hash approach's core weakness isn't collision math (at 1B/3.5T fill, collisions are genuinely rare) — it's that it makes the DB unique-check-on-write mandatory for correctness, coupling every write to a synchronous round-trip that a counter-based design simply doesn't need. The counter's weakness (needing a coordinated ID source) is solved cheaply with Redis, below.</p>
+<p><strong>Implementation — Redis <code>INCR</code> as the counter:</strong> Redis processes commands single-threaded, so <code>INCR</code> is atomically race-free with zero application-level locking. Redis comfortably handles 100K+ ops/sec on one node — far more than our ~6 QPS average write load (G) ever needs, even accounting for the ~58/sec peak.</p>
+<p><strong>Optimization — counter batching:</strong> instead of one Redis round-trip per URL created, each Write Service instance calls <code>INCRBY 1000</code> once, gets back a starting value, and hands out that entire local range to incoming requests without touching Redis again until the batch is exhausted. Cuts Redis network round-trips by ~1000×. The cost: a crashed instance "wastes" its unused batch — acceptable, since the ID space (3.52 trillion at 7 chars) is enormous and we're nowhere near exhausting it.</p>
+<div class="mermaid diagram">
+flowchart LR
+  WS["Write Service instance"] -- "1 . INCRBY 1000 (once per 1000 URLs)" --> R[("Redis Counter")]
+  R -- "2 . batch start value" --> WS
+  WS -- "3 . base62-encode + obfuscate locally<br/>(no network call per URL)" --> E["short_code"]
+  E -- "4 . INSERT short_code, long_url" --> DB[("Primary DB")]
+</div>
+<p class="diagram-caption">Counter batching: one Redis round-trip serves 1,000 URL creations.</p>
+<p><strong>Multi-region extension:</strong> give each region a disjoint ID range (e.g. us-east owns block 0–999,999,999; eu-west owns 1,000,000,000–1,999,999,999) so regions never coordinate with each other for uniqueness. This trades a small amount of ID-space efficiency for full write availability during a cross-region network partition — an explicit, deliberate Availability-over-Consistency choice consistent with the Uptime NFR (see V).</p>
+
+<h3 id="p1-n">N. Deep Dive 2 — Ensuring Fast, Cheap Redirects</h3>
+<p><strong>Requirement this addresses:</strong> Low latency (&lt;100ms) under a ~1000:1 read-heavy load that peaks at ~600K QPS (G). Each layer below solves exactly what the previous layer can't — don't skip straight to the last one.</p>
+<h4>Layer 1 — DB indexing</h4>
+<p><code>short_code</code> as the primary key gives an automatic B-tree index → O(log n) lookup instead of a full scan. Necessary, not sufficient: even an indexed lookup means a disk seek. A single SSD-backed DB node tops out around ~100K IOPS — to serve a 600K QPS viral burst from disk alone would need 6 fully-loaded replicas just for redirects, which is fragile and wasteful for what should be a cheap operation.</p>
+<h4>Layer 2 — In-memory cache (Redis/Memcached), cache-aside</h4>
+<p>Check cache first (~0.1ms, ~1M ops/sec/node) → hit avoids the DB entirely; miss falls through to the DB and populates the cache for next time. Link-click traffic is famously power-law/Zipfian — a small fraction of links (a viral tweet, a marketing campaign) account for the overwhelming majority of clicks — so a cache sized to hold just the hot set absorbs the vast majority of the 600K QPS burst, cutting DB load by 90%+. <strong>The cache's real job here is load-shielding the DB, not just shaving milliseconds.</strong></p>
+<p><strong>Why cache-aside, not write-through:</strong> write volume (~6 QPS) is negligible next to read volume — pre-populating the cache on every write would waste cache memory on links that may never be clicked, whereas populating on first read guarantees the cache only ever holds things actually being requested. TTL is capped at <code>min(expires_at - now, 24h)</code> so entries never outlive their own expiration and the cache doesn't grow unbounded; eviction policy is LRU so the genuinely hot working set stays resident.</p>
+<h4>Layer 3 — CDN / Edge compute (Cloudflare Workers, Lambda@Edge)</h4>
+<p>Push the redirect decision itself to edge PoPs geographically close to users. For a redirect specifically, network round-trip time to a centralized origin (50–150ms for a global user base) dominates over compute time — so physical proximity matters more than a faster origin. <strong>Why NOT reach for this first:</strong> cache invalidation now has to fan out across dozens/hundreds of edge locations (a harder consistency problem — a deleted/expired link may briefly still resolve at a stale edge node); edge runtimes have real constraints (execution time, memory, limited libraries); debugging a distributed edge function is harder than one origin; cost per request is typically higher. Use this as the <em>last</em> layer, once origin caching is solid and the interviewer specifically pushes on a global user base still not feeling fast enough — a Redis cache plus regional deployment already solves the bulk of the latency problem for far less complexity.</p>
+<div class="mermaid diagram">
+flowchart LR
+  U(["User"]) --> E["CDN / Edge Function"]
+  E -. "cache hit → 302 (fastest path)" .-> U
+  E -- "cache miss" --> LB["Load Balancer"]
+  LB --> RS["Read Service fleet"]
+  RS --> Cache[("Redis / Memcached")]
+  Cache -. "hit" .-> RS
+  Cache -- "miss" --> Replica[("DB Read Replica")]
+  Replica -- "populate" --> Cache
+  RS -. "302" .-> U
+</div>
+<p class="diagram-caption">Three layers, each catching what the previous one misses: edge → cache → replica.</p>
+
+<h3 id="p1-o">O. Deep Dive 3 — Scaling to 1B URLs and 100M DAU</h3>
+<p><strong>Requirement this addresses:</strong> Scale (D) — but note storage scale and throughput scale are two different problems with two different fixes, and conflating them is the most common mistake on this problem (see Z).</p>
+<p><strong>Storage is not the bottleneck.</strong> 500GB (from G) fits comfortably on one modern DB node's NVMe storage with room to spare. <strong>We do not need to shard the database for storage capacity at this scale.</strong> The actual bottlenecks are read throughput and availability — so the correct scaling moves are caching (N) and service separation (below), not horizontal partitioning, until the design is one or two orders of magnitude beyond this stated scale.</p>
+<p><strong>Service separation — Read Service vs. Write Service:</strong> split into two independently-scaled, stateless fleets behind a load balancer, because their load profiles are wildly asymmetric (1000:1 from G) — coupling them means either over-provisioning writes or starving reads. Both are stateless (no sticky sessions), so plain round-robin load balancing works, and any instance can die with zero client-visible state loss.</p>
+<p><strong>DB read replicas:</strong> the primary handles writes; N read replicas absorb whatever read traffic misses the cache (a small percentage, given N's cache hit-rate argument). Async replication is fine — a few seconds of staleness is imperceptible for a URL that was created seconds ago and is only now being clicked by someone else.</p>
+<p class="callout"><strong>The one sharp edge case worth raising unprompted — read-your-writes:</strong> if a user creates a link and immediately clicks it themselves before replication catches up, a stale replica read could 404. Mitigation: populate the cache synchronously at write time for just-created links (a deliberate, narrow exception to the cache-aside-only rule) so the very next read never needs the replica at all. Raising this proactively is a strong signal — it's exactly the kind of gap Hello Interview's own seniority rubric (AB) rewards at the senior/staff level.</p>
+<p><strong>When would sharding actually be justified?</strong> If scale grew another 10–100× (tens of billions of rows), or if a single write region genuinely became the write bottleneck (it won't at ~6 QPS average). If/when it is justified, shard by <code>hash(short_code)</code> — a redirect lookup routes directly to the one shard that owns that code, with zero cross-shard fan-out. Sharding by <code>created_at</code> or <code>user_id</code> would be wrong here specifically because it doesn't match the redirect hot path's access key.</p>
+
+<h3 id="p1-p">P. Deep Dive 4 — High Availability &amp; Fault Tolerance</h3>
+<p><strong>Requirement this addresses:</strong> 99.99% uptime (D). Go component by component — availability is never one decision, it's the absence of any single point of failure anywhere on the critical path.</p>
+<ul>
+<li><strong>Primary DB:</strong> primary-replica replication with automated failover (Patroni for self-managed Postgres, or a managed Multi-AZ offering). Async replication is chosen over sync — losing at most a few seconds of very-recently-created (not-yet-clicked) mappings on a rare failover is an acceptable trade for keeping normal-path write latency low, consistent with the Availability-leaning NFR.</li>
+<li><strong>Redis counter:</strong> a single instance is a SPOF. Use Redis Sentinel (auto-promotes a replica on failure) or Redis Cluster at larger scale. Residual risk, stated honestly: if Redis loses very recent state before replicating (e.g., a crash right after handing out a batch but before persisting it), a batch of IDs could theoretically be reissued. This is caught, not ignored — the DB's <code>UNIQUE</code> constraint on <code>short_code</code> is the real source of truth; a reissued ID just fails one INSERT, which retries with a fresh ID. Two independent uniqueness guarantees, not blind trust in Redis alone.</li>
+<li><strong>Cache layer:</strong> losing the cache (restart, cold start) is a performance problem, never a correctness one — traffic simply falls through to DB replicas temporarily. Watch for a cache-stampede if many nodes cold-start at once; mitigate with staggered restarts or request coalescing on hot keys. The dependency direction here is healthy: the cache can vanish without losing data, because the DB — not the cache — is the source of truth.</li>
+<li><strong>Multi-region:</strong> active-active for reads (any region serves redirects from its local cache/replica); writes are regional-scoped via the disjoint counter ranges from M. A full region outage loses that region's write capability temporarily, while reads for already-created links keep working globally via cross-region async replication.</li>
+</ul>
+
+<h3 id="p1-q">Q. Deep Dive 5 — Custom Aliases &amp; Expiration</h3>
+<p><strong>Custom alias uniqueness:</strong> a naive "SELECT to check if taken, then INSERT if free" has a race window between the check and the insert under concurrency — two requests for the same alias can both pass the check. The fix is the same lesson as concurrent spot allocation in LLD: don't check-then-act, let the datastore's atomicity do the work. Attempt the INSERT directly; the <code>UNIQUE</code> constraint on <code>short_code</code> rejects the second writer, and the app returns <code>409 Conflict</code>. This is the one place a DB round-trip on write is genuinely unavoidable — a human picked the string, not us, so there's no counter to fall back on.</p>
+<p><strong>Expiration enforcement:</strong> the cache TTL is already set to <code>min(expires_at - now, max_ttl)</code> (N), so most expired entries simply age out of the cache on their own. As defense in depth against clock skew or TTL edge cases, the redirect handler explicitly re-checks <code>expires_at</code> on any DB-sourced read before returning 302, returning <code>410 Gone</code> if it's passed.</p>
+<p><strong>Cleanup of expired rows:</strong> don't delete synchronously on the read path — that turns a cheap redirect into a write, the exact anti-pattern Deep Dive 6 warns against for analytics. Either run a periodic (e.g. hourly) background sweep that batch-deletes expired rows, or simply leave them — at 500GB/1B rows (G), storage is cheap enough that "leave and archive opportunistically" is a perfectly defensible answer, since the <code>expires_at</code> check already makes them unreachable regardless of whether the row physically still exists.</p>
+
+<h3 id="p1-r">R. Deep Dive 6 — Analytics / Click Tracking</h3>
+<p><strong>Why this matters even though D marked it out of scope:</strong> it is almost always the first follow-up an interviewer adds, specifically because it's the most common trap on this problem.</p>
+<p class="callout"><strong>The trap:</strong> naively incrementing a counter or inserting a row into the <em>same primary DB</em> synchronously on every redirect. This silently turns every read request into a write request against the primary datastore — at 600K QPS peak redirect load (G), that's 600K writes/sec you never designed for, and it defeats the entire point of the cache-heavy read path built in N. This single mistake — conflating "read the mapping" with "record that a read happened" — is the most common failure mode candidates hit on this exact follow-up (see Z).</p>
+<p><strong>The fix — fire-and-forget async pipeline:</strong> on every redirect, emit a lightweight event to a message queue/log (Kafka/Kinesis) and return the 302 immediately, without waiting for the event to be durably logged. A stream consumer aggregates click counts (by short_code, by day, by geo/referrer) and writes the aggregates into a <em>separate</em> analytics datastore (columnar/OLAP-friendly — ClickHouse, Druid, or even a separate Postgres table set) that the redirect hot path never touches or waits on.</p>
+<div class="mermaid diagram">
+flowchart LR
+  RS["Read Service"] -. "302 to client — returned immediately" .-> U(["User"])
+  RS -- "fire-and-forget click event" --> Q[("Kafka / Kinesis")]
+  Q --> AG["Stream Aggregator"]
+  AG -- "aggregated counts" --> AD[("Analytics DB<br/>OLAP")]
+  Dash["GET /urls/:code/stats"] --> AD
+</div>
+<p class="diagram-caption">Analytics never sits on the redirect's critical path — the 302 doesn't wait on the queue.</p>
+<p>An occasional lost click count on a queue hiccup is acceptable — analytics is an "eventually roughly right" requirement, unlike the URL mapping itself, which must be exactly right (see V). A separate <code>GET /urls/{code}/stats</code> endpoint reads only from the analytics store, never the hot-path cache/DB.</p>
+
+<h3 id="p1-s">S. Deep Dive 7 — Security &amp; Abuse Prevention</h3>
+<p><strong>Enumeration / guessability:</strong> the counter approach chosen in M produces sequential codes — if code N exists, an attacker knows code N+1 probably exists too, enabling scraping of "unlisted but not secret" links. <strong>Fix without giving up the collision-free counter:</strong> reversibly obfuscate the counter before base62-encoding it (XOR/permute with a fixed secret, or a small keyed Feistel-style bit permutation) so codes look random but remain a strict 1:1 function of the counter — no collision risk introduced, no DB check needed, and decode is O(1) with the secret. This is a deliberately different trade-off than just switching to a hash (M) — a hash reintroduces the collision-detection cost we specifically avoided; the obfuscated counter gets unguessability <em>and</em> collision-freedom at once.</p>
+<p><strong>Malicious/phishing long URLs:</strong> a shortener that hides its destination is an attractive phishing vector. Mitigate by checking submitted <code>long_url</code>s against a threat-intel blocklist (e.g. Google Safe Browsing API) at creation time, and re-scan periodically afterward — a domain can turn malicious after the link was already created, so a one-time check at creation isn't sufficient. Re-scanning runs on the same async, non-blocking shape as the analytics pipeline in R.</p>
+<p><strong>Abuse rate limiting:</strong> a token-bucket or sliding-window limiter (per-IP and/or per-API-key) sits at the edge/API gateway in front of the Write Service, preventing one bad actor from mass-creating links or hammering the counter/DB — a distinct concern from the general-capacity scaling in O, which assumes well-behaved aggregate traffic.</p>
+<div class="mermaid diagram">
+flowchart LR
+  C(["Client"]) --> RL{"Rate Limiter /<br/>API Gateway"}
+  RL -- "under limit" --> WS["Write Service"]
+  RL -- "over limit" --> C2["429 Too Many Requests"]
+  WS -- "long_url" --> SB{"Safe-Browsing /<br/>Threat-Intel Check"}
+  SB -- "flagged" --> Reject["Reject / flag for review"]
+  SB -- "clean" --> DB[("Primary DB")]
+</div>
+
+<h3 id="p1-t">T. Full Solution at Scale — Final Architecture</h3>
+<p>Every deep dive above composed into one system. Nothing here is new — this section is deliberately just the sum of M through S, which is the point: the design evolved one justified piece at a time (see U), never all at once.</p>
+<div class="mermaid diagram">
+flowchart TB
+  U(["Client"]) --> Edge["CDN / Edge PoPs<br/>(N — last-mile latency)"]
+  Edge -- "cache miss" --> LB["Global Load Balancer"]
+  LB --> RL{"Rate Limiter / API Gateway (S)"}
+
+  subgraph WRITE [" Write Path (O) "]
+    direction TB
+    WS["Write Service<br/>(stateless, autoscaled)"]
+    Redis[("Redis Counter<br/>batched INCR — Sentinel/Cluster (M, P)")]
+    SB{"Safe-Browsing /<br/>Threat-Intel Check (S)"}
+    WS -- "1 . INCRBY 1000" --> Redis
+    WS -- "2 . check long_url" --> SB
+  end
+
+  subgraph READ [" Read Path (N, O) "]
+    direction TB
+    RS["Read Service<br/>(stateless, autoscaled)"]
+    Cache[("Redis / Memcached<br/>cache-aside")]
+    RS -- "1 . lookup" --> Cache
+  end
+
+  subgraph STORAGE [" Storage (K, P) "]
+    direction TB
+    Primary[("Primary DB<br/>short_code | long_url")]
+    Replica[("DB Read Replicas")]
+    Primary -. "async replication" .-> Replica
+  end
+
+  subgraph ASYNC [" Async Pipeline (R, S) "]
+    direction TB
+    Kafka[("Kafka / Kinesis")]
+    Agg["Stream Aggregator"]
+    AnalyticsDB[("Analytics DB — OLAP")]
+    Kafka --> Agg --> AnalyticsDB
+  end
+
+  RL --> WS
+  RL --> RS
+  WS -- "INSERT (clean only)" --> Primary
+  WS -. "click/creation events" .-> Kafka
+  Cache -- "miss" --> Replica
+  RS -. "click events" .-> Kafka
+  RS -. "302" .-> U
+</div>
+<p class="diagram-caption">Full solution at scale — the composition of deep dives M through S, nothing new introduced here.</p>
+
+<h3 id="p1-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — Naive monolith (J):</strong> one server, one DB, synchronous hash + collision retry.</li>
+<li><strong>V2 — Uniqueness fixed (M):</strong> replace hash+retry with a Redis-backed counter + base62 encoding; batching added to cut Redis round-trips.</li>
+<li><strong>V3 — Latency fixed (N):</strong> cache-aside Redis layer in front of the DB for redirects.</li>
+<li><strong>V4 — Throughput/availability fixed (O, P):</strong> split into Read/Write services; add DB read replicas and primary failover.</li>
+<li><strong>V5 — Global scale (N, M, P):</strong> CDN/edge redirect layer; multi-region disjoint counter ranges; active-active reads.</li>
+<li><strong>V6 — Analytics added (R):</strong> async event pipeline (Kafka → aggregator → analytics DB), deliberately outside the hot path.</li>
+<li><strong>V7 — Security hardened (S):</strong> obfuscated (non-sequential-looking) codes, malicious-URL scanning, rate limiting.</li>
+</ul>
+<p><strong>What stays stable across every version:</strong> the public API contract from I — <code>POST /urls</code> and <code>GET /{short_code}</code>. That stability is the payoff of treating ID generation, caching, and storage as swappable internals from the start — clients never notice the system evolving underneath them, the same principle the LLD handbook's Parking Lot facade demonstrates at the class level.</p>
+
+<h3 id="p1-v">V. Consistency Model &amp; CAP Trade-offs</h3>
+<p>The system is deliberately <strong>AP-leaning</strong> (Availability over Consistency) almost everywhere: a redirect should keep working even if a replica is slightly stale or a node is down — an unavailable redirect is a publicly broken link, arguably worse for reputation than a rare stale read. Writes tolerate a small async-replication lag; the cache tolerates being wrong for at most one TTL window.</p>
+<p><strong>The one deliberate exception — strong consistency for uniqueness itself.</strong> <code>short_code</code> uniqueness is enforced via the primary DB's <code>UNIQUE</code> constraint (strongly consistent on a single primary) plus the Redis counter's atomic <code>INCR</code> — the one invariant the whole system cannot be loose about. This is a hybrid, not a contradiction: strong consistency for the one narrow guarantee that actually matters (two links must never silently collide), eventual consistency for everything else (replica reads, cache freshness, analytics counts).</p>
+
+<h3 id="p1-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>Redis counter node down:</strong> Sentinel/Cluster promotes a replacement (P); worst case, a small batch of already-issued-but-uncommitted IDs gets reissued — caught by the DB's UNIQUE constraint, not silent corruption (M).</li>
+<li><strong>Cache cluster down:</strong> traffic falls through to DB replicas; a performance problem, never a correctness one (P) — watch for stampede on simultaneous cold restart.</li>
+<li><strong>Primary DB down:</strong> automated failover promotes a replica; a few seconds of very-recent writes may be lost (accepted trade-off, V).</li>
+<li><strong>Region outage:</strong> that region's writes pause (or reroute to another region's counter block); reads for existing links keep working globally via cross-region replication (P).</li>
+<li><strong>Read-your-write race:</strong> creator clicks their own link before replication catches up — mitigated by synchronously warming the cache on write for new links (O).</li>
+<li><strong>Custom alias race:</strong> two users request the same alias simultaneously — resolved by the DB's UNIQUE constraint rejecting the loser, not an app-level check (Q).</li>
+<li><strong>Long URL flagged malicious after creation:</strong> periodic re-scan catches domains that turned malicious post-creation, not just at write time (S).</li>
+</ul>
+
+<h3 id="p1-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 naive</td><td>Single server/DB — any load at all</td><td>Everything below</td></tr>
+<tr><td>Post-cache</td><td>DB disk IOPS on cache miss</td><td>Cache-aside absorbs 90%+ of reads (N)</td></tr>
+<tr><td>Post-service-split</td><td>Cache memory size vs. working-set size</td><td>Size cache to the Zipfian hot set, not total dataset (N)</td></tr>
+<tr><td>Post-multi-region</td><td>Cross-region coordination for ID uniqueness</td><td>Disjoint counter ranges per region (M)</td></tr>
+<tr><td>Hyperscale (10-100× stated scale)</td><td>Single DB's total write/storage ceiling</td><td>Shard by hash(short_code) — only justified here, not sooner (O)</td></tr>
+</table>
+<p class="callout">At no point in the stated 1B/100M-DAU scale (G) is database sharding actually necessary — it appears only at the bottom row, as a hyperscale extension. Reaching for it earlier is the single most common over-engineering mistake on this problem (Z).</p>
+
+<h3 id="p1-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>ID generation</td><td>Hash + collision retry</td><td>Counter + base62 (chosen)</td><td>Hash needs no coordination but pays a DB check per write and gets slower as fill increases; counter is O(1) and collision-free but needs one coordinated ID source</td></tr>
+<tr><td>Redirect status</td><td>301 Permanent</td><td>302 Temporary (chosen)</td><td>301 is cheaper (browser-cached) but breaks expiration and analytics; 302 costs more server load but both features require it</td></tr>
+<tr><td>DB replication</td><td>Synchronous</td><td>Async (chosen)</td><td>Sync guarantees zero data loss on failover but adds write latency and needs quorum; async keeps writes fast, accepts a few seconds of loss risk on a rare failover</td></tr>
+<tr><td>Cache population</td><td>Write-through</td><td>Cache-aside (chosen)</td><td>Write-through keeps cache always warm but wastes memory on never-clicked links; cache-aside only caches what's actually requested</td></tr>
+<tr><td>Redirect edge layer</td><td>Origin-only</td><td>CDN/Edge compute</td><td>Origin-only is simpler to reason about and debug; edge cuts network RTT for global users at the cost of harder cache invalidation and higher $ cost</td></tr>
+<tr><td>Sharding</td><td>Single primary + replicas (chosen at stated scale)</td><td>Shard by hash(short_code)</td><td>Single primary is simpler and sufficient at 500GB/1B rows; sharding only pays off 10-100× beyond stated scale</td></tr>
+</table>
+
+<h3 id="p1-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Hash + DB-check-on-every-write at scale.</strong> Looks natural (it's the first idea everyone has), but it makes every single write pay a synchronous collision-check round-trip forever, and collision handling logic grows uglier as fill increases. Fix: the counter-based approach in M, which is collision-free by construction.</li>
+<li><strong>Writing analytics synchronously into the hot-path DB.</strong> The single most common mistake on the analytics follow-up specifically — it turns a 600K QPS read spike into an equally large write spike on the primary datastore. Fix: async event pipeline, entirely decoupled from the redirect response (R).</li>
+<li><strong>Sharding the database "because 1 billion rows sounds big."</strong> 1B rows at ~500 bytes each is 500GB — trivially small for a single modern DB node. Sharding here adds cross-shard complexity for a problem that doesn't exist yet. Fix: recognize that the actual constraint at this scale is read QPS, not storage (O, X).</li>
+<li><strong>Defaulting to 301 redirects "because they're faster."</strong> They are faster for repeat clicks, but silently break both expiration and click analytics, both of which are stated requirements. Fix: 302, and treat the extra server load it implies as the reason the caching deep dive exists (I, N).</li>
+<li><strong>Single Redis instance for the counter with no Sentinel/Cluster.</strong> Works fine in a demo, is a silent SPOF in production — a NFR the availability target explicitly rules out. Fix: P.</li>
+<li><strong>Check-then-insert for custom alias uniqueness.</strong> Has a race window between the SELECT and the INSERT under concurrency. Fix: attempt the INSERT directly and let the UNIQUE constraint reject losers (Q) — same lesson as concurrent resource allocation in LLD.</li>
+<li><strong>Eagerly deleting expired rows on the read path.</strong> Turns a cheap redirect into an extra write for zero user-facing benefit, since the <code>expires_at</code> check already makes the row unreachable. Fix: periodic background sweep, or don't delete at all (Q).</li>
+</ul>
+
+<h3 id="p1-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Testing</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th><th>Pattern/Trade-off</th></tr>
+<tr><td>"A single link just went viral — 1M clicks in an hour."</td><td>Distinguishing diurnal peak from a black-swan spike</td><td>Cache absorbs it almost entirely since it's one hot key; if a single Redis node still saturates, replicate that one key across multiple cache nodes ("hot-key fan-out")</td><td>Cache tier</td><td>DB, ID generation</td><td>Validates G's distinction between diurnal peak (~58K QPS) and viral burst (~600K QPS)</td></tr>
+<tr><td>"Support link previews (fetch page title/og:image)."</td><td>Recognizing scope creep vs. a real new component</td><td>Async background fetcher hits the long_url once at creation time, caches metadata separately — never on the redirect hot path</td><td>New async worker, new metadata table</td><td>Read Service, redirect flow</td><td>Same "don't touch the hot path" principle as analytics (R)</td></tr>
+<tr><td>"User wants to delete their link (GDPR/right-to-be-forgotten)."</td><td>Consistency of deletion across cache + CDN edge</td><td>DELETE endpoint removes the DB row and explicitly invalidates cache/edge entries rather than waiting for TTL</td><td>Write Service, cache invalidation logic</td><td>ID generation</td><td>Active invalidation vs. passive TTL expiry — a real trade-off surfaced by this exact follow-up</td></tr>
+<tr><td>"No external dependencies allowed — no Redis."</td><td>Whether the candidate over-relied on one tool</td><td>Replace Redis counter with a DB auto-increment sequence (accept it becomes a write bottleneck/SPOF sooner) or a Snowflake-style generator (M)</td><td>ID generation only</td><td>Everything else</td><td>Validates that M's alternatives section wasn't decorative</td></tr>
+<tr><td>"Support bulk shortening via a CSV upload."</td><td>Recognizing a batch workload shouldn't reuse the single-URL hot path</td><td>Separate batch endpoint/queue that calls the same counter-batching logic in a loop, async, with a completion callback</td><td>New batch API, reuses ID generation</td><td>Redirect path entirely</td><td>Reuse the counter-batching mechanism (M) rather than inventing a new ID scheme for batches</td></tr>
+<tr><td>"Two regions raced to create the same custom alias."</td><td>Whether the DB constraint story holds across regions, not just within one</td><td>Custom aliases must be validated against a globally-consistent store (not per-region), or accept last-writer-wins with the loser getting a 409 on next check</td><td>Custom alias write path</td><td>Counter-based codes (unaffected — disjoint ranges already prevent this for them)</td><td>Exposes that the multi-region disjoint-range trick from M doesn't automatically extend to human-chosen aliases</td></tr>
+<tr><td>"Migrate everyone from 6-char to 7-char codes without downtime."</td><td>Backward-compatible schema evolution</td><td>New codes issued at 7 chars going forward; old 6-char codes keep resolving unchanged since length isn't validated on read, only on generation</td><td>ID generation only</td><td>Redirect/read path (already length-agnostic)</td><td>Good design didn't hardcode a fixed length anywhere on the read path — a subtle but real detail</td></tr>
+</table>
+
+<h3 id="p1-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> jumps straight to a single server/DB design with no capacity estimation; never distinguishes read from write load; treats "at scale" as a buzzword rather than a set of numbers to derive decisions from.</li>
+<li><strong>Mid-level:</strong> produces a working high-level design with the basic shorten/redirect flow; recognizes uniqueness needs solving and proposes hashing or a counter; understands why 302 over 301; mentions caching if prompted.</li>
+<li><strong>Senior:</strong> proactively identifies the read-heavy skew and structures the design around it before being asked; articulates the hash-vs-counter trade-off unprompted; details caching strategy including TTL/expiration interplay; justifies the database choice instead of defaulting to one; separates read/write services for the asymmetric load; understands Redis counter scaling and batching.</li>
+<li><strong>Staff+:</strong> discusses multi-region counter partitioning, Redis failover mechanics, and the read-your-writes edge case unprompted; addresses enumeration/security without being asked; shows product judgment on custom-alias collisions and expiration cleanup; can clearly state where the design would need to change 10-100× beyond stated scale and why it doesn't need to change sooner.</li>
+</ul>
+<p style="font-size:11px; color:#888;">Rubric adapted from the seniority framing used by <a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/bitly" target="_blank">Hello Interview's Bitly breakdown</a>, restated in this document's own words.</p>
+
+<h3 id="p1-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a URL shortener like Bit.ly.</div>
+<div class="dialog"><span class="who">Candidate:</span> Before I design anything — roughly what scale are we targeting, and what's the read-to-write ratio? That changes almost every downstream decision.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Assume 1 billion stored URLs, 100 million daily active users, and redirects vastly outnumber new links — call it 1000:1.</div>
+<div class="dialog"><span class="who">Candidate:</span> That puts storage around 500GB total, which fits on one DB node easily — so I won't shard for storage. But redirect QPS peaks around 600K in a viral-burst scenario, so the real problem is absorbing read spikes cheaply, not storage.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Good. How do you generate the short codes?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd use a monotonic counter, base62-encoded — that's collision-free by construction, unlike hashing, which needs a collision-check on every write. I'd back the counter with Redis and batch allocations of, say, 1000 IDs per app instance, so we're not round-tripping to Redis on every single request.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Sequential IDs are guessable though.</div>
+<div class="dialog"><span class="who">Candidate:</span> Right — I'd apply a reversible obfuscation, like a keyed bit permutation, before base62-encoding. It's still a 1:1 function of the counter, so I keep the collision-free property, but the codes no longer look sequential to an outside observer.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Now make redirects fast under that load.</div>
+<div class="dialog"><span class="who">Candidate:</span> Index on short_code as the primary key first, but that alone can't survive 600K QPS from disk. I'd add a cache-aside Redis layer in front of the DB — click traffic is Zipfian, so a cache sized to the hot set absorbs the vast majority of that load. If we still needed to shave global latency, I'd push the redirect logic to CDN edge functions as a later step, not a first one, since it adds real invalidation complexity.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What if analytics on clicks gets added later?</div>
+<div class="dialog"><span class="who">Candidate:</span> I would not write analytics synchronously into the same primary database — that turns every redirect into a write, which defeats the whole point of the caching I just built. I'd fire an async event to a queue on every redirect and aggregate it separately, so the redirect response never waits on it.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last one — what actually breaks first if we 100x this?</div>
+<div class="dialog"><span class="who">Candidate:</span> Not storage — that scales fine for a long time. It'd be the single Redis counter and the single primary DB's write ceiling. At that point I'd shard the DB by hash of short_code, since that matches the redirect lookup key exactly, and I'd extend the disjoint-counter-range trick I'm already using across regions to shard the counter itself.</div>
+
+<h3 id="p1-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/bitly" target="_blank">Hello Interview — Problem Breakdown</a></td><td>Requirements-first, then deep dives per NFR (uniqueness, latency, scale); explicit seniority rubric</td><td>Cleanest requirement-to-deep-dive traceability of any source reviewed; explicit mid/senior/staff expectations</td><td>Lighter on multi-region and security specifics than a full production design would need</td><td>The core methodology this entire document follows — basic design first, then let each requirement earn its complexity</td></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/answer-keys/bitly" target="_blank">Hello Interview — Answer Key</a></td><td>Condensed final architecture with all components named explicitly</td><td>Good checklist of the exact components a final answer should include</td><td>Less narrative reasoning than the breakdown page — better as a reference than a teaching tool</td><td>Cross-checking your own final diagram against theirs component-by-component</td></tr>
+<tr><td><a href="https://bytebytego.com/courses/system-design-interview/design-a-url-shortener" target="_blank">ByteByteGo</a></td><td>Hash+collision vs. base62-of-unique-ID compared explicitly; distributed unique-ID generator section; bloom filters mentioned for collision checks</td><td>Most rigorous treatment of the ID-generation trade-off specifically; concrete capacity numbers</td><td>Less focus on the read/write service-separation and multi-region angle</td><td>The base62-of-a-globally-unique-ID framing, and the bloom-filter idea for fast negative collision checks if you do choose hashing</td></tr>
+<tr><td><a href="https://www.educative.io/courses/grokking-the-system-design-interview/system-design-tinyurl" target="_blank">Educative — Grokking (TinyURL)</a></td><td>Detailed capacity estimation walkthrough (100M URLs/day style numbers), simple 3-column schema, load balancer + cache + DB layering</td><td>Very approachable capacity-estimation pedagogy for beginners</td><td>Doesn't go deep on multi-region, security, or the analytics-pipeline trap</td><td>The step-by-step capacity math structure, useful as a template for any HLD problem, not just this one</td></tr>
+<tr><td><a href="https://www.systemdesignhandbook.com/guides/design-bitly/" target="_blank">System Design Handbook</a></td><td>Production-framing (SLAs, phishing/abuse angle) rather than pure-interview framing</td><td>Best coverage of the security/abuse angle (malicious URLs, rate limiting) among sources reviewed</td><td>Less rigorous on the ID-generation trade-off than ByteByteGo or Hello Interview</td><td>The framing that a URL shortener is a real abuse vector, not just a caching exercise</td></tr>
+</table>
+<p style="font-size:11.5px; color:#666;">Additional cross-referenced sources (search-level only, not deep-fetched): <a href="https://www.geeksforgeeks.org/system-design-url-shortening-service/" target="_blank">GeeksforGeeks</a>, <a href="https://github.com/Jeevan-kumar-Raj/Grokking-System-Design/blob/master/designs/short-url.md" target="_blank">Grokking-System-Design (GitHub)</a>, <a href="https://systemdesignschool.io/problems/url-shortener/solution" target="_blank">System Design School</a>.</p>
+
+<h3 id="p1-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>URL Shortener (Bitly)</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Beginner → Advanced+Scale</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Shorten (+custom alias, +expiry) and redirect; uniqueness, &lt;100ms redirects, 99.99% uptime, 1B URLs/100M DAU at ~1000:1 read:write</td></tr>
+<tr><td><strong>Key numbers</strong></td><td>~5,800 avg / ~58K peak / ~600K viral-burst redirect QPS; ~6 write QPS; ~500GB total storage; 7-char base62 codes</td></tr>
+<tr><td><strong>Core entities</strong></td><td>ShortUrl, User (optional), ClickEvent (separate store)</td></tr>
+<tr><td><strong>ID generation</strong></td><td>Redis atomic counter + base62 encode + batching, over hash+collision-retry — collision-free by construction</td></tr>
+<tr><td><strong>Fast redirects</strong></td><td>DB index → cache-aside (Redis) → CDN/edge, in that order, each layer justified by what the previous one can't handle</td></tr>
+<tr><td><strong>Redirect status code</strong></td><td>302, not 301 — 301 breaks expiration and analytics</td></tr>
+<tr><td><strong>Most important decision</strong></td><td>Recognizing storage (500GB) is a non-issue and the real scaling problem is read QPS — don't shard prematurely</td></tr>
+<tr><td><strong>Consistency model</strong></td><td>AP overall (availability-first); strong consistency only for short_code uniqueness itself</td></tr>
+<tr><td><strong>Top follow-ups</strong></td><td>Viral spike, link previews, deletion/GDPR, no-external-deps constraint, bulk upload, multi-region alias race, code-length migration</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Hash+DB-check on every write; synchronous analytics writes; premature sharding; defaulting to 301; single-instance Redis counter; check-then-insert for aliases</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Sharding, CDN/edge, Kafka analytics — all correct eventually, all wrong if introduced before the requirement that justifies them</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="prereq.html">&larr; 0. Prerequisites — Core Building Blocks</a><a class="prevnext-link next" href="p2.html">2. Rate Limiter &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

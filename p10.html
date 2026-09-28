@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>10. Distributed Job Scheduler — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">10. Distributed Job Scheduler <span class="badge">Advanced + Distributed Systems</span></h1>
+
+<div class="section-toc">
+<a href="#p10-a">A. Interview Prompt</a><a href="#p10-b">B. Difficulty</a><a href="#p10-c">C. What It Tests</a>
+<a href="#p10-d">D. Requirements</a><a href="#p10-e">E. Clarifying Questions</a><a href="#p10-f">F. Assumptions</a>
+<a href="#p10-g">G. Capacity Estimation</a><a href="#p10-h">H. Core Entities</a><a href="#p10-i">I. API Design</a>
+<a href="#p10-j">J. Basic Design (V1)</a><a href="#p10-k">K. Data Model &amp; Store Choice</a><a href="#p10-l">L. End-to-End Flow</a>
+<a href="#p10-m">M. Deep Dive 1: Leader Election</a><a href="#p10-n">N. Deep Dive 2: Trigger Scale-Out</a><a href="#p10-o">O. Deep Dive 3: Exactly-Once-Ish Execution</a>
+<a href="#p10-p">P. Deep Dive 4: Retries &amp; Failure Handling</a><a href="#p10-q">Q. Deep Dive 5: Dependency Graphs</a><a href="#p10-r">R. Deep Dive 6: Worker Fleet &amp; Isolation</a>
+<a href="#p10-s">S. Deep Dive 7: Missed &amp; Backfilled Runs</a><a href="#p10-t">T. Full Solution at Scale</a><a href="#p10-u">U. Design Evolution</a>
+<a href="#p10-v">V. Consistency Model</a><a href="#p10-w">W. Failure Scenarios</a><a href="#p10-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p10-y">Y. Trade-Offs</a><a href="#p10-z">Z. Common Bad Designs</a><a href="#p10-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p10-ab">AB. Interviewer Evaluation</a><a href="#p10-ac">AC. Interview Simulation</a><a href="#p10-ad">AD. Source Comparison</a>
+<a href="#p10-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p10">Jump to section:</label><select id="jump-p10" class="jump-select" data-jump-select><option value="p10-a">A. Realistic Interview Prompt</option><option value="p10-b">B. Difficulty</option><option value="p10-c">C. What This Problem Tests</option><option value="p10-d">D. Requirements</option><option value="p10-e">E. Clarifying Questions</option><option value="p10-f">F. Assumptions</option><option value="p10-g">G. Capacity Estimation</option><option value="p10-h">H. Core Entities</option><option value="p10-i">I. API Design</option><option value="p10-j">J. Basic / Naive High-Level Design (V1)</option><option value="p10-k">K. Data Model &amp; Store Choice</option><option value="p10-l">L. End-to-End Flow — One Scheduled Job, Triggered and Executed</option><option value="p10-m">M. Deep Dive 1 — Leader Election for the Triggering Role</option><option value="p10-n">N. Deep Dive 2 — Scaling the Trigger Path (The Midnight Spike)</option><option value="p10-o">O. Deep Dive 3 — Exactly-Once-Ish Execution</option><option value="p10-p">P. Deep Dive 4 — Retries &amp; Failure Handling</option><option value="p10-q">Q. Deep Dive 5 — Job Dependency Graphs</option><option value="p10-r">R. Deep Dive 6 — Worker Fleet &amp; Isolation</option><option value="p10-s">S. Deep Dive 7 — Missed Runs &amp; Backfill</option><option value="p10-t">T. Full Solution at Scale — Final Architecture</option><option value="p10-u">U. Design Evolution</option><option value="p10-v">V. Consistency Model</option><option value="p10-w">W. Failure Scenarios</option><option value="p10-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p10-y">Y. Design Trade-Offs</option><option value="p10-z">Z. Common Bad Designs</option><option value="p10-aa">AA. Interviewer Follow-Ups</option><option value="p10-ab">AB. Interviewer Evaluation Rubric</option><option value="p10-ac">AC. Interview Simulation</option><option value="p10-ad">AD. Online Solution Comparison</option><option value="p10-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p10-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a distributed job scheduler like cron, but for a large fleet: users register jobs that run on a schedule (or once, at a specific time), and the system guarantees each job actually runs, on time, exactly once, even as machines fail."</div>
+<p>Plain <code>cron</code> works fine on one machine because that one machine is both the clock and the executor — there's nothing to coordinate. The moment scheduling has to survive a single machine's failure, "what time should this run" and "did this already run" become distributed-systems questions with no single obviously-correct answer, and the entire design is really about answering those two questions correctly under failure, not about scheduling logic itself.</p>
+
+<h3 id="p10-b">B. Difficulty</h3>
+<p><strong>Advanced, distributed-systems-heavy</strong> — the core mechanics (a schedule, a queue, workers) are simple; what's hard is guaranteeing a job runs <em>despite</em> crashes, network partitions, and clock skew, without either silently skipping it or running it twice in a way that matters (e.g., double-charging a customer, double-sending an email).</p>
+
+<h3 id="p10-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognizing that "the scheduler" is a role that must itself be highly available — a single machine deciding "what's due to run right now" is a single point of failure for the entire system's core function</li>
+<li>Leader election as a concrete mechanism (not just a buzzword) for ensuring exactly one instance is actively making triggering decisions at a time, while the rest stand by ready to take over</li>
+<li>Honest engagement with "exactly-once" execution — recognizing it's unachievable in the strict distributed-systems sense over an unreliable network, and designing instead for effectively-once semantics via idempotency, which is the actual, correct engineering answer</li>
+<li>Designing retry and failure-handling policy (backoff, max attempts, dead-lettering) as a first-class feature, not an afterthought</li>
+<li>Comfort with job dependency graphs (job B should only run after job A succeeds) as a natural, expected extension of a scheduling system</li>
+</ul>
+
+<h3 id="p10-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Users can register a job with a schedule — a cron-style recurring expression, or a one-time future timestamp</li>
+<li>The system triggers each job's execution at (or very close to) its scheduled time</li>
+<li>Users can view a job's execution history and status (success, failure, retrying)</li>
+<li>A failed job execution is retried according to a configurable policy</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>High availability of the scheduling function itself</strong> — the system must keep triggering jobs on time even if individual machines (including whichever one was "in charge" of triggering) crash</li>
+<li><strong>Effectively-once execution</strong> — a job should not be silently skipped, and should not run twice in a way that produces a duplicated real-world side effect (this document's standard illustrative example: <strong>a scheduled job that charges a customer's credit card must never double-charge them</strong>)</li>
+<li><strong>Timing accuracy</strong> — triggering within a small tolerance window (illustratively, a few seconds) of the scheduled time, not "sometime that minute" or later</li>
+<li><strong>Horizontal scalability</strong> — supporting a very large number of registered jobs (millions) and a large number of jobs due to fire at the same instant (e.g. everything scheduled for "midnight UTC")</li>
+</ul>
+<p><strong>Out of scope:</strong> a full workflow/DAG orchestration UI, arbitrary job-code sandboxing/security model, cross-region job migration.</p>
+
+<h3 id="p10-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Is "exactly once" a hard, literal requirement, or is "effectively once, assuming idempotent job logic" acceptable?</td><td>True exactly-once delivery/execution is not achievable over an unreliable network — the honest, correct answer reframes this immediately</td><td>Deep Dive 3 (O)</td></tr>
+<tr><td>2</td><td>Can jobs depend on other jobs completing successfully first?</td><td>Turns a flat list of independent triggers into a dependency-graph scheduling problem</td><td>Deep Dive 5 (Q)</td></tr>
+<tr><td>3</td><td>How large can a single job's execution be — a lightweight HTTP callback, or an arbitrary long-running compute task?</td><td>Long-running/heavy jobs need real resource isolation on the worker fleet; lightweight callbacks don't</td><td>Deep Dive 6 (R)</td></tr>
+<tr><td>4</td><td>What should happen if the whole system is down when a scheduled time passes (a missed run)?</td><td>Determines whether missed runs are simply skipped, or backfilled/caught-up once the system recovers</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>5</td><td>What's an acceptable timing tolerance — exact-second precision, or "within a few seconds/a minute" is fine?</td><td>Directly sets the trigger-polling/evaluation interval and how tightly the leader must track wall-clock time</td><td>Capacity Estimation (G)</td></tr>
+</table>
+
+<h3 id="p10-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> cron-style recurring and one-time job registration, on-time triggering, execution history, configurable retries.</li>
+<li><strong>Assumption:</strong> effectively-once semantics via idempotency (E's clarifying question 1) — the honest, achievable, and actually-expected answer to this problem, not literal exactly-once delivery.</li>
+<li><strong>Assumption:</strong> job dependency graphs are in scope (E's clarifying question 2) — the more complete and commonly-discussed version of this problem.</li>
+<li><strong>Assumption:</strong> jobs are lightweight triggers (an HTTP callback or a message enqueued to a downstream system), not arbitrary heavy compute (E's clarifying question 3) — keeps the design focused on scheduling/triggering correctness rather than a general compute-cluster scheduler.</li>
+<li><strong>Assumption:</strong> a several-second timing tolerance (E's clarifying question 5) — realistic for the vast majority of real scheduled-job use cases (daily reports, periodic cleanups, reminder emails).</li>
+</ul>
+
+<h3 id="p10-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Total registered jobs</td><td>Tens of millions, illustratively, across a large platform</td><td>The job-definition store must scale to large counts, though each individual definition is tiny (schedule expression + metadata)</td></tr>
+<tr><td>Peak simultaneous triggers ("midnight spike")</td><td>Hundreds of thousands of jobs can share a common schedule (e.g. "run at 00:00 UTC daily") and become due in the same instant</td><td>The real scale challenge — an enormous burst of near-simultaneous triggers, not steady-state throughput, echoing Ticketmaster's flash-sale-shaped load rather than a smooth-traffic problem</td></tr>
+<tr><td>Trigger evaluation interval</td><td>Every few seconds (per F's timing-tolerance assumption)</td><td>Sets how frequently the leader (M) must scan for due jobs — too infrequent misses the timing NFR, too frequent wastes evaluation work on jobs nowhere near due</td></tr>
+<tr><td>Job definition size</td><td>Schedule expression + target + metadata ≈ ~1KB</td><td>Trivially small in isolation — confirms this, like Ticketmaster, is a coordination/correctness problem, not a storage-volume problem</td></tr>
+<tr><td>Execution history retention</td><td>Recent runs per job (e.g. last 30-90 days) for status/debugging visibility</td><td>An append-heavy, time-ordered log — naturally suited to a wide-column or time-series-style store, separate from the job-definition store</td></tr>
+</table>
+
+<h3 id="p10-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>Job</code></td><td>A registered, schedulable unit of work</td><td><code>job_id</code>, <code>schedule_expr</code> (cron or one-time timestamp), <code>target</code> (callback URL/queue), <code>depends_on</code> (Q), <code>next_run_at</code></td></tr>
+<tr><td><code>Execution</code></td><td>One concrete attempt to run a job at a specific due time</td><td><code>execution_id</code>, <code>job_id</code>, <code>scheduled_for</code>, <code>status</code> (pending/running/succeeded/failed/retrying), <code>attempt_count</code></td></tr>
+<tr><td><code>Lease</code> (ephemeral)</td><td>A worker's claim on one execution, preventing two workers from running the same execution concurrently (O)</td><td><code>execution_id</code>, <code>worker_id</code>, <code>lease_expires_at</code></td></tr>
+<tr><td><code>LeaderLock</code> (ephemeral)</td><td>The single active leader's claim on the triggering role itself (M)</td><td><code>leader_id</code>, <code>term</code>, <code>lease_expires_at</code></td></tr>
+</table>
+
+<h3 id="p10-i">I. API Design</h3>
+<pre><code>POST   /v1/jobs                    { schedule_expr, target, depends_on? } -> { job_id }
+GET    /v1/jobs/{id}/executions    -> [{ execution_id, scheduled_for, status, attempt_count }]
+DELETE /v1/jobs/{id}                                                       (unregister)
+-- internal, not client-facing:
+(leader-only) scan Job store for next_run_at &lt;= now()                      (M, N)
+(worker-facing) POST /internal/executions/claim  -> { execution_id, lease } (O)
+(worker-facing) POST /internal/executions/{id}/complete { status }         (O, P)
+</code></pre>
+<p><strong>Why the trigger/scan step has no client-facing endpoint at all:</strong> "decide what's due to run" is a purely internal system responsibility performed by whichever instance currently holds the leader role (M) — exposing it as an API would imply any caller should be able to trigger job evaluation, which is meaningless; only the internal claim/complete lifecycle needs to be a well-defined contract, since that's what the worker fleet (R) actually interacts with.</p>
+
+<h3 id="p10-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: one server holds all job definitions in memory (or polls a database), loops every few seconds checking which jobs are due, and directly executes each due job itself.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Loop["Single Scheduler Server<br/>(poll loop)"] -- "every N seconds,<br/>scan for due jobs" --> DB[("Job Store")]
+  Loop -- "execute directly" --> Target["Job's target<br/>(HTTP callback / queue)"]
+</div>
+<p class="diagram-caption">V1 — a single always-on process. Works fine until that one process crashes.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> the single scheduler server is a hard single point of failure for the entire system's core purpose — if it crashes, restarts, or is mid-deploy at the exact moment a job is due, that job simply doesn't run, with no other instance positioned to notice or take over. Worse, if a naive fix is "just run two scheduler instances for redundancy," both instances would independently see the same due job and both trigger it — turning one failure mode (missed jobs) into another (duplicate execution), unless something coordinates which instance is actually allowed to act.</p>
+
+<h3 id="p10-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>A relational or strongly-consistent store for job definitions and the leader lock:</strong> both <code>next_run_at</code> updates and leader-lock acquisition (M) need atomic conditional writes — the exact same "reach for the storage layer's native atomicity primitive" principle used for Ticketmaster's seat holds and Rate Limiter's counter, here applied to "claim the leader role" and "claim this due job for a worker" instead.</p>
+<p><strong>A separate, append-heavy store for execution history:</strong> executions are written far more frequently than job definitions change, and are queried mostly by recent time range per job — a natural fit for a wide-column or time-series-oriented store, kept apart from the comparatively small, slowly-changing job-definition table for the same reason Chat System separates its message store from user/conversation metadata.</p>
+<p><strong>Indexing jobs by <code>next_run_at</code>:</strong> the leader's core operation is "find all jobs due now," which is fundamentally a range scan on <code>next_run_at</code> — this index is the single most performance-critical structure in the whole data model, directly enabling N's scale-out approach.</p>
+
+<h3 id="p10-l">L. End-to-End Flow — One Scheduled Job, Triggered and Executed</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant Leader as Leader Instance (M)
+  participant DB as Job Store (K)
+  participant Queue as Trigger Queue
+  participant W as Worker (R)
+  Leader->>DB: scan for next_run_at <= now()
+  DB-->>Leader: due job(s)
+  Leader->>DB: atomically advance next_run_at (idempotency key, O)
+  Leader->>Queue: enqueue execution
+  W->>Queue: claim execution (lease, O)
+  W->>W: run job / call target
+  alt success
+    W->>DB: mark execution succeeded
+  else failure
+    W->>DB: mark failed, schedule retry (P)
+  end
+</div>
+
+<h3 id="p10-m">M. Deep Dive 1 — Leader Election for the Triggering Role</h3>
+<p><strong>Requirement this addresses:</strong> directly fixes V1's fatal flaw (J) — the single idea that makes the triggering function itself highly available without causing duplicate triggers.</p>
+<table>
+<tr><th>Mechanism</th><th>How</th><th>Trade-off</th></tr>
+<tr><td><strong>Lease-based leader election (chosen default)</strong></td><td>Multiple scheduler instances race to atomically write a leader-lock record with a short TTL (via the database's conditional-update primitive, or a dedicated coordination service like ZooKeeper/etcd); whoever succeeds is the leader until the lease expires, and must periodically renew it or another instance takes over</td><td>Simple, uses the same atomic-conditional-write primitive already established for other problems in this document; a brief gap with no active leader is possible right after a crash, bounded by the lease TTL</td></tr>
+<tr><td>External consensus service (ZooKeeper, etcd, Consul)</td><td>Delegate leader election entirely to a purpose-built consensus system</td><td>More robust for very large fleets of candidate leaders, but introduces an additional operational dependency for a coordination problem a simple lease can already solve at this scale</td></tr>
+<tr><td>Static, manually-designated leader</td><td>One instance is simply configured as "the" leader, with no election at all</td><td>Trivial to implement, but reintroduces V1's exact single point of failure — a manual failover process is not high availability</td></tr>
+</table>
+<p><strong>Why only one instance is ever allowed to actively trigger, rather than letting all standby instances also scan-and-trigger "just in case":</strong> exactly one active triggering authority is what prevents the duplicate-trigger failure mode named in J — every non-leader instance still runs, watching the lease and ready to take over the instant it expires unrenewed, but deliberately does nothing else while standing by.</p>
+
+<h3 id="p10-n">N. Deep Dive 2 — Scaling the Trigger Path (The Midnight Spike)</h3>
+<p><strong>Requirement this addresses:</strong> the horizontal-scalability NFR (D) and G's "midnight spike" — hundreds of thousands of jobs sharing a common due time is a fundamentally different load shape than a smooth, evenly-distributed trigger rate.</p>
+<p><strong>Why a single leader triggering everything doesn't mean a single leader executing everything:</strong> the leader's job is narrowly just to identify due jobs and enqueue their executions (L) — a comparatively cheap operation per job — while the actual execution work (calling each job's target) is handled by an entirely separate, horizontally-scaled worker fleet (R) pulling from a queue. This split is what lets the trigger burst be absorbed: the leader can enqueue hundreds of thousands of executions quickly, and the queue naturally smooths the burst into whatever rate the worker fleet can sustainably process, the same buffering role a message queue plays in Video Streaming's transcoding pipeline.</p>
+<p><strong>Sharding the job-scanning work itself, if a single leader's scan becomes the bottleneck:</strong> jobs can be partitioned (e.g. by <code>job_id</code> hash range) across multiple concurrently-active leader-per-partition roles, each independently elected (M) and each responsible only for scanning and triggering its own partition — turning one large scan into several smaller, parallel ones without reintroducing any duplicate-trigger risk, since each partition still has exactly one active leader.</p>
+
+<h3 id="p10-o">O. Deep Dive 3 — Exactly-Once-Ish Execution</h3>
+<p><strong>Requirement this addresses:</strong> the effectively-once NFR (D) — the central technical decision of this entire problem, in the same way overselling-prevention was Ticketmaster's and OT-vs-CRDT was Google Docs's.</p>
+<p class="callout"><strong>Why literal exactly-once is not actually achievable:</strong> at some point a worker calls a job's target (an HTTP request, a queue publish) and then must record that it succeeded — if the worker crashes between "the call went through" and "the success was recorded," there is no way to distinguish that from "the call never went through" without asking the target system itself, which most targets can't answer. The honest engineering answer is <strong>at-least-once delivery of the trigger, combined with idempotent execution</strong>, producing an effectively-once <em>outcome</em> even though the underlying delivery mechanism can occasionally deliver twice.</p>
+<ul>
+<li><strong>Idempotency keys on every execution</strong> — each execution carries a stable, unique key (derived from <code>job_id</code> + <code>scheduled_for</code>); a job's target is expected to recognize a repeated key and treat a second delivery as a no-op — the exact same idempotent-retry principle as Chat System's <code>client_msg_id</code> and Ticketmaster's payment-confirmation key, here protecting against duplicate job side effects instead of duplicate messages or charges.</li>
+<li><strong>Leases on claimed executions (H), not permanent locks</strong> — a worker that claims an execution holds a short-TTL lease; if the worker crashes mid-execution, the lease simply expires and another worker can claim and retry it, at the cost of a possible duplicate attempt, which idempotency is specifically there to absorb.</li>
+<li><strong>Atomically advancing <code>next_run_at</code> at trigger time, not after execution completes</strong> — the leader marks a recurring job's next occurrence immediately upon triggering the current one, so a slow or failed execution never blocks or duplicates the <em>next scheduled</em> trigger; execution success/failure and scheduling the next run are deliberately decoupled.</li>
+</ul>
+<p><strong>Why this framing is the strong, senior-level answer rather than a weakness to hide:</strong> claiming literal exactly-once execution over a network is either wrong or hiding the same idempotency mechanism under a different name — stating plainly that true exactly-once isn't achievable, and that idempotent effectively-once is the correct and sufficient goal, is a mark of real distributed-systems judgment.</p>
+
+<h3 id="p10-p">P. Deep Dive 4 — Retries &amp; Failure Handling</h3>
+<p><strong>Requirement this addresses:</strong> the configurable-retry functional requirement (D) — a job execution can fail for reasons ranging from a transient network blip to a permanently broken target, and the two need different handling.</p>
+<p><strong>Exponential backoff with a bounded maximum attempt count:</strong> a failed execution is retried after a delay that grows with each successive attempt (avoiding a failing target being hammered repeatedly at full speed) up to a configurable attempt limit — standard, well-precedented retry policy, reused conceptually rather than invented fresh.</p>
+<p><strong>Dead-lettering after exhausting retries:</strong> an execution that fails every allowed attempt moves to a distinct "failed permanently" state, surfaced in execution history (D) for a human to investigate, rather than being retried forever or silently dropped — the same dead-letter-queue pattern common to message-queue-based systems generally.</p>
+<p><strong>Why retry policy is per-job configurable, not a single global default:</strong> a job that sends a best-effort notification email has very different acceptable-failure tolerance than a job that reconciles financial records — letting each job's owner set its own retry count/backoff respects that difference instead of forcing one policy onto fundamentally different risk profiles.</p>
+
+<h3 id="p10-q">Q. Deep Dive 5 — Job Dependency Graphs</h3>
+<p><strong>Requirement this addresses:</strong> dependency support (E's clarifying question 2, confirmed in F) — turns a flat set of independently-triggered jobs into a directed-acyclic-graph scheduling problem.</p>
+<div class="mermaid diagram">
+flowchart LR
+  A["Job A<br/>(extract data)"] -- "on success" --> B["Job B<br/>(transform)"]
+  B -- "on success" --> C["Job C<br/>(load)"]
+  A -.->|"on failure"| Skip["B, C not triggered"]
+</div>
+<p class="diagram-caption">A dependent job's real trigger condition is "upstream succeeded," not just "the clock reached a time."</p>
+<p><strong>Why a dependent job is triggered by an upstream completion event, not by its own independent schedule check:</strong> a job with a <code>depends_on</code> field isn't evaluated against <code>next_run_at</code> at all during the leader's normal time-based scan (L) — instead, a successful execution completion (O) for its dependency emits an event that makes the dependent job immediately eligible to run, decoupling "is it time" from "is it ready."</p>
+<p><strong>Cycle detection at registration time, not at run time:</strong> validating the dependency graph is acyclic when a job is created (I) catches a configuration mistake immediately with a clear error, rather than allowing a cycle to silently deadlock a chain of jobs that never actually become eligible to run.</p>
+
+<h3 id="p10-r">R. Deep Dive 6 — Worker Fleet &amp; Isolation</h3>
+<p><strong>Requirement this addresses:</strong> the actual execution half of the system, decoupled from triggering (N) — a horizontally-scaled fleet of stateless workers pulling executions off the trigger queue.</p>
+<p><strong>Why workers are stateless and horizontally scaled independently from the leader/triggering tier:</strong> triggering (deciding what's due) and executing (actually calling a job's target) have entirely different scaling shapes — triggering needs exactly one active authority (M) per partition, while execution benefits from as many parallel workers as the queue's backlog demands, with no coordination needed between workers beyond the per-execution lease (O).</p>
+<p><strong>Resource isolation between jobs:</strong> since F assumes lightweight callback-style jobs rather than arbitrary heavy compute, isolation is comparatively simple (a request timeout per execution, rate limits per job or per target host) — a fundamentally different and harder problem if E's clarifying question 3 had instead confirmed arbitrary long-running compute jobs, which would push this toward a full container-orchestration-style worker design instead.</p>
+
+<h3 id="p10-s">S. Deep Dive 7 — Missed Runs &amp; Backfill</h3>
+<p><strong>Requirement this addresses:</strong> E's clarifying question 4 — what happens if the whole system (or a given partition's leader lineage) is down when a scheduled time passes.</p>
+<p><strong>Why detecting a missed run is just a variant of the normal scan, not a special code path:</strong> when a new leader takes over (M) or a recovering system resumes scanning (L), any job whose <code>next_run_at</code> is now in the past is, by definition, both due <em>and</em> late — the same range-scan-on-<code>next_run_at</code> query (K) naturally surfaces it without needing separate missed-run detection logic.</p>
+<p><strong>Configurable catch-up policy per job:</strong> some jobs should run exactly once to "catch up" (a daily report — running it once late is fine, running it 10 times for 10 missed days is wasteful and wrong), while others genuinely need every missed occurrence backfilled (a per-hour data-aggregation job where each hour's data matters individually) — this is a per-job policy choice (analogous to P's per-job retry policy), not a single global rule.</p>
+
+<h3 id="p10-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  subgraph LEADERS [" Scheduler Instances (M) "]
+    direction LR
+    L1["Leader (active)"]
+    L2["Standby"]
+    L3["Standby"]
+  end
+  L1 -- "renews lease" --> LockStore[("Leader Lock (K)")]
+  L1 -- "scan next_run_at <= now (N)" --> JobDB[("Job Store, sharded (K)")]
+  L1 -- "advance next_run_at,<br/>enqueue (O)" --> TrigQ["Trigger Queue"]
+
+  TrigQ --> W1["Worker"]
+  TrigQ --> W2["Worker"]
+  TrigQ --> W3["Worker"]
+  W1 -- "lease + idempotency key (O)" --> ExecDB[("Execution History (K)")]
+  W1 -- "on failure" --> Retry["Backoff / Dead-letter (P)"]
+  W1 -- "on success" --> DepEvent["Dependency-completion event (Q)"]
+  DepEvent -.-> JobDB
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p10-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — single scheduler process, triggers directly (J):</strong> a hard single point of failure with no redundancy possible without risking duplicate triggers.</li>
+<li><strong>V2 — leader election among multiple scheduler instances:</strong> exactly one active triggering authority at a time, with automatic failover (M).</li>
+<li><strong>V3 — decoupled trigger queue + separate worker fleet:</strong> absorbs the midnight-spike burst and lets execution scale independently of triggering (N, R).</li>
+<li><strong>V4 — idempotency keys + leases instead of claimed literal exactly-once:</strong> the correctness fix that makes at-least-once delivery safe in practice (O).</li>
+<li><strong>V5 — per-job configurable retry/backoff + dead-lettering:</strong> failures are handled as policy, not left to fail silently or retry forever (P).</li>
+<li><strong>V6 — dependency-event-driven triggering for dependent jobs:</strong> extends the model beyond pure time-based scheduling (Q).</li>
+<li><strong>V7 — sharded leader-per-partition scanning:</strong> scales the trigger-evaluation path itself for very large job counts (N).</li>
+<li><strong>V8 — per-job missed-run/backfill policy:</strong> recovers correctly from extended downtime without a separate code path (S).</li>
+</ul>
+<p><strong>What stays stable throughout:</strong> the register-once, trigger-many-times job contract from I — every later refinement changes how triggering is coordinated, delivered, or recovered, never the basic shape of what a client registers.</p>
+
+<h3 id="p10-v">V. Consistency Model</h3>
+<p>The leader-election and job-triggering path (M) requires genuine strong consistency — exactly one instance must be recognized as the active leader at a time, enforced via the same atomic conditional-write primitive used for Ticketmaster's seat holds. Execution delivery itself is deliberately <strong>at-least-once</strong>, not exactly-once, with idempotency (O) doing the work of making that safe — a close relative of Chat System's "deliver reliably, dedupe on the client" philosophy, here deduping on the job target instead of a chat client. Execution history and job-status visibility (D) can tolerate brief staleness (a status view lagging the true state by a second or two) without any correctness impact, the same "narrow strong-consistency island, eventually-consistent everywhere else" shape used throughout this document.</p>
+
+<h3 id="p10-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>The active leader crashes:</strong> its lease (M) expires unrenewed and a standby instance acquires it within one lease TTL — a brief gap in triggering, bounded and self-healing, never a permanently missed function.</li>
+<li><strong>A worker crashes mid-execution:</strong> its lease on that execution (O) expires, and another worker claims and retries it — the idempotency key ensures a possible duplicate delivery doesn't produce a duplicate real-world side effect.</li>
+<li><strong>A job's target is persistently broken:</strong> retries exhaust per its configured policy (P) and the execution is dead-lettered for investigation, rather than retried forever or silently dropped.</li>
+<li><strong>The whole system is down across a scheduled time:</strong> the next active leader's scan naturally identifies the job as overdue (S) and applies that job's configured catch-up policy.</li>
+<li><strong>A dependency job fails:</strong> the dependent job is never triggered (Q) — no wasted work is performed on data that was never successfully produced upstream.</li>
+</ul>
+
+<h3 id="p10-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 single scheduler</td><td>Hard single point of failure for the entire triggering function</td><td>Leader election with automatic failover (M)</td></tr>
+<tr><td>Single leader triggers everything directly</td><td>A midnight-scale trigger burst overwhelms one instance's ability to both scan and execute</td><td>Decoupled trigger queue + independently-scaled worker fleet (N, R)</td></tr>
+<tr><td>One leader scanning the entire job table</td><td>Job-count growth eventually makes a single full-table scan too slow to meet the timing NFR</td><td>Sharded, partition-scoped leader-per-partition scanning (N)</td></tr>
+<tr><td>Naive exactly-once assumption</td><td>Worker crashes between "action taken" and "recorded" create ambiguity that literal exactly-once can't resolve</td><td>At-least-once delivery + idempotency keys (O)</td></tr>
+</table>
+
+<h3 id="p10-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>High availability of triggering</td><td>Static, manually-designated leader</td><td>Lease-based leader election (chosen)</td><td>A static leader is simple but reintroduces the exact single point of failure this design exists to remove; lease-based election gives automatic, bounded-time failover</td></tr>
+<tr><td>Execution delivery semantics</td><td>Attempt literal exactly-once</td><td>At-least-once + idempotency (chosen)</td><td>Literal exactly-once isn't achievable over an unreliable network without asking the target itself; idempotent at-least-once is honest, achievable, and sufficient</td></tr>
+<tr><td>Trigger vs. execute coupling</td><td>Leader executes jobs directly</td><td>Leader enqueues, separate worker fleet executes (chosen)</td><td>Direct execution ties the highly-available, low-throughput leader role to a high-throughput, horizontally-scaled workload it's poorly suited for; decoupling lets each scale on its own terms</td></tr>
+<tr><td>Missed-run handling</td><td>Always backfill every missed occurrence</td><td>Per-job configurable catch-up policy (chosen)</td><td>Always backfilling is simple but wastes work and can produce wrong results for jobs where only the latest state matters; per-job policy respects that different jobs have different correctness needs</td></tr>
+<tr><td>Job coordination</td><td>External consensus service (ZooKeeper/etcd)</td><td>Database-native atomic conditional writes (chosen default)</td><td>A dedicated consensus service is more battle-tested at extreme fleet sizes, but adds an operational dependency this scale doesn't yet require — the same "reach for the storage layer's own primitive first" principle used in Ticketmaster and Rate Limiter</td></tr>
+</table>
+
+<h3 id="p10-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>A single always-on scheduler process with no redundancy.</strong> A hard single point of failure for the system's entire purpose — the most important mistake to avoid on this problem.</li>
+<li><strong>Running multiple scheduler instances with no coordination between them.</strong> "Fixes" the single-point-of-failure problem by directly causing duplicate triggering instead — worse than the problem it was meant to solve.</li>
+<li><strong>Claiming literal exactly-once execution without idempotency.</strong> Either quietly relies on the same idempotency mechanism under a different name, or is simply incorrect about what's achievable over a network.</li>
+<li><strong>No retry policy, or unlimited retries with no backoff.</strong> Either silently loses failed jobs, or hammers an already-failing target at full speed indefinitely.</li>
+<li><strong>Coupling job triggering and job execution into one tier.</strong> Forces the highly-available, low-throughput leader role and the high-throughput worker workload to scale together, when they have fundamentally different scaling needs.</li>
+</ul>
+
+<h3 id="p10-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"Two workers somehow both claim the same execution."</td><td>Directly exercises O's lease mechanism plus idempotency at the target — at most a brief overlap window, absorbed safely rather than causing a real duplicate side effect</td><td>None — this is exactly what O already handles</td><td>Everything else</td></tr>
+<tr><td>"Support job chains where B depends on A, and A depends on nothing — plus a diamond dependency (D depends on both B and C)."</td><td>Directly exercises Q's DAG model — a job simply lists multiple entries in <code>depends_on</code>, becoming eligible only once all of them succeed</td><td>None new — Q already generalizes to this</td><td>Triggering, execution, retry logic</td></tr>
+<tr><td>"A job needs to run a heavy, long-running batch computation, not a lightweight callback."</td><td>Revisits F's assumption directly — pushes the worker fleet (R) toward real container-orchestration-style resource isolation and scheduling, a materially harder problem than the lightweight-callback case assumed here</td><td>Worker fleet design (R)</td><td>Leader election, triggering, dependency model</td></tr>
+<tr><td>"How do you avoid the midnight spike overwhelming downstream systems that jobs call into?"</td><td>Add jitter — deliberately spreading otherwise-identical trigger times across a small random window — at the trigger-enqueue step, alongside N's queue-based buffering</td><td>Trigger-enqueue step (N)</td><td>Leader election, execution, retries</td></tr>
+<tr><td>"What if the leader's clock is wrong?"</td><td>Directly the clock-skew concern named in Chat System's ordering deep dive and Rate Limiter's atomicity deep dive — mitigated by using a monotonic, NTP-synced clock source for the leader and treating the timing NFR's tolerance window as accounting for realistic skew, not zero skew</td><td>None structurally — a clock-source/ops concern</td><td>Everything else</td></tr>
+</table>
+
+<h3 id="p10-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes a single always-on scheduler process with no discussion of what happens if it crashes; claims "exactly once" without any mechanism to actually achieve it.</li>
+<li><strong>Mid-level:</strong> recognizes the single scheduler is a point of failure and proposes running more than one, but doesn't identify the duplicate-triggering risk that naively creates, or hasn't designed leader election concretely.</li>
+<li><strong>Senior:</strong> proactively designs lease-based leader election; correctly reframes "exactly-once" as at-least-once-plus-idempotency unprompted; decouples triggering from execution via a queue and separate worker fleet.</li>
+<li><strong>Staff+:</strong> reasons about scaling the trigger-evaluation path itself (sharded leaders) for very large job counts, not just the worker fleet; designs per-job retry and missed-run/backfill policy as configurable rather than one-size-fits-all; raises dependency graphs and clock-skew/jitter considerations unprompted.</li>
+</ul>
+
+<h3 id="p10-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a distributed job scheduler — basically cron, but for a large fleet, with guarantees.</div>
+<div class="dialog"><span class="who">Candidate:</span> The core problem is that a single always-on scheduler process is a single point of failure for the entire triggering function — if it crashes right when a job is due, that job just doesn't run. But you can't naively fix that by running several scheduler instances, because then all of them would see the same due job and all trigger it. I'd use lease-based leader election: instances race to claim a leader lock with a short TTL, and only the current leader is allowed to actually trigger jobs. If it crashes, the lease expires and another instance takes over.</div>
+<div class="dialog"><span class="who">Interviewer:</span> You said "guarantees" — can you guarantee exactly-once execution?</div>
+<div class="dialog"><span class="who">Candidate:</span> Honestly, no — not in the literal sense. At some point a worker calls the job's target and then has to record that it succeeded, and if it crashes in between, you can't tell "it succeeded but wasn't recorded" apart from "it never happened" without asking the target system itself. The correct goal is at-least-once delivery combined with idempotency — every execution carries a stable idempotency key, and the job's target is expected to treat a repeated key as a no-op. That gets you an effectively-once outcome even though the delivery mechanism can occasionally deliver twice.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What happens at midnight when a huge number of jobs are all scheduled for the same instant?</div>
+<div class="dialog"><span class="who">Candidate:</span> The leader's job is just to identify what's due and enqueue it — actually calling each job's target happens on a separate, horizontally-scaled worker fleet pulling off that queue. That split is what absorbs the burst: the leader can enqueue a huge batch quickly, and the queue smooths it into whatever rate the workers can sustainably handle. If the scan itself becomes the bottleneck at very large job counts, I'd shard the jobs by ID and have a separately-elected leader per partition.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How would you support job B only running after job A succeeds?</div>
+<div class="dialog"><span class="who">Candidate:</span> A dependent job wouldn't be evaluated by the normal time-based scan at all — instead, when job A's execution completes successfully, that emits a completion event, and job B becomes eligible to run because of that event rather than because a clock reached a certain time. I'd validate the dependency graph is acyclic at registration time so a bad configuration fails immediately with a clear error, instead of silently deadlocking later.</div>
+
+<h3 id="p10-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/job-scheduler" target="_blank">Hello Interview</a></td><td>Leader-election-first framing, explicit at-least-once-plus-idempotency reasoning, decoupled trigger/execute tiers</td><td>Clearest articulation of why literal exactly-once is the wrong goal and idempotent at-least-once is the right one — the core structure adopted for this section</td><td>Lighter on dependency-graph (DAG) scheduling as its own deep dive</td><td>The "leader only triggers, workers only execute" split reused directly as the spine of M, N, and R</td></tr>
+<tr><td><a href="https://github.com/kubernetes/kubernetes/tree/master/pkg/controller/cronjob" target="_blank">Kubernetes CronJob controller (GitHub)</a></td><td>Real, production leader-elected controller pattern (via the Kubernetes API server's own lease objects) driving scheduled job creation at genuine large-fleet scale</td><td>Ground-truth confirmation that lease-based leader election for a scheduling controller is proven, widely-deployed production practice, not a hypothetical interview construct</td><td>Deeply tied to Kubernetes-specific abstractions (Pods, controllers) that need translating into this problem's more generic terms</td><td>Confirms the missed-run/catch-up policy discussion (S) directly — Kubernetes CronJob exposes a real, near-identical <code>concurrencyPolicy</code>/missed-schedule configuration</td></tr>
+<tr><td><a href="https://github.com/apache/airflow" target="_blank">Apache Airflow (GitHub)</a></td><td>Production DAG-based workflow scheduler with dependency graphs, retries, and backfill as first-class, real-world-battle-tested features</td><td>The strongest real-world precedent specifically for Q's dependency-graph model and S's backfill policy — both are core, well-documented Airflow concepts, not interview inventions</td><td>Airflow's scope (a full workflow orchestration platform) is considerably larger than this problem's assumed scope (F) — most of it is deliberately out of scope here</td><td>Confirms per-job configurable catch-up/backfill policy (S) mirrors Airflow's own <code>catchup</code> setting almost exactly</td></tr>
+</table>
+
+<h3 id="p10-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Distributed Job Scheduler</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced + Distributed Systems (simple mechanics, hard correctness-under-failure)</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Cron-style/one-time job registration, on-time triggering, execution history, configurable retries, high availability of the triggering function itself</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Lease-based leader election for triggering + at-least-once delivery with idempotency for execution — not literal exactly-once, which isn't achievable</td></tr>
+<tr><td><strong>Scaling the trigger path</strong></td><td>Decoupled trigger queue + independent worker fleet absorbs bursts (e.g. midnight spikes); sharded leader-per-partition scanning for very large job counts</td></tr>
+<tr><td><strong>Retries</strong></td><td>Per-job configurable exponential backoff with a max attempt count, then dead-lettering — never unlimited retries, never silent drops</td></tr>
+<tr><td><strong>Dependencies</strong></td><td>Event-driven triggering off an upstream job's success, not a separate time-based check; cycles rejected at registration</td></tr>
+<tr><td><strong>Missed runs</strong></td><td>Naturally surfaced by the same next_run_at scan a recovering/new leader already performs; catch-up policy is per-job configurable</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Single scheduler with no redundancy; multiple uncoordinated schedulers causing duplicate triggers; claiming literal exactly-once; coupling triggering and execution into one scaling tier</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>A full workflow-orchestration UI or arbitrary heavy-compute job sandboxing — name them as extensions/different-scope problems, not something to design from scratch here</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p9.html">&larr; 9. Google Docs (Collaborative Editing)</a><a class="prevnext-link next" href="p11.html">11. Distributed Cache &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

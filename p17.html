@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>17. Yelp / Nearby Places Search — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">17. Yelp / Nearby Places Search <span class="badge">Intermediate → Advanced + Geospatial Search</span></h1>
+
+<div class="section-toc">
+<a href="#p17-a">A. Interview Prompt</a><a href="#p17-b">B. Difficulty</a><a href="#p17-c">C. What It Tests</a>
+<a href="#p17-d">D. Requirements</a><a href="#p17-e">E. Clarifying Questions</a><a href="#p17-f">F. Assumptions</a>
+<a href="#p17-g">G. Capacity Estimation</a><a href="#p17-h">H. Core Entities</a><a href="#p17-i">I. API Design</a>
+<a href="#p17-j">J. Basic Design (V1)</a><a href="#p17-k">K. Data Model &amp; Store Choice</a><a href="#p17-l">L. End-to-End Flow</a>
+<a href="#p17-m">M. Deep Dive 1: Geospatial Index for Static Points</a><a href="#p17-n">N. Deep Dive 2: Static vs. Moving Points</a><a href="#p17-o">O. Deep Dive 3: Geo + Metadata Filters</a>
+<a href="#p17-p">P. Deep Dive 4: Ranking</a><a href="#p17-q">Q. Deep Dive 5: Caching Popular Areas</a><a href="#p17-r">R. Deep Dive 6: Reviews at Scale</a>
+<a href="#p17-s">S. Deep Dive 7: Index Freshness</a><a href="#p17-t">T. Full Solution at Scale</a><a href="#p17-u">U. Design Evolution</a>
+<a href="#p17-v">V. Consistency Model</a><a href="#p17-w">W. Failure Scenarios</a><a href="#p17-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p17-y">Y. Trade-Offs</a><a href="#p17-z">Z. Common Bad Designs</a><a href="#p17-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p17-ab">AB. Interviewer Evaluation</a><a href="#p17-ac">AC. Interview Simulation</a><a href="#p17-ad">AD. Source Comparison</a>
+<a href="#p17-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p17">Jump to section:</label><select id="jump-p17" class="jump-select" data-jump-select><option value="p17-a">A. Realistic Interview Prompt</option><option value="p17-b">B. Difficulty</option><option value="p17-c">C. What This Problem Tests</option><option value="p17-d">D. Requirements</option><option value="p17-e">E. Clarifying Questions</option><option value="p17-f">F. Assumptions</option><option value="p17-g">G. Capacity Estimation</option><option value="p17-h">H. Core Entities</option><option value="p17-i">I. API Design</option><option value="p17-j">J. Basic / Naive High-Level Design (V1)</option><option value="p17-k">K. Data Model &amp; Store Choice</option><option value="p17-l">L. End-to-End Flow — A User Searches for "Coffee Near Me" With Filters</option><option value="p17-m">M. Deep Dive 1 — Geospatial Indexing for Static Points</option><option value="p17-n">N. Deep Dive 2 — Why Static Points Change the Geospatial Trade-off vs. Uber</option><option value="p17-o">O. Deep Dive 3 — Combining the Geospatial Filter with Metadata Filters</option><option value="p17-p">P. Deep Dive 4 — Ranking Results</option><option value="p17-q">Q. Deep Dive 5 — Caching Popular Areas and Queries</option><option value="p17-r">R. Deep Dive 6 — Handling Reviews at Scale</option><option value="p17-s">S. Deep Dive 7 — Search Index Freshness</option><option value="p17-t">T. Full Solution at Scale — Final Architecture</option><option value="p17-u">U. Design Evolution</option><option value="p17-v">V. Consistency Model</option><option value="p17-w">W. Failure Scenarios</option><option value="p17-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p17-y">Y. Design Trade-Offs</option><option value="p17-z">Z. Common Bad Designs</option><option value="p17-aa">AA. Interviewer Follow-Ups</option><option value="p17-ab">AB. Interviewer Evaluation Rubric</option><option value="p17-ac">AC. Interview Simulation</option><option value="p17-ad">AD. Online Solution Comparison</option><option value="p17-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p17-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a local business search and discovery system like Yelp: a user searches for nearby places — restaurants, cafes, shops — optionally filtered by category, price range, or whether they're open right now, and sees results ranked by relevance. Users can also view a business's detail page and leave a review."</div>
+<p>On the surface, this looks like the exact same problem Ride-Sharing (<a href="#p5">P5</a>) already solved: "find things near this point" is, again, a query no plain B-tree index answers efficiently, and a geospatial index is, again, the tool that fixes it. The load-bearing difference — easy to miss, and exactly what separates a candidate who's memorized "use a geohash" from one who actually understands the trade-off — is <strong>what's being indexed doesn't move</strong>. A restaurant's coordinates change essentially never; a driver's coordinates change every few seconds. That single fact reopens every design decision P5 already made and lands in a genuinely different place: the index here can be <strong>precomputed and cached aggressively</strong> rather than updated continuously, because there's nothing continuously changing underneath it. The second, equally load-bearing idea is that "nearby" is only half the query — a real search also has to intersect proximity with attribute filters (cuisine, price, open-now) and produce a <em>ranked</em> list, not just an unordered set of nearby dots.</p>
+
+<h3 id="p17-b">B. Difficulty</h3>
+<p><strong>Intermediate to state, Advanced to reason about correctly.</strong> A candidate who's already internalized Ride-Sharing's geospatial-index lesson can restate "use a geohash or S2 grid" almost immediately — that part is comparatively easy relative to P5. What actually separates a strong answer here is recognizing that the <em>consequences</em> of that same tool are completely different once the underlying data is static: caching strategies, update frequency, and staleness tolerance all get to be far more aggressive than they were allowed to be for a moving fleet of drivers, and a candidate who reflexively imports P5's real-time-update machinery wholesale (treating this as "Uber but with buildings") is missing the actual point of the problem.</p>
+
+<h3 id="p17-c">C. What This Problem Tests</h3>
+<ul>
+<li>Whether a candidate can correctly re-derive the choice of a specialized geospatial index (geohash/S2/quadtree, <a href="#prereq-n">Prerequisites N</a>) without simply repeating Ride-Sharing's answer verbatim, including reasoning about <em>why</em> it's the right tool independent of update frequency</li>
+<li>The sharper, higher-signal judgment of recognizing that <strong>static points fundamentally change the geospatial trade-off</strong> versus a moving-object system — that precomputation and heavy caching become viable exactly because the data underneath rarely changes, an explicit, direct contrast against Ride-Sharing's real-time driver index (<a href="#p5-m">P5-M</a>, <a href="#p5-n">P5-N</a>)</li>
+<li>Comfort combining two independent filtering dimensions — a spatial candidate set and an attribute/metadata filter — and reasoning about where that intersection should actually happen for it to stay cheap</li>
+<li>Designing a multi-signal ranking function (distance, rating, popularity, sponsorship) rather than treating "nearest first" as if it were the entire ranking problem</li>
+<li>Judgment about how fresh a search index actually needs to be for a domain that tolerates far more staleness than most of this document's other systems — recognizing that "eventually" can genuinely mean hours here, not seconds, without it being a design flaw</li>
+</ul>
+
+<h3 id="p17-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>A user can search for businesses near a given location (or their current location), optionally with a text query (e.g. "coffee")</li>
+<li>A user can filter search results by category/cuisine, price tier, and whether a business is open at the current moment</li>
+<li>Search results are ranked by relevance, not returned as an unordered or purely distance-sorted list</li>
+<li>A user can view a business's detail page (hours, address, photos, aggregate rating) and its reviews</li>
+<li>A user can submit a review (rating + text) for a business</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Low search latency</strong> — a search request should return ranked results in well under a second; this is a read-heavy, latency-sensitive consumer product surface</li>
+<li><strong>Very high read:write ratio</strong> — searches vastly outnumber business updates and even review submissions; the design should be optimized overwhelmingly for fast reads</li>
+<li><strong>High availability for search</strong> — a business search returning nothing, or timing out, is a direct, visible product failure; a review taking a few extra seconds to appear is not</li>
+<li><strong>Tolerant of staleness</strong> — a business's hours, or a newly-opened competitor, showing up in search results a few hours late causes negligible real harm, a materially looser bar than most of this document's other read paths</li>
+<li><strong>Scales to a large, mostly-static point set</strong> — tens of millions of businesses, a dataset whose <em>size</em> is large but whose <em>churn rate</em> (opens/closes/moves per day) is tiny relative to its total size</li>
+</ul>
+<p><strong>Out of scope:</strong> the reservation/waitlist system some listings offer (a separate booking sub-system entirely), payments for any paid placement itself (the mechanics of sponsored ranking are in scope at a conceptual level, P, but not an ad-auction engine), photo/image processing pipelines beyond storing and serving uploaded photos.</p>
+
+<h3 id="p17-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Do businesses ever change location, or is a listed address effectively permanent once created?</td><td>Confirms the entire index can be built around near-static points rather than continuously-moving ones</td><td>Deep Dive 1 &amp; 2 (M, N)</td></tr>
+<tr><td>2</td><td>How fresh does a search result need to be after a business updates its hours, or a brand-new business is added?</td><td>Determines whether the index is rebuilt in near-real-time or on a batch/async schedule</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>3</td><td>Should ranking blend in anything beyond distance and rating — sponsored placements, personalization, popularity trends?</td><td>Determines how many independent signals the ranking function actually needs to combine</td><td>Deep Dive 4 (P)</td></tr>
+<tr><td>4</td><td>Does a new review need to affect a business's displayed aggregate rating instantly, or is a short delay acceptable?</td><td>Determines whether rating recomputation is synchronous per-review or an async, batched job</td><td>Deep Dive 6 (R)</td></tr>
+<tr><td>5</td><td>Are search filters (cuisine, price, open-now) combined with free-text search, or is this purely structured/faceted search?</td><td>Affects whether a general-purpose search engine (Elasticsearch-style) or a simpler structured index is sufficient</td><td>Data Model (K), Deep Dive 3 (O)</td></tr>
+</table>
+
+<h3 id="p17-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> search-nearby-with-filters, ranked results, business detail pages, and review submission as the core functional loop.</li>
+<li><strong>Assumption:</strong> business locations are effectively static — a relocation is a rare, manual, low-frequency event (a business owner editing an address), not a continuous stream (E's clarifying question 1) — this is the single assumption the entire design is built around, and the one that most sharply distinguishes this problem from Ride-Sharing (<a href="#p5">P5</a>).</li>
+<li><strong>Assumption:</strong> the search index can tolerate staleness on the order of minutes to low hours for business metadata changes, and does not need to be near-real-time the way Uber's driver-location index does (E's clarifying question 2) — this licenses batch/async reindexing as the primary freshness mechanism (S) rather than a continuous-update pipeline.</li>
+<li><strong>Assumption:</strong> ranking blends distance, rating, popularity, and sponsored placement (E's clarifying question 3) — the more interesting, more commonly-discussed version of this problem, rather than a pure nearest-first sort.</li>
+<li><strong>Assumption:</strong> an aggregate rating is allowed to lag a freshly-submitted review by a short, bounded delay, recomputed asynchronously rather than on every single write (E's clarifying question 4).</li>
+<li><strong>Assumption:</strong> free-text search combined with structured filters is in scope (E's clarifying question 5) — this is what makes a general-purpose search engine (rather than a bespoke geospatial-only index) the right foundation, per K.</li>
+</ul>
+
+<h3 id="p17-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Total indexed businesses</td><td>~50M (illustrative, in the range Yelp itself has publicly cited for its total listings)</td><td>The size of the static point set the geospatial index is built over — large in absolute terms, but the key insight is this number changes very slowly (below)</td></tr>
+<tr><td>Business churn rate (opens/closes/edits per day)</td><td>Illustratively ~0.1-0.5% of listings per day ≈ 50,000-250,000 changes/day ≈ well under 3/sec average</td><td>The actual write rate the geospatial and metadata index has to absorb is tiny relative to the read volume — the opposite ratio from Ride-Sharing's ~1.25M location-updates/sec (<a href="#p5-g">P5-G</a>)</td></tr>
+<tr><td>Searches/day, platform-wide</td><td>Illustratively ~500M searches/day → 500×10⁶ / 86,400 ≈ ~5,800/sec average, several times that at peak (evenings, weekends)</td><td>The dominant load in this system by orders of magnitude — this is a read-heavy problem, and every design decision downstream optimizes for this number, not the write rate</td></tr>
+<tr><td>Read:write ratio (searches : business/review writes)</td><td>Roughly 5,800 : ~3 for business metadata alone, and still overwhelmingly read-dominated even including review writes (below) — on the order of 1,000:1 or higher</td><td>Confirms this is a caching and read-scaling problem first, not an ingestion-throughput problem the way Ad Click Aggregation (<a href="#p16">P16</a>) or Ride-Sharing (<a href="#p5">P5</a>) are</td></tr>
+<tr><td>Reviews submitted/day, platform-wide</td><td>Illustratively ~2M/day → ~23/sec average, spiking higher around meal times/weekends</td><td>Small relative to search volume, but bursty and write-heavy enough to need its own async aggregation path (R) rather than a synchronous recompute per review</td></tr>
+<tr><td>Geospatial cell size (illustrative, urban)</td><td>A geohash/S2 cell edge length on the order of ~150-600m in dense urban areas, coarser in sparse/rural areas</td><td>Fine enough that a handful of cells around a search point captures the realistic "nearby" radius without needing to scan cells far outside it</td></tr>
+<tr><td>Geospatial + metadata index footprint</td><td>50M businesses × ~1-2KB of indexed fields (location, category tags, price tier, hours, precomputed score inputs) ≈ ~50-100GB total</td><td>Comfortably fits distributed across a search-engine cluster's shards, and — critically, per N — is small and stable enough to be heavily replicated and cached rather than needing to absorb continuous high-throughput writes</td></tr>
+</table>
+
+<h3 id="p17-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>Business</code></td><td>A single point-of-interest listing — the static entity this entire design is built around</td><td><code>business_id</code>, <code>name</code>, <code>location</code> (lat/lng), <code>geocell</code> (precomputed geohash/S2 id, M), <code>category</code>/<code>cuisine_tags</code>, <code>price_tier</code>, <code>hours</code>, <code>avg_rating</code>, <code>review_count</code>, <code>updated_at</code></td></tr>
+<tr><td><code>Review</code></td><td>A single user's rating and text for a business</td><td><code>review_id</code>, <code>business_id</code>, <code>user_id</code>, <code>rating</code> (1-5), <code>text</code>, <code>created_at</code></td></tr>
+<tr><td><code>RatingAggregate</code></td><td>The precomputed, denormalized aggregate rating and count backing <code>Business.avg_rating</code> — recomputed async, not on every review (R)</td><td><code>business_id</code>, <code>avg_rating</code>, <code>review_count</code>, <code>last_recomputed_at</code></td></tr>
+<tr><td><code>SearchIndexEntry</code></td><td>The denormalized, search-engine-facing document for one business — what a query actually matches against (K, O)</td><td><code>business_id</code>, <code>geocell</code>, <code>location</code>, filterable attributes (category, price, hours), ranking inputs (rating, popularity, sponsorship_boost)</td></tr>
+<tr><td><code>SearchQuery</code> (ephemeral, not persisted as a first-class entity)</td><td>One user's search request — a location, optional text, and a set of filters</td><td><code>location</code>, <code>radius</code>, <code>query_text</code>, <code>filters</code> (category/price/open_now)</td></tr>
+</table>
+
+<h3 id="p17-i">I. API Design</h3>
+<pre><code>GET  /v1/search?lat=&amp;lng=&amp;radius=&amp;q=coffee&amp;category=cafe&amp;price=1,2&amp;open_now=true
+     -&gt; [{ business_id, name, distance, rating, price_tier, relevance_score }]   (O, P)
+GET  /v1/businesses/{id}          -&gt; { name, location, hours, category, avg_rating, review_count, photos }
+GET  /v1/businesses/{id}/reviews  -&gt; [{ review_id, user_id, rating, text, created_at }]
+POST /v1/businesses/{id}/reviews  { user_id, rating, text } -&gt; { review_id }              (R)
+POST /v1/businesses               { name, location, category, hours, ... } -&gt; { business_id }  (owner/admin-facing, K)
+PATCH /v1/businesses/{id}         { hours?, category?, ... } -&gt; 200                          (S)
+</code></pre>
+<p><strong>Why <code>GET /v1/search</code> is the one endpoint the entire rest of this design exists to serve fast:</strong> every other endpoint here is either low-volume (a single business detail lookup, a review submission) or entirely off the read-hot-path (a business edit). <code>/search</code> alone carries the ~5,800/sec average, multi-thousand-per-second-peak load from G, and every deep dive in this problem — the geospatial index (M), the geo/metadata intersection (O), ranking (P), and caching (Q) — is, underneath, a refinement of how to answer this one query cheaply.</p>
+
+<h3 id="p17-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: store every business as a row in a relational table with plain <code>lat</code>/<code>lng</code> columns, and on a search request, compute the Haversine (great-circle) distance from the query point to <em>every single row in the table</em>, filter to those within the requested radius, then filter the survivors by category/price/hours in application code, and sort by distance.</p>
+<div class="mermaid diagram">
+flowchart LR
+  U(["User searches 'coffee near me'"]) --> API["Search Service"]
+  API -- "SELECT *, haversine(lat,lng,q_lat,q_lng) AS dist FROM businesses" --> DB[("Business Table<br/>plain relational, no spatial index")]
+  DB --> API
+  API -- "filter dist < radius, then filter category/price in app code" --> API
+  API -- "sort by distance" --> U
+</div>
+<p class="diagram-caption">V1 — Haversine distance computed against every row in the table, for every single search. Correct on a small dataset; catastrophic the moment the business table has real scale.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually — and why it's a worse version of the exact mistake Ride-Sharing's V1 made:</strong> computing a distance function against every one of 50M rows, for every one of ~5,800 searches/sec, means the database does tens of millions of trigonometric distance calculations per search and needs to do that <em>tens of thousands of times a second</em> — there is no plain relational index that helps here at all, because the query isn't a range lookup on an indexed column, it's a full-table scan with a computed function applied to every row before any filtering happens. This is the identical structural flaw named in Ride-Sharing's own V1 (<a href="#p5-j">P5-J</a>) — a 2D proximity query doesn't map onto a 1D B-tree index — but arguably worse here, because V1's Haversine calculation is strictly more expensive per row than a simple range comparison would be, and this system's read volume (thousands of searches/sec, sustained, forever) is far less forgiving of an O(n) full scan than an occasional trip request.</p>
+
+<h3 id="p17-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>The search-facing index is a dedicated search engine, not the relational source of truth:</strong> denormalized <code>SearchIndexEntry</code> documents (H) — location, geocell, category/price/hours filters, and precomputed ranking inputs — live in a search engine purpose-built for exactly this combined geo-plus-attribute-plus-text query shape (Elasticsearch/OpenSearch, using native <code>geo_point</code> fields and a <code>geohash_grid</code> aggregation or bucket structure, <a href="#p17-ad">AD</a>). This is the direct structural fix for V1's flaw (J): the search engine's own geospatial and inverted indexes make "nearby and matching these filters" a fast index lookup instead of a full scan.</p>
+<p><strong>The system of record for a <code>Business</code> is a plain relational or document store</strong> — owner-editable fields (name, hours, category, address) live in a durable primary store (<a href="#prereq-b">Prerequisites B</a>), exactly the same "one durable system of record, one denormalized read-optimized projection" split News Feed uses for precomputed feeds (<a href="#p3">P3</a>) and Search Autocomplete uses for its trie (<a href="#p13">P13</a>) — updates land in the primary store first, then propagate into the search index on the schedule Deep Dive S describes, deliberately not synchronously.</p>
+<p><strong>Reviews live in their own store, sharded/indexed by <code>business_id</code>:</strong> a wide-column or relational store keyed by <code>business_id</code> (so "all reviews for this business" is a single-partition range scan), separate from the <code>RatingAggregate</code> (H) that's actually read on every search result and business page — the aggregate is a small, precomputed number; the reviews themselves are a much larger, less frequently fully-read collection (R).</p>
+<p><strong>Photos, if in scope, follow the standard metadata/blob split</strong> (<a href="#prereq-i">Prerequisites I</a>) — a pointer in the <code>Business</code> record, actual bytes in object storage — the same pattern reused across nearly every problem in this document that has user-uploaded media.</p>
+
+<h3 id="p17-l">L. End-to-End Flow — A User Searches for "Coffee Near Me" With Filters</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant U as User
+  participant API as Search Service
+  participant Cache as Query/Area Cache (Q)
+  participant SE as Search Engine (Geo + Metadata Index, K)
+  U->>API: GET /search?lat=...&lng=...&q=coffee&price=1,2&open_now=true
+  API->>Cache: check cache for (geocell, filter signature)
+  alt cache hit
+    Cache-->>API: cached ranked result page
+  else cache miss
+    API->>SE: geo_distance/geo_point filter (nearby cells, M) AND category/price/open_now filters (O)
+    SE-->>API: candidate set matching both geo and metadata filters
+    API->>API: compute blended relevance score (P) over candidates
+    API->>Cache: populate cache for this (geocell, filter signature)
+  end
+  API-->>U: ranked results
+</div>
+<p class="diagram-caption">The geospatial filter and the metadata filters are evaluated together, inside the same search-engine query (O) — not as two separate round trips that get merged in application code.</p>
+
+<h3 id="p17-m">M. Deep Dive 1 — Geospatial Indexing for Static Points</h3>
+<p><strong>Requirement this addresses:</strong> directly fixes V1's fatal flaw (J) — an efficient "what's near this point" query is the foundation everything else in this problem is built on, exactly as it was for Ride-Sharing (<a href="#p5-m">P5-M</a>).</p>
+<table>
+<tr><th>Approach</th><th>How It Works</th><th>Why It Works Well Here Specifically</th></tr>
+<tr><td>Geohash grid</td><td>Encodes each business's lat/lng into a sortable string prefix; nearby businesses tend to share prefixes (<a href="#prereq-n">Prerequisites N</a>)</td><td>Simple to compute once per business, at write time; because a business's geohash essentially never changes, it can be stored directly as an indexed field rather than recomputed on read</td></tr>
+<tr><td>Quadtree</td><td>Recursively subdivides space into quadrants, denser subdivision where points are denser</td><td>Naturally adapts cell density to where businesses actually cluster (dense in city centers, sparse in rural areas) — a nice fit for a real-world business distribution, which is far from uniform</td></tr>
+<tr><td>Google S2 / geo grid tiles</td><td>Projects the sphere onto a cube, subdivides into a hierarchy of cells with Hilbert-curve ordering for locality (<a href="#p17-ad">AD</a>)</td><td>Handles the whole globe correctly (poles, date-line edge cases) — a real consideration for a platform indexing businesses worldwide, not just one country</td></tr>
+</table>
+<p><strong>Why, unlike Ride-Sharing (<a href="#p5-m">P5-M</a>), the specific choice among these three matters far less here:</strong> P5 picked H3 specifically for its uniform-hexagon-neighbor property, because Ride-Sharing's matching flow repeatedly does live "expand my search ring" operations against a constantly-changing driver population, where boundary distortion is a real, recurring correctness concern. Here, the geospatial structure is computed <em>once</em> per business, essentially never recomputed, and then read from many times — a geohash grid's minor boundary-prefix quirks are a far smaller cost than they'd be in a system re-running neighbor expansion continuously against live data. A geohash grid is the simple, defensible, entirely sufficient choice for this problem; naming quadtree/S2 as equally valid alternatives (and being able to say why the choice matters less here than in P5) is the stronger answer than insisting on one "correct" structure.</p>
+<p><strong>How the index is actually built:</strong> at write time (a business is created or its address is edited, K), a geocell id is computed once and stored as an indexed field alongside the business's other attributes in the search engine (K). A search request computes the query point's own geocell plus its immediate neighboring cells (widening the ring if too few results are found, the same neighbor-expansion idea P5 uses, <a href="#p5-m">P5-M</a>) and looks those cells up directly — a small, bounded set of index lookups, never a scan of the full business table.</p>
+
+<h3 id="p17-n">N. Deep Dive 2 — Why Static Points Change the Geospatial Trade-off vs. Uber</h3>
+<p><strong>Requirement this addresses:</strong> this is the single most important reasoning move in the whole problem — the deep dive that separates "I remembered geohashing from the Uber problem" from actually understanding why it's being used differently here.</p>
+<p class="callout"><strong>The contrast, stated directly:</strong> Ride-Sharing's geospatial index (<a href="#p5-m">P5-M</a>) has to absorb ~1.25M location <em>writes</em>/sec (<a href="#p5-g">P5-G</a>) — every driver, moving, every few seconds, forever — which is why P5 lands on an in-memory, sharded, overwrite-based index (<a href="#p5-k">P5-K</a>) that's fundamentally optimized for sustaining continuous high-throughput mutation. This system's equivalent index absorbs, per G, on the order of a handful of business-location writes <em>per second, platform-wide</em> — a rounding error next to Uber's number, several orders of magnitude smaller, because a restaurant simply doesn't move.</p>
+<p><strong>What that difference unlocks, concretely:</strong></p>
+<ul>
+<li><strong>Precomputation becomes viable, not just possible.</strong> The full geospatial index — every business's geocell, every neighbor-cell relationship — can be built once, offline or in a scheduled batch job, and simply <em>served</em> from then on, rather than being continuously reconstructed as data changes underneath it. Ride-Sharing's index, by contrast, is never "done" being built — it's in a permanent, ongoing state of being overwritten.</li>
+<li><strong>Aggressive caching becomes viable, not just possible.</strong> Because the underlying data is stable, the same (geocell, filter) query result can be cached for minutes to hours without risking staleness that matters — the direct subject of Q. Caching Uber's driver-search results for even a few seconds would return stale, likely-already-moved-on drivers; caching this system's "coffee shops near this city block" result for an hour returns results that are, for all practical purposes, still exactly correct.</li>
+<li><strong>Index rebuild frequency can be dramatically lower.</strong> Where Ride-Sharing's index effectively rebuilds itself continuously by definition, this system's index only needs to be refreshed on the cadence business changes actually occur — batch reindexing on the order of minutes to hours is entirely sufficient (S), a cadence that would be a correctness bug, not just slow, for a live driver-matching system.</li>
+</ul>
+<p><strong>Why this is a genuinely different trade-off, not just "the same solution, less work":</strong> both systems reach for a geohash/S2-style grid structure (M) — on the surface, the identical tool. But the <em>engineering problem each system is actually solving</em> with that tool is different: P5's hard problem is sustaining massive continuous write throughput into the index while keeping reads fast; this system's hard problem is almost entirely about read scale and caching, because the write side is, by comparison, nearly idle. A candidate who states this contrast explicitly — not just "I'd use a geohash here too" — is demonstrating the actual skill this problem is testing (<a href="#p17-c">C</a>).</p>
+
+<h3 id="p17-o">O. Deep Dive 3 — Combining the Geospatial Filter with Metadata Filters</h3>
+<p><strong>Requirement this addresses:</strong> the category/price/open-now filtering functional requirement (D) — "nearby" alone is an incomplete query; a real search intersects proximity with a set of independent attribute constraints.</p>
+<p><strong>Where this intersection should happen, and why it matters:</strong> the naive-but-tempting approach is two separate steps — run a geospatial query to get all nearby businesses, then filter that candidate list by category/price/hours in the application layer. This works, but it's needlessly wasteful: it forces the geospatial query to return every nearby business regardless of whether most of them will immediately be discarded by the metadata filter (a search for "open-now coffee shops" still has to fetch every nearby dry cleaner and hardware store first, just to throw them away a moment later).</p>
+<p><strong>The better approach — push both filters into the same search-engine query, evaluated together:</strong> a modern search engine's query planner (Elasticsearch's <code>bool</code> query combining a <code>geo_distance</code> or <code>geo_bounding_box</code> clause with <code>term</code>/<code>range</code> filter clauses on category, price, and hours, <a href="#p17-ad">AD</a>) can intersect a geospatial candidate set with attribute filters natively, using the same underlying bitset/inverted-index machinery it already uses for text search — the intersection happens once, inside the engine, over whichever candidate set is smaller, rather than as two round trips glued together in application code.</p>
+<p><strong>Why "open now" specifically is a slightly different kind of filter than the others:</strong> category and price are static attributes of the business record itself and index cleanly as plain filterable fields. "Open now" depends on the <em>current wall-clock time relative to the query</em>, not a stored boolean — so it's evaluated either as a range query against a structured <code>hours</code> field (open-interval-per-day-of-week) at query time, or, for a cheaper approximation, as a precomputed, periodically-refreshed <code>is_open_now</code> flag recalculated on a short interval (minutes) rather than evaluated fresh on every single search — a small, deliberate staleness trade that's entirely acceptable given this system's overall tolerance for it (N, S).</p>
+
+<h3 id="p17-p">P. Deep Dive 4 — Ranking Results</h3>
+<p><strong>Requirement this addresses:</strong> the ranked-results functional requirement (D) — "nearest first" is not, by itself, a good ranking function, and a candidate who stops there is leaving real signal on the table.</p>
+<p><strong>Why pure distance is an incomplete ranking signal:</strong> the absolute closest coffee shop to a search point might have two reviews and a 2.5-star average, while a slightly farther one has thousands of reviews and a 4.7 average — a user is very likely better served by the second result even though it's not literally nearest, the identical "closest by one metric isn't actually best" lesson Ride-Sharing's ETA-refinement deep dive draws for driver ranking (<a href="#p5-o">P5-O</a>), applied here to relevance instead of route time.</p>
+<p><strong>A blended relevance score, combining several independent signals:</strong> a representative formula — deliberately illustrative, not a "the one correct formula" claim — combines: an inverse-distance term (closer scores higher, but with diminishing sensitivity beyond a certain radius, so two businesses a block apart aren't wildly differentiated by distance alone); a <strong>Bayesian-adjusted rating</strong> rather than a raw average (so a business with one 5-star review doesn't outrank one with ten thousand reviews averaging 4.6 — the adjustment pulls a low-review-count business's score toward the platform-wide average until it has enough reviews to be trusted on its own, the standard fix for the "one great review" problem); a popularity/engagement term (review volume, recent search-click-through rate); and an optional sponsored-placement boost for paid listings, capped and clearly distinguishable from organic ranking in the actual product surface.</p>
+<p><strong>Why this blended score is computed largely offline, and only lightly adjusted at query time:</strong> most of a business's ranking inputs (its Bayesian rating, its popularity term) change slowly and can be recomputed on a batch schedule (S) and stored directly on the <code>SearchIndexEntry</code> (H, K) — only the distance term is inherently query-time (it depends on where the searcher actually is), so the query-time ranking work is "combine a precomputed static score with a cheap, freshly-computed distance term," not "recompute every signal from scratch for every search" — the same "precompute the expensive part, do only the cheap part live" instinct generalized in <a href="#patterns-c">Patterns Playbook C</a>.</p>
+
+<h3 id="p17-q">Q. Deep Dive 5 — Caching Popular Areas and Queries</h3>
+<p><strong>Requirement this addresses:</strong> the low-search-latency and high-availability NFRs (D) — and the deep dive where N's central insight (static points tolerate aggressive caching) actually gets cashed in as a concrete design decision.</p>
+<p><strong>Why a small number of geocells absorb a hugely disproportionate share of traffic:</strong> search volume tracks population density and foot traffic, not land area — a handful of dense urban geocells (downtown cores, popular neighborhoods) receive a wildly disproportionate fraction of all searches, the same "hot key" shape Ad Click Aggregation names for a viral ad (<a href="#p16-r">P16-R</a>) and Rate Limiter names for an abusive client (<a href="#p2-q">P2-Q</a>) — except here, unlike either of those, the hot keys are <em>known in advance and change slowly</em> (a city's busy downtown stays busy downtown for years), which makes them exceptionally easy to cache well rather than something that needs active hot-key detection.</p>
+<p><strong>The cache key: a (geocell, filter signature) pair, not the raw query string:</strong> results for "coffee near this exact latitude/longitude" and "coffee near a point 20 meters away, same geocell" should hit the identical cached entry — the cache key is normalized to the geocell (or a small ring of cells) plus a canonicalized signature of the applied filters (category, price tier, open-now bucketed to a coarse time window), not the raw, high-cardinality lat/lng float pair a naive cache-key choice would produce, which would fragment the cache into near-useless, almost-never-repeated keys.</p>
+<p><strong>Why a generous TTL is the correct choice here, unlike almost anywhere else in this document:</strong> a cache-aside read-through layer (<a href="#prereq-d">Prerequisites D</a>) in front of the search engine, with a TTL on the order of minutes for the raw geo+metadata result set — long enough to absorb the overwhelming majority of repeat traffic against a popular downtown geocell, short enough that a business's occasional update still propagates within a bound the product can live with (S). This is a direct, practical consequence of N: caching a moving driver's location for even a few seconds would be visibly wrong; caching "the coffee shops in this three-block radius" for several minutes is, for all practical purposes, indistinguishable from a live query.</p>
+<p><strong>Why this still needs a real cache tier, not just relying on the search engine's own internal caching:</strong> a search engine's query cache typically caches at the shard/segment level and still re-executes the query's scoring/ranking logic on a hit in many configurations; a dedicated, application-level result cache in front of it (Redis or an equivalent) can skip the entire query-and-rank pipeline on a hit and return a fully-formed, already-ranked page directly — meaningfully cheaper for the hottest cells that receive a disproportionate share of the ~5,800/sec average search load (G).</p>
+
+<h3 id="p17-r">R. Deep Dive 6 — Handling Reviews at Scale</h3>
+<p><strong>Requirement this addresses:</strong> the review-submission functional requirement (D) — a genuinely write-heavy path in an otherwise overwhelmingly read-dominated system, and the one place this design has to think about write throughput at all.</p>
+<p><strong>Why recomputing a business's aggregate rating synchronously, on every single review, is the wrong default:</strong> a naive implementation recalculates <code>avg_rating</code> by re-scanning every review for a business and recomputing the mean (and, if using P's Bayesian adjustment, the full adjusted score) on every single new review submission — for a popular business with tens of thousands of reviews, that's an increasingly expensive full scan triggered by every single write, and it's on the critical path of the review-submission request itself, directly slowing down the one interaction the user is actively waiting on.</p>
+<p><strong>The fix — write the raw review immediately, recompute the aggregate asynchronously:</strong> a review submission does two things, sequenced differently: the raw <code>Review</code> record itself (K) is written durably and immediately (the user's review exists and is visible on the business's review list right away) — but the <code>RatingAggregate</code> (H) and the ranking-relevant <code>SearchIndexEntry</code> fields derived from it are updated by a background job, either incrementally (maintaining a running sum/count rather than a full rescan — a new review just adjusts the running total, an O(1) update instead of an O(n) rescan) or on a short batch interval, the same "keep the expensive part off the hot path" instinct <a href="#patterns-c">Patterns Playbook C</a> names generally, applied here to rating recomputation instead of a notification send.</p>
+<p><strong>Why a short, bounded lag between "review submitted" and "aggregate rating updated" is an acceptable, deliberate trade, not a bug:</strong> a business's displayed star rating shifting a few seconds to a couple of minutes after a new review lands causes no meaningful product harm — nobody is making a time-critical decision off the exact millisecond a rating updates, which is a materially looser bar than, say, Payment System's ledger correctness (<a href="#p15-v">P15-V</a>) or even Ad Click Aggregation's billing-grade eventual-exact count (<a href="#p16-v">P16-V</a>). This short delay is explicitly named in the Consistency Model (V) as one of several places this design leans on its overall staleness tolerance.</p>
+
+<h3 id="p17-s">S. Deep Dive 7 — Search Index Freshness</h3>
+<p><strong>Requirement this addresses:</strong> the staleness-tolerance NFR (D) — how fresh does a nearby-search result actually need to be when a business closes, changes its hours, or a brand-new business opens, and what does the system tolerate in between?</p>
+<p><strong>The honest answer this problem calls for: far staler than almost anything else in this document, and that's correct, not a compromise.</strong> A business that closed yesterday still showing up in search results for a few hours is a minor, recoverable annoyance (a user might arrive and find it closed) — meaningfully lower-stakes than Ride-Sharing showing a driver's location a few seconds late (<a href="#p5-v">P5-V</a>), and dramatically lower-stakes than a financial system briefly disagreeing about a balance. This is the same "how fresh does this actually need to be" question Web Crawler's own freshness deep dive asks about recrawl scheduling (<a href="#p6-r">P6-R</a>) — and the two problems land on a similar answer for a similar reason: the underlying data changes slowly, so an index that's minutes-to-hours behind reality is a perfectly acceptable, deliberately chosen trade, not a bug to be engineered away.</p>
+<p><strong>Batch reindexing as the primary mechanism, not continuous per-write propagation:</strong> business creates/edits land in the primary store (K) immediately, but propagation into the search-engine index (K, O) happens on a scheduled batch cadence — every few minutes for high-priority fields (a business marking itself permanently closed) and up to an hour or more for lower-urgency ranking inputs (recomputed popularity scores, R's aggregate rating rollups). This mirrors Web Crawler's own priority-based, adaptive recrawl scheduling (<a href="#p6-r">P6-R</a>) — not every field needs the same freshness bar, and treating them uniformly would either over-spend reindexing capacity on rarely-changing fields or under-serve the handful of changes that genuinely matter faster (a business closing down).</p>
+<p><strong>Why near-real-time, per-write index updates are available as an escalation, but not the default:</strong> a search engine can absolutely support near-immediate document updates if a specific field genuinely needs it — a "permanently closed" flag is the one field in this design worth propagating faster than the default batch cadence, since showing a permanently-closed business in search results is a more visible failure than a slightly-stale price tier. Choosing to make <em>most</em> fields batch-refreshed and only this one field near-real-time is a deliberate, selective decision — the same selective-cost reasoning Ad Click Aggregation applies to salting only genuinely hot ad keys rather than every key uniformly (<a href="#p16-r">P16-R</a>).</p>
+
+<h3 id="p17-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  Owner(["Business owner"]) -- "create/edit listing" --> PrimaryDB[("Primary Business Store<br/>system of record, K")]
+  PrimaryDB -- "batch reindex, minutes-to-hours cadence (S)" --> SearchIdx[("Search Engine Index<br/>geo_point + metadata fields, K, M")]
+  PrimaryDB -- "near-real-time propagation<br/>for 'permanently closed' only (S)" --> SearchIdx
+
+  User(["User"]) -- "GET /search (lat, lng, filters)" --> API["Search Service"]
+  API -- "check first" --> Cache[("Query/Area Cache<br/>(geocell, filter sig), TTL minutes, Q")]
+  Cache -- "miss" --> SearchIdx
+  SearchIdx -- "geo + metadata intersection (O)" --> API
+  API -- "blend precomputed score + live distance (P)" --> API
+  API -- "populate on miss" --> Cache
+  API --> User
+
+  User -- "POST review" --> ReviewSvc["Review Service"]
+  ReviewSvc -- "write immediately" --> ReviewStore[("Review Store, K")]
+  ReviewSvc -- "enqueue async recompute" --> AggWorker["Rating Aggregation Worker (R)"]
+  AggWorker -- "incremental update" --> RatingAgg[("RatingAggregate, H")]
+  RatingAgg -.-> SearchIdx
+</div>
+<p class="diagram-caption">Two distinct speeds: the search read path (top) is cached and served from a mostly-static, batch-refreshed index; the review write path (bottom) writes durably and immediately, but only feeds the ranking-relevant aggregate back asynchronously.</p>
+
+<h3 id="p17-u">U. Design Evolution</h3>
+<table>
+<tr><th>Version</th><th>What Changed</th><th>Why</th></tr>
+<tr><td>V1</td><td>Haversine distance computed against every row in a plain relational table, on every search (J)</td><td>Simplest possible thing that satisfies the functional requirement in isolation</td></tr>
+<tr><td>V2</td><td>A dedicated geospatial index (geohash/S2 grid) replaces the full-table scan</td><td>Closes V1's fatal flaw — "nearby" becomes a bounded set of index lookups, not an O(n) scan (M)</td></tr>
+<tr><td>V3</td><td>Geospatial and attribute filters (category/price/open-now) are evaluated together, in a single search-engine query</td><td>Avoids fetching every nearby business only to discard most of them in application code afterward (O)</td></tr>
+<tr><td>V4</td><td>A blended relevance score (distance, Bayesian rating, popularity, sponsorship) replaces pure distance-sort</td><td>Nearest-first alone is a poor proxy for what a user actually wants (P)</td></tr>
+<tr><td>V5</td><td>A (geocell, filter signature)-keyed result cache with a minutes-long TTL sits in front of the search engine</td><td>A small number of dense geocells absorb disproportionate traffic, and static points make aggressive caching safe (N, Q)</td></tr>
+<tr><td>V6</td><td>Review writes land immediately; aggregate rating recomputation moves to an async, incremental background job</td><td>A synchronous full rescan on every review would slow the one request the user is actually waiting on (R)</td></tr>
+<tr><td>V7</td><td>Index updates move to a batch/scheduled reindex cadence, with one deliberate near-real-time exception ("permanently closed")</td><td>This system's staleness tolerance is far looser than most of this document's other read paths — most fields don't need continuous propagation (S)</td></tr>
+</table>
+<p><strong>What stays stable throughout:</strong> the <code>GET /search</code> contract from I — every refinement underneath changes how a result is found, filtered, ranked, and cached, never the basic shape of what a user's client actually calls.</p>
+
+<h3 id="p17-v">V. Consistency Model</h3>
+<p>This design sits at the opposite end of this document's staleness spectrum from Ride-Sharing (<a href="#p5-v">P5-V</a>), for the precise reason N spells out: Uber's location data, ETA estimates, and live tracking tolerate seconds of staleness because a driver's position genuinely changes second to second; this system's search index, cached query results, and aggregate ratings tolerate <strong>minutes to low hours</strong> of staleness because the underlying data — a business's location, hours, and slowly-accumulating review base — simply doesn't change on anything close to that timescale. There is no equivalent, anywhere in this design, to Ride-Sharing's one deliberate strong-consistency island (atomic driver assignment, <a href="#p5-p">P5-P</a>) — nothing in this problem is a genuine race for an exclusive resource; every read path here is eventually consistent by default, and the only real design question is <em>how</em> eventual, not whether a narrow strongly-consistent exception is needed at all.</p>
+<p><strong>Where the staleness bound actually lives:</strong> the cache TTL (Q) bounds how stale a served search result can be; the batch reindex cadence (S) bounds how stale the underlying index itself can be, with one selective near-real-time exception for a business going permanently closed; and the async rating-recompute job (R) bounds how stale a displayed aggregate rating can be relative to the reviews actually written. None of these bounds is zero, and — unlike almost every other problem in this document — none of them needs to be, because nothing downstream of any of them is a correctness-critical decision the way a financial balance or a driver assignment is.</p>
+
+<h3 id="p17-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>The search engine cluster is temporarily degraded or a shard is unavailable:</strong> the result cache (Q) continues serving already-cached popular-area queries directly, and a cache miss for an uncached query degrades to a slower or partial result rather than a hard outage — the same "cache absorbs a backend blip" resilience most of this document's read-heavy systems rely on.</li>
+<li><strong>The async rating-aggregation worker falls behind or crashes:</strong> raw reviews remain durably written and visible on the business's review list regardless; the displayed aggregate rating simply lags further behind until the worker catches up — never a lost review, only a temporarily staler number (R).</li>
+<li><strong>A scheduled batch reindex job fails partway through:</strong> the previous index snapshot remains fully queryable and correct-as-of-its-own-build-time throughout; the next successful run simply catches up the backlog of changes, the same "the old version stays serveable until the new one is ready" safety property behind any staged/blue-green-style rebuild (S).</li>
+<li><strong>A business is marked permanently closed, but the near-real-time propagation path itself is delayed:</strong> the business is still shown in search briefly — an acceptable, bounded-duration degradation given this system's overall staleness tolerance (V), not a correctness failure the way a stale driver location would be for Ride-Sharing.</li>
+<li><strong>A dense downtown geocell's cached result expires and a burst of concurrent requests all miss simultaneously ("thundering herd"):</strong> a brief request-coalescing layer (only one of the simultaneous misses actually queries the search engine; the rest wait on and reuse that single result) prevents a cache-expiry moment from turning into a spike of redundant, simultaneous full queries against the hottest cells (Q).</li>
+</ul>
+
+<h3 id="p17-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1's full-table Haversine scan</td><td>A 2D proximity query with a computed distance function doesn't map onto any plain relational index at all</td><td>Dedicated geospatial index inside a search engine (M)</td></tr>
+<tr><td>Two-step geo-query-then-app-filter</td><td>Fetches and discards many nearby businesses that fail the metadata filter, wasted work on every search</td><td>Combined geo + metadata query evaluated together, inside the search engine (O)</td></tr>
+<tr><td>Uncached search engine as the only read path</td><td>A small number of dense urban geocells receive disproportionate traffic, hammering the search engine repeatedly for near-identical queries</td><td>A (geocell, filter signature)-keyed result cache with a generous TTL, viable specifically because points are static (N, Q)</td></tr>
+<tr><td>Synchronous full-rescan rating recomputation</td><td>Cost per review grows with a business's total review count, directly slowing the review-submission request</td><td>Async, incremental aggregate rating recomputation off the hot path (R)</td></tr>
+</table>
+
+<h3 id="p17-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Geospatial structure</td><td>Geohash grid (chosen)</td><td>Quadtree or Google S2</td><td>A geohash grid is simplest and sufficient given the geospatial choice matters far less here than in a live-tracking system (N); a quadtree adapts better to non-uniform density, S2 handles global edge cases more cleanly — either is a defensible alternative</td></tr>
+<tr><td>Index update strategy</td><td>Near-real-time, per-write propagation (Ride-Sharing's approach)</td><td>Scheduled batch reindexing, chosen</td><td>Near-real-time propagation is unnecessary machinery for data that changes as slowly as this; batch reindexing is far simpler and cheaper, at the cost of a bounded staleness window this system can comfortably tolerate (S)</td></tr>
+<tr><td>Where geo and metadata filters intersect</td><td>Two separate queries, merged in application code</td><td>A single combined search-engine query, chosen</td><td>Two separate queries are conceptually simpler but waste work fetching businesses the metadata filter will immediately discard; a combined query is more dependent on the search engine's own query-planning capability, in exchange for real efficiency (O)</td></tr>
+<tr><td>Rating aggregation</td><td>Synchronous full rescan on every review</td><td>Async, incremental recomputation, chosen</td><td>Synchronous rescan is always instantly consistent but grows more expensive, and slower for the user, as a business accumulates reviews; async incremental updates keep review submission fast, at the cost of a short, bounded lag before a new review affects the displayed rating (R)</td></tr>
+<tr><td>Cache TTL for search results</td><td>Very short (seconds), matching most of this document's other caches</td><td>Minutes-long, chosen</td><td>A short TTL is the safer default almost everywhere else in this document, but is needlessly conservative here — static points make a much longer TTL just as correct in practice, while dramatically increasing cache hit rate for the hottest, most-searched geocells (N, Q)</td></tr>
+</table>
+
+<h3 id="p17-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Computing Haversine distance against every row in a plain SQL table, with no spatial index at all.</strong> Works on a small demo dataset, is the wrong tool for this query shape from the very first realistic dataset size — the defining mistake on this problem, and a more expensive version of Ride-Sharing's own V1 mistake (J).</li>
+<li><strong>Importing Ride-Sharing's real-time, continuously-overwritten index architecture wholesale, without asking whether this data actually moves.</strong> Solves a write-throughput problem this system doesn't have, while missing the caching and precomputation opportunities that only exist <em>because</em> the data is static (N) — the single most diagnostic mistake for this specific problem, since it shows the candidate pattern-matched the tool without re-deriving the trade-off.</li>
+<li><strong>Filtering by category/price/open-now entirely in application code, after fetching every geospatially-nearby business.</strong> Wastes work fetching and discarding businesses the metadata filter was always going to reject, instead of intersecting both filters inside the search engine itself (O).</li>
+<li><strong>Ranking purely by distance, with no rating, popularity, or Bayesian adjustment at all.</strong> Confidently surfaces the nearest business even when it's a one-review outlier a user would clearly prefer to skip past for a slightly-farther, well-reviewed option (P).</li>
+<li><strong>Recomputing a business's full aggregate rating from a raw scan of all its reviews synchronously, inside the review-submission request itself.</strong> Gets progressively slower as a popular business accumulates reviews, directly penalizing the exact users engaging most with the platform (R).</li>
+</ul>
+
+<h3 id="p17-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"What if a business does occasionally relocate — a food truck, a pop-up, a mobile vendor?</td><td>That specific business's location updates get routed through the near-real-time propagation path already reserved for "permanently closed" (S), rather than the default batch cadence — the design already has the right escalation hook, it's just applied to a second, narrower category of business</td><td>Which businesses use the fast propagation path (S)</td><td>The geospatial index structure itself, caching strategy, ranking</td></tr>
+<tr><td>"How would you support personalized ranking — boosting businesses a specific user has liked before?"</td><td>Add a per-user personalization term to the blended score (P), computed at query time from a lightweight user-preference profile, layered on top of the existing precomputed static score rather than replacing it</td><td>Ranking function (P), an added user-preference lookup</td><td>Geospatial index, metadata filtering, caching strategy (though the cache key now needs to account for personalization, a real added wrinkle worth naming)</td></tr>
+<tr><td>"A single celebrity restaurant review goes viral and that one business page gets a massive traffic spike."</td><td>The business-detail-page read path (not the search path) needs its own hot-key cache entry with a short, dedicated TTL — a much narrower, cheaper version of Ad Click Aggregation's hot-ad partition-salting problem (<a href="#p16-r">P16-R</a>), since this is a single cached document under read pressure, not a write-partitioning problem</td><td>Business detail page caching</td><td>Search ranking, geospatial index, review-write path</td></tr>
+<tr><td>"How would you detect and filter fake/incentivized reviews?"</td><td>Layer heuristic fraud/authenticity scoring onto the review-ingestion path (velocity from one account, review-text similarity across businesses, reviewer account age) — conceptually the same heuristic-signal-combination approach Ad Click Aggregation applies to bot clicks (<a href="#p16-s">P16-S</a>), applied here to review authenticity instead of click fraud</td><td>A new review-scoring stage before a review counts toward the aggregate</td><td>Search, ranking, geospatial index</td></tr>
+</table>
+
+<h3 id="p17-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes computing distance against every row in a SQL table with no spatial index; ranks purely by distance with no mention of rating or relevance at all.</li>
+<li><strong>Mid-level:</strong> correctly reaches for a geospatial index (geohash or similar) by name, but treats it identically to how they'd describe Ride-Sharing's driver index, without noticing or being able to explain why the two systems' trade-offs actually differ.</li>
+<li><strong>Senior:</strong> proactively distinguishes this problem's static-point geospatial index from a moving-object index, and explains concretely what that unlocks (precomputation, longer cache TTLs, batch reindexing); designs a blended ranking function beyond pure distance; correctly separates the review write path from the aggregate-rating read path.</li>
+<li><strong>Staff+:</strong> states the static-vs-moving contrast against Ride-Sharing unprompted, as the organizing idea of the whole design, not a footnote; reasons precisely about which specific fields need near-real-time propagation versus which can tolerate a batch cadence, rather than picking one uniform freshness policy for everything; treats caching, ranking, and freshness as three expressions of the same underlying insight rather than three unrelated features.</li>
+</ul>
+
+<h3 id="p17-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a system like Yelp — users search for nearby businesses, filter by category or price, and see ranked results.</div>
+<div class="dialog"><span class="who">Candidate:</span> The core query is "find things near this point," which sounds identical to the Uber matching problem — a plain SQL range query on lat/lng won't scale, so I'd want a dedicated geospatial index, something like a geohash grid. But before I go further, I want to flag one thing that changes the design meaningfully from Uber's version of this: businesses don't move. A restaurant's location is essentially permanent once it's listed.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Why does that matter? Isn't it the same indexing problem either way?</div>
+<div class="dialog"><span class="who">Candidate:</span> The index structure itself is similar, but what that structure has to sustain is completely different. Uber's index absorbs something like a million location updates a second, because every driver is moving constantly — that's why it has to be an in-memory, continuously-overwritten structure. Here, business locations change maybe a handful of times a second, platform-wide, out of tens of millions of listings. That means I can build this index as a mostly-static, precomputed structure — rebuild it on a schedule, batch-refresh it every few minutes or even hours — instead of treating it as something that needs continuous real-time updates. And because the underlying data barely changes, I can cache search results aggressively — minutes-long TTLs, keyed by geographic cell and filter combination — in a way that would be actively wrong to do for Uber's live driver positions.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you combine "nearby" with filters like cuisine or price?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd push both into the same query against a search engine like Elasticsearch — a geo-distance clause combined with term filters on category and price, evaluated together, rather than fetching every nearby business first and filtering in application code afterward. That way the engine only does the expensive geospatial work once, and it's already intersected with the filters by the time results come back.</div>
+<div class="dialog"><span class="who">Interviewer:</span> And ranking — do you just sort by distance?</div>
+<div class="dialog"><span class="who">Candidate:</span> No — pure distance is a weak signal on its own. I'd blend distance with a Bayesian-adjusted rating, so a business with one perfect review doesn't outrank one with ten thousand reviews averaging 4.6, plus a popularity term, plus room for a capped, clearly-labeled sponsored boost. Most of those inputs change slowly, so I'd precompute them and store them directly on the search index entry — the only genuinely query-time piece is the distance itself, since that depends on where the searcher actually is right now.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last one — reviews. What happens when someone submits one?</div>
+<div class="dialog"><span class="who">Candidate:</span> The review itself gets written immediately and durably — it shows up on the business's review list right away. But I wouldn't recompute the business's overall star rating synchronously on every single review; for a popular business with a huge review history, that gets more expensive every time. I'd update the aggregate rating asynchronously — an incremental running total, updated by a background worker — so the review-submission request stays fast, and the displayed rating just lags by a few seconds to a couple of minutes, which for this product is a completely acceptable trade.</div>
+
+<h3 id="p17-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/yelp" target="_blank">Hello Interview — "Design Yelp"</a></td><td>Geospatial-index-first framing combined with an explicit discussion of denormalized search documents and read-heavy caching, closely mirroring this section's own progression</td><td>The clearest treatment of combining a spatial index with faceted/attribute search specifically for a static-POI domain</td><td>Lighter on explicitly contrasting the static-point case against a moving-object system like Uber's</td><td>The read-heavy, cache-first framing of the whole problem, adapted directly into Q of this section</td></tr>
+<tr><td><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-queries.html" target="_blank">Elastic — "Geo queries" (official Elasticsearch documentation)</a></td><td>Documents native <code>geo_point</code>/<code>geo_shape</code> field types and combined <code>geo_distance</code>/<code>geo_bounding_box</code> queries alongside ordinary term and range filters within a single <code>bool</code> query</td><td>Direct, first-party confirmation that intersecting a geospatial filter with attribute filters inside one search-engine query (this section's O) is exactly how a real, production search engine implements it — not an interview simplification</td><td>Documents the query API thoroughly but not the internal scoring/index-structure implementation in depth</td><td>The concrete mechanism (a combined <code>bool</code> query) this design's Deep Dive 3 (O) is built around</td></tr>
+<tr><td><a href="https://s2geometry.io/" target="_blank">Google — S2 Geometry Library (official site)</a></td><td>A hierarchical, sphere-projected geospatial cell decomposition with Hilbert-curve locality, used internally at Google and several other large-scale mapping/geo products</td><td>A real, production-grade alternative to a geohash grid, handling whole-globe edge cases (poles, the antimeridian) that a naive geohash implementation can mishandle</td><td>A lower-level geometry library, not a search engine — needs to be paired with an actual index/query layer, unlike Elasticsearch's built-in geo support</td><td>Confirms quadtree/S2-style hierarchical cell decomposition (M) is a real, battle-tested alternative to geohash, not a hypothetical</td></tr>
+<tr><td><a href="https://github.com/uber/h3" target="_blank">Uber — H3 (GitHub, official)</a></td><td>Uber's own open-sourced hexagonal geospatial grid, built specifically for its real-time driver-matching problem (<a href="#p5-m">P5-M</a>)</td><td>Useful here specifically as a contrast, not a recommendation — reading H3's own design goals (uniform-neighbor distance for live, continuous ring-expansion queries) makes clear it's solving a problem this system doesn't actually have</td><td>Purpose-built for a moving-object matching workload; adopting it here would import real complexity with no corresponding benefit for a static-point search problem</td><td>The clearest concrete evidence, from Uber's own real infrastructure, for exactly the static-vs-moving distinction this section's Deep Dive 2 (N) is built around</td></tr>
+</table>
+
+<h3 id="p17-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Yelp / Nearby Places Search</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Intermediate → Advanced + Geospatial Search — the geospatial tool is familiar from Ride-Sharing, but correctly reasoning about the static-point trade-off is the real, higher-signal test</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Search nearby businesses with category/price/open-now filters, ranked by relevance; view business details and reviews; submit reviews — ~50M businesses, ~5,800 searches/sec average, only a handful of business-metadata writes/sec</td></tr>
+<tr><td><strong>Central decision</strong></td><td>A precomputed, heavily-cached geospatial index (geohash/S2) over largely static points, combined with a separate metadata/attribute index, intersected in a single search-engine query and ranked by a blended relevance score</td></tr>
+<tr><td><strong>The Uber contrast (the load-bearing insight)</strong></td><td>Static points mean the index can be precomputed and cached aggressively, with batch (not continuous) updates — the opposite trade-off from Ride-Sharing's real-time, continuously-overwritten driver index (<a href="#p5-n">P5-N</a>, this section's N)</td></tr>
+<tr><td><strong>Filtering</strong></td><td>Geo and metadata filters (cuisine, price, open-now) intersected together inside one search-engine query, not fetched-then-filtered in application code (O)</td></tr>
+<tr><td><strong>Ranking</strong></td><td>Blended score: distance, Bayesian-adjusted rating, popularity, capped sponsored boost — mostly precomputed offline, only the distance term is genuinely query-time (P)</td></tr>
+<tr><td><strong>Caching</strong></td><td>(Geocell, filter signature)-keyed result cache with a minutes-long TTL — viable specifically because the underlying points rarely move (Q)</td></tr>
+<tr><td><strong>Reviews</strong></td><td>Written immediately and durably; aggregate rating recomputed asynchronously/incrementally, never via a synchronous full rescan on every review (R)</td></tr>
+<tr><td><strong>Freshness</strong></td><td>Batch reindexing on a minutes-to-hours cadence is the default; one deliberate near-real-time exception for "permanently closed" listings (S)</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Full-table Haversine scans; importing Uber's real-time index architecture wholesale without asking whether the data moves; filtering metadata in application code after a geo-only query; pure distance-sort ranking; synchronous full-rescan rating recomputation</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>A full ad-auction engine for sponsored placement, or a real-time driver-style index for business locations that essentially never change</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p16.html">&larr; 16. Ad Click Aggregation</a><a class="prevnext-link next" href="p18.html">18. Distributed Key-Value Store (Dynamo-style) &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

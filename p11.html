@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>11. Distributed Cache — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">11. Distributed Cache <span class="badge">Advanced + Distributed Systems</span></h1>
+
+<div class="section-toc">
+<a href="#p11-a">A. Interview Prompt</a><a href="#p11-b">B. Difficulty</a><a href="#p11-c">C. What It Tests</a>
+<a href="#p11-d">D. Requirements</a><a href="#p11-e">E. Clarifying Questions</a><a href="#p11-f">F. Assumptions</a>
+<a href="#p11-g">G. Capacity Estimation</a><a href="#p11-h">H. Core Entities</a><a href="#p11-i">I. API Design</a>
+<a href="#p11-j">J. Basic Design (V1)</a><a href="#p11-k">K. Data Model &amp; Store Choice</a><a href="#p11-l">L. End-to-End Flow</a>
+<a href="#p11-m">M. Deep Dive 1: Eviction Policies</a><a href="#p11-n">N. Deep Dive 2: Consistent Hashing</a><a href="#p11-o">O. Deep Dive 3: Replication for HA</a>
+<a href="#p11-p">P. Deep Dive 4: The Hot-Key Problem</a><a href="#p11-q">Q. Deep Dive 5: Cache Invalidation</a><a href="#p11-r">R. Deep Dive 6: Memory Under Pressure</a>
+<a href="#p11-s">S. Deep Dive 7: Persistence &amp; Recovery</a><a href="#p11-t">T. Full Solution at Scale</a><a href="#p11-u">U. Design Evolution</a>
+<a href="#p11-v">V. Consistency Model</a><a href="#p11-w">W. Failure Scenarios</a><a href="#p11-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p11-y">Y. Trade-Offs</a><a href="#p11-z">Z. Common Bad Designs</a><a href="#p11-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p11-ab">AB. Interviewer Evaluation</a><a href="#p11-ac">AC. Interview Simulation</a><a href="#p11-ad">AD. Source Comparison</a>
+<a href="#p11-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p11">Jump to section:</label><select id="jump-p11" class="jump-select" data-jump-select><option value="p11-a">A. Realistic Interview Prompt</option><option value="p11-b">B. Difficulty</option><option value="p11-c">C. What This Problem Tests</option><option value="p11-d">D. Requirements</option><option value="p11-e">E. Clarifying Questions</option><option value="p11-f">F. Assumptions</option><option value="p11-g">G. Capacity Estimation</option><option value="p11-h">H. Core Entities</option><option value="p11-i">I. API Design</option><option value="p11-j">J. Basic / Naive High-Level Design (V1)</option><option value="p11-k">K. Data Model &amp; Store Choice</option><option value="p11-l">L. End-to-End Flow — One GET Request Routed to Its Shard and Served</option><option value="p11-m">M. Deep Dive 1 — Eviction Policies</option><option value="p11-n">N. Deep Dive 2 — Consistent Hashing for Horizontal Scaling</option><option value="p11-o">O. Deep Dive 3 — Replication for High Availability</option><option value="p11-p">P. Deep Dive 4 — The Hot-Key Problem</option><option value="p11-q">Q. Deep Dive 5 — Cache Invalidation Strategies</option><option value="p11-r">R. Deep Dive 6 — Memory Management &amp; Eviction Under Pressure</option><option value="p11-s">S. Deep Dive 7 — Persistence &amp; Recovery</option><option value="p11-t">T. Full Solution at Scale — Final Architecture</option><option value="p11-u">U. Design Evolution</option><option value="p11-v">V. Consistency Model</option><option value="p11-w">W. Failure Scenarios</option><option value="p11-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p11-y">Y. Design Trade-Offs</option><option value="p11-z">Z. Common Bad Designs</option><option value="p11-aa">AA. Interviewer Follow-Ups</option><option value="p11-ab">AB. Interviewer Evaluation Rubric</option><option value="p11-ac">AC. Interview Simulation</option><option value="p11-ad">AD. Online Solution Comparison</option><option value="p11-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p11-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a distributed, in-memory caching system — think Redis Cluster or Memcached — that stores key-value data with sub-millisecond access, scales past what any single machine's RAM can hold, and keeps serving traffic even when individual nodes crash."</div>
+<p>This document has already used "put a cache in front of the database" as a supporting move in half its problems (Prerequisites D) — a single Redis instance, treated as a black box. This problem is the opposite framing: <strong>you are the team building that black box.</strong> Everything that was previously "just reach for Redis" — where a key lives, what happens when a node dies, what gets evicted when memory fills up — is now the actual subject of the design, and the honest, load-bearing answer to all of it is one integrated decision: <strong>consistent hashing to spread keys across shards, leader-follower replication per shard for availability, approximate-LRU eviction under memory pressure, and TTL as a property every entry carries, not a bolt-on feature.</strong></p>
+
+<h3 id="p11-b">B. Difficulty</h3>
+<p><strong>Advanced, distributed-systems-heavy</strong> — the single-node mechanics (a hash map, an LRU list) are almost trivial; what's hard is doing all of it across a fleet of machines that individually crash, that individually have finite memory, and where a handful of keys can receive wildly more traffic than the rest without warning.</p>
+
+<h3 id="p11-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognizing the difference between <em>using</em> a cache (Prerequisites D, and nearly every earlier problem) and <em>building</em> the caching system itself — the ownership, partitioning, and failure-handling concerns that a client of Redis never has to think about, because Redis's own engineers already solved them</li>
+<li>Consistent hashing (Prerequisites J, Patterns Playbook L) as a genuinely load-bearing partitioning mechanism here, not a one-line buzzword — the ring, virtual nodes, and what actually moves when the fleet's shape changes</li>
+<li>Honest reasoning about eviction: recognizing that textbook exact LRU doesn't survive contact with real concurrency and scale, and that every production system's real answer is an approximation</li>
+<li>Replication as an availability mechanism with a real consistency cost — leader-follower per shard, and being explicit about what "eventually consistent between leader and follower" actually means for a cache's correctness guarantees</li>
+<li>Recognizing that a single overloaded key is a fundamentally different failure mode than an unbalanced hash function, and needs a fundamentally different fix</li>
+</ul>
+
+<h3 id="p11-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li><code>SET key value [TTL]</code> — store a value under a key, with an optional expiration</li>
+<li><code>GET key</code> — retrieve the value for a key, or a miss if absent or expired</li>
+<li><code>DEL key</code> — explicitly remove a key before its TTL would naturally expire it</li>
+<li>An entry set with a TTL is automatically unavailable via <code>GET</code> once that TTL elapses, with no explicit deletion required</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Very low latency</strong> — sub-millisecond to low-single-digit-millisecond <code>GET</code>/<code>SET</code>, the entire reason anything reaches for a cache instead of the database in the first place</li>
+<li><strong>Horizontal scalability</strong> — a total dataset far larger than any single machine's RAM, served by a fleet of nodes rather than one</li>
+<li><strong>High availability</strong> — a node crash should not make its share of keys fully unreachable, and should not require a manual failover</li>
+<li><strong>Even load distribution</strong> — both key <em>count</em> and, as far as possible, request <em>traffic</em> spread across the fleet rather than concentrated on a few nodes</li>
+<li><strong>Bounded, predictable memory use per node</strong> — a node approaching its memory limit degrades by evicting gracefully, not by crashing or by silently accepting unbounded growth</li>
+</ul>
+<p><strong>Out of scope:</strong> this system <em>is</em> the cache — a downstream database is assumed to exist as the real source of truth (per the cache-aside pattern, Prerequisites D) but is not itself part of this design; multi-key transactions; a full pub/sub messaging layer; rich data structures beyond a string-valued blob (acknowledged as a real extension in AA).</p>
+
+<h3 id="p11-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>If a node crashes, is losing the data it held acceptable (pure cache semantics), or must that data survive the crash?</td><td>Determines whether this is "purely a fast, disposable cache" or something closer to a low-latency data store with real durability needs</td><td>Deep Dive 7 (S), Consistency Model (V)</td></tr>
+<tr><td>2</td><td>Can reads be served from a replica, accepting slightly stale data, or must every read reflect the absolute latest write?</td><td>Directly sets whether followers can absorb read load or exist purely as failover standby</td><td>Deep Dive 3 (O), Consistency Model (V)</td></tr>
+<tr><td>3</td><td>Is key access uniformly distributed, or can a small number of keys (a viral post, a celebrity profile) receive disproportionate traffic?</td><td>A well-balanced hash function does not, by itself, balance <em>traffic</em> — only key count</td><td>Deep Dive 4 (P)</td></tr>
+<tr><td>4</td><td>What's the expected value size — small tokens/counters, or larger serialized objects?</td><td>Drives per-node capacity math and how aggressively eviction needs to act</td><td>Capacity Estimation (G), Deep Dive 6 (R)</td></tr>
+<tr><td>5</td><td>Should clients know the cluster's shard topology directly (a smart client library), or talk to a routing tier that hides it?</td><td>Changes where the consistent-hashing logic actually lives and who's responsible for keeping it current</td><td>API Design (I), Deep Dive 2 (N)</td></tr>
+</table>
+
+<h3 id="p11-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> <code>GET</code>/<code>SET</code>/<code>DEL</code> with per-key TTL, sub-millisecond latency target, horizontal scale past one machine's RAM.</li>
+<li><strong>Assumption:</strong> this is a pure, cache-aside-style cache (E's clarifying question 1) — the source of truth lives elsewhere (a database), so losing a node's data on crash is tolerable in principle, though O and S both discuss reducing how often and how much that actually happens in practice.</li>
+<li><strong>Assumption:</strong> followers may serve reads (E's clarifying question 2) — the far more common real-world configuration, and the one that makes replication earn its keep for more than pure failover.</li>
+<li><strong>Assumption:</strong> access is skewed, not uniform (E's clarifying question 3) — realistic for almost any real cache workload, and the assumption that makes the hot-key deep dive (P) a first-class part of the design rather than a footnote.</li>
+<li><strong>Assumption:</strong> a smart client library maintains shard-ring awareness directly (E's clarifying question 5) — the same model used by real systems (Redis Cluster clients, Memcached's Ketama-based libraries), avoiding a routing-tier hop on every single request.</li>
+</ul>
+
+<h3 id="p11-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Total dataset size</td><td>Illustratively, 5 TB of hot key-value data</td><td>Immediately, obviously larger than any single machine's practical RAM ceiling (tens to low hundreds of GB) — the entire reason this is a distributed-systems problem and not a data-structures one</td></tr>
+<tr><td>Usable RAM per node</td><td>~50 GB usable out of ~64 GB physical, after reserving headroom for fragmentation (R) and process overhead</td><td>Drives shard count directly: 5 TB / 50 GB ≈ 100 shards' worth of primary data, before replication overhead</td></tr>
+<tr><td>Replication factor</td><td>1 leader + 2 followers per shard (O)</td><td>Total cluster memory footprint is ~3x the raw dataset size, not 1x — a real and material cost of the availability guarantee</td></tr>
+<tr><td>Peak throughput</td><td>Illustratively, 1M+ operations/second cluster-wide, heavily read-skewed</td><td>Confirms per-node latency (sub-millisecond) matters far more than per-node raw storage efficiency — this is fundamentally a latency-and-availability problem, not a storage-volume one, the same shape as Rate Limiter (P2) rather than Video Streaming (P7)</td></tr>
+<tr><td>Average value size</td><td>~1 KB (per F's assumption of small-to-medium serialized objects)</td><td>Confirms the per-node capacity math above and that eviction-list/metadata overhead per entry is non-trivial relative to the value itself (R)</td></tr>
+</table>
+
+<h3 id="p11-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>CacheEntry</code></td><td>One stored key-value pair, the atomic unit the whole system exists to serve</td><td><code>key</code>, <code>value</code> (opaque bytes), <code>expires_at</code> (M), <code>last_accessed</code> / <code>freq_counter</code> (M)</td></tr>
+<tr><td><code>Shard</code></td><td>A slice of the overall keyspace, owned by exactly one leader at a time</td><td><code>shard_id</code>, <code>ring_range</code> (N), <code>leader_node_id</code>, <code>follower_node_ids</code> (O)</td></tr>
+<tr><td><code>Node</code></td><td>One physical/virtual machine in the cluster, hosting one or more shard roles</td><td><code>node_id</code>, <code>role</code> (leader/follower per shard), <code>memory_used</code>, <code>maxmemory</code> (R)</td></tr>
+<tr><td><code>RingMembership</code> (shared, gossiped)</td><td>The current mapping of virtual nodes to physical nodes that every client and node agrees on</td><td><code>virtual_node_id</code>, <code>owning_node_id</code>, <code>version</code></td></tr>
+</table>
+
+<h3 id="p11-i">I. API Design</h3>
+<pre><code>-- client-facing (via a shard-aware client library, per F):
+SET   key value [EX ttl_seconds]   -&gt; OK
+GET   key                          -&gt; value | (nil, cache miss)
+DEL   key                          -&gt; OK
+-- internal, cluster-facing, not client-facing:
+(gossip) node heartbeat + ring-membership propagation                (N)
+(replication stream) leader -&gt; follower: append-only change stream   (O)
+(rebalance) migrate key range from old owner -&gt; new owner on topology change (N)
+</code></pre>
+<p><strong>Why the client library resolves the shard itself instead of asking a router on every call:</strong> a routing-tier hop would add a full extra network round trip to every single <code>GET</code>/<code>SET</code>, directly undermining the sub-millisecond latency requirement (D) — instead, the client library keeps a local, gossip-updated copy of the ring (N) and computes the target node itself, the same "push the routing decision as close to the caller as possible" instinct behind Chat System's connection-routing table (Prerequisites K).</p>
+
+<h3 id="p11-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: one machine holds an in-memory hash map, and every client talks directly to it.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Client1["Client"] --> Node["Single Cache Node<br/>(in-memory hash map)"]
+  Client2["Client"] --> Node
+  Client3["Client"] --> Node
+</div>
+<p class="diagram-caption">V1 — one node, one hash map. Works exactly until the dataset outgrows one machine's RAM, or that machine dies.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> a single node has a hard, fixed memory ceiling — once the dataset (G) exceeds it, there is no more "just add more RAM" available, only "buy a bigger machine," which is not horizontal scaling and hits a wall regardless. Worse, that one node is also a hard single point of failure: it crashes, and every key it held is not just unavailable but <em>gone</em>, taking the entire cache offline for every client at once. The naive fix — run several independent standalone nodes and have clients pick one via <code>hash(key) % N</code> — solves the memory ceiling but not the crash problem, and introduces a new one: adding or removing a single node changes the result of that modulo for nearly every key, forcing almost the entire dataset to relocate (effectively a full cache flush) for one node joining or leaving, the exact failure this document already named in Prerequisites J.</p>
+
+<h3 id="p11-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>An in-memory hash table per shard, not a general-purpose database:</strong> the access pattern is exclusively "fetch/store/delete by exact key," never a range scan or a query — a plain hash map gives O(1) access, which is the entire point of reaching for a cache instead of a database in the first place. There is no relational structure to preserve and no query planner needed, the same "match the store to the access pattern, not the other way around" principle from Prerequisites B, taken to its simplest possible extreme.</p>
+<p><strong>Values are opaque byte blobs to the storage layer itself.</strong> Whether a value is a serialized object, a plain string, or a counter is a client-side concern (mirroring Redis's own richer data-type layer, Prerequisites D) — the core storage engine only needs to store and return bytes, plus the small amount of per-entry metadata (M) needed for eviction and TTL bookkeeping.</p>
+<p><strong>Optional disk-backed persistence (S) is a durability optimization layered on top of the in-memory store, never the primary store itself</strong> — every hot-path read and write still hits memory only; disk exists purely to speed up recovery after a restart, discussed fully in S.</p>
+
+<h3 id="p11-l">L. End-to-End Flow — One GET Request Routed to Its Shard and Served</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant C as Client Library
+  participant Ring as Local Ring Copy (N)
+  participant L as Shard Leader (O)
+  participant Mem as In-Memory Table (K)
+  C->>Ring: hash(key) -> which shard owns this?
+  Ring-->>C: shard leader's node address
+  C->>L: GET key
+  L->>Mem: lookup key
+  alt hit, not expired
+    Mem-->>L: value
+    L->>L: bump recency/frequency (M)
+    L-->>C: value
+  else miss or expired
+    Mem-->>L: not found
+    L-->>C: cache miss
+    Note over C: caller falls back to DB<br/>and SETs the result back (cache-aside, Prerequisites D)
+  end
+</div>
+<p class="diagram-caption">The client resolves ownership locally before ever making a network call — the ring lookup (N) never leaves the client process on the fast path.</p>
+
+<h3 id="p11-m">M. Deep Dive 1 — Eviction Policies</h3>
+<p><strong>Requirement this addresses:</strong> bounded, predictable memory per node (D) — once a node's cache is full, adding a new entry means something else has to go, and <em>which</em> entry is the whole question.</p>
+<table>
+<tr><th>Policy</th><th>How</th><th>Trade-off</th></tr>
+<tr><td><strong>Exact LRU</strong></td><td>A doubly-linked list ordered by recency plus a hash map for O(1) lookup; every single <code>GET</code> moves that entry to the front of the list</td><td>Textbook-correct, but every read now also does a write (a list-pointer update) — under high concurrency this either serializes on a lock around the list or requires atomic pointer tricks, turning the cheapest, most frequent operation in the whole system into one with real contention cost</td></tr>
+<tr><td><strong>Approximate / sampled LRU (chosen default)</strong></td><td>Track only a lightweight recency timestamp per entry, no strict ordering structure at all; when eviction is needed, randomly sample a small number of keys (e.g. 5) and evict the least-recently-used one <em>among the sample</em>, not globally</td><td>Not perfectly precise — a genuinely old key can occasionally survive an eviction round it "should" have lost — but removes the linked-list contention entirely, and converges to behavior statistically close enough to true LRU that the imprecision essentially never matters in practice; this is the real algorithm Redis itself uses</td></tr>
+<tr><td>LFU (least frequently used)</td><td>Track an access-frequency counter per entry (often a small, probabilistic, decaying counter rather than an exact count, to avoid the counter itself becoming a hot piece of contended state) and evict the lowest-frequency entry</td><td>Better than LRU for workloads with a stable set of "always popular" keys that shouldn't be evicted just because of one recency dip, but a genuinely new key starts at zero frequency and can get evicted immediately before ever getting a chance to become popular — decay/aging logic exists specifically to counter this</td></tr>
+<tr><td>ARC (Adaptive Replacement Cache) / segmented LRU</td><td>Maintain two lists — one for recently-used-once entries, one for entries used more than once — and dynamically shift the boundary between them based on observed hit patterns</td><td>Adapts well to mixed workloads that shift between recency-favoring and frequency-favoring access patterns (used in ZFS's and PostgreSQL's buffer caches), at the cost of meaningfully more bookkeeping than a single-list approach</td></tr>
+</table>
+<p><strong>Why exact LRU is the wrong default despite being the "obvious" textbook answer:</strong> the whole point of a cache is that its most common operation, by an enormous margin, is a read — paying a write-sized cost (a list mutation, a lock) on every read directly fights the sub-millisecond latency requirement (D) this entire system exists to satisfy. Sampled approximate LRU trades a small, statistically negligible amount of precision for removing that cost entirely, which is exactly the trade real production systems make.</p>
+
+<h3 id="p11-n">N. Deep Dive 2 — Consistent Hashing for Horizontal Scaling</h3>
+<p><strong>Requirement this addresses:</strong> horizontal scalability (D) and directly fixes V1's fatal rehashing flaw (J) — this is the same mechanism already introduced in Prerequisites J and generalized as its own named pattern in the Patterns Playbook (Patterns L), applied here as the central partitioning decision of the whole problem rather than a supporting detail.</p>
+<p><strong>Ring plus virtual nodes:</strong> both physical nodes and keys are hashed onto points on a fixed circular ring; a key belongs to whichever node's point is the next one clockwise from it. Each physical node is assigned many virtual-node points scattered around the ring (not just one), which is what actually keeps load balanced — with only one point per node, pure hash luck could give one node a disproportionately large arc, and with it, a disproportionate share of keys.</p>
+<p><strong>Rebalancing on node add or remove — the property that makes this the right partitioning choice at all:</strong> when a node joins, it claims a set of virtual-node points and only the keys that fall in the small arcs immediately adjacent to those points need to move, migrated in the background directly from their old owner to the new one, while the rest of the ring's keys stay exactly where they were. Removing a node is the mirror image: its arcs are absorbed by their clockwise neighbors, and only those keys relocate. Neither case comes close to the "almost everything moves" failure of naive <code>hash(key) % N</code> (J).</p>
+<p><strong>Who keeps the ring up to date:</strong> nodes propagate ring-membership changes to each other via a lightweight gossip protocol, and the smart client library (I) holds its own periodically-refreshed copy — the same "everyone eventually agrees on current ownership, without a single bottleneck node being asked on every request" model used by Redis Cluster's cluster bus in practice (AD).</p>
+<p><strong>A request that lands on the wrong node during a brief rebalance window</strong> is handled with a redirect response pointing the client at the correct current owner (mirroring Redis Cluster's real <code>MOVED</code>/<code>ASK</code> responses) rather than being silently dropped or served incorrectly — a brief, self-correcting inconsistency, not a lasting one.</p>
+
+<h3 id="p11-o">O. Deep Dive 3 — Replication for High Availability</h3>
+<p><strong>Requirement this addresses:</strong> high availability (D) — consistent hashing (N) solves "which node owns this key" but says nothing about what happens when that one owning node crashes; without replication, losing a node still means losing that entire slice of the keyspace outright.</p>
+<p><strong>Leader-follower per shard, the standard model (Prerequisites C), applied at shard granularity rather than to the dataset as a whole:</strong> each shard has one leader taking all writes and, by default, all reads, plus one or more followers that continuously receive a stream of changes from it.</p>
+<table>
+<tr><th>Replication Mode</th><th>How</th><th>Trade-off</th></tr>
+<tr><td><strong>Asynchronous (chosen default)</strong></td><td>The leader applies a write locally and acknowledges the client immediately, streaming the change to followers in the background without waiting for their confirmation</td><td>Fastest possible write path — the point of a cache — but a leader crash between "acked the client" and "the change reached a follower" loses that write outright, an acceptable cost given F's pure-cache-semantics assumption</td></tr>
+<tr><td>Semi-synchronous</td><td>The leader waits for at least one follower to acknowledge receipt before returning success to the client</td><td>Meaningfully safer — a leader crash no longer loses the most recent write outright — at the direct cost of added write latency, a real trade-off against this system's core latency requirement (D)</td></tr>
+</table>
+<p><strong>Failover:</strong> followers watch the leader's heartbeat; if it goes silent past a bounded threshold, the cluster's coordination layer promotes one follower to leader via the same lease-based election mechanism already used for Job Scheduler's triggering role (Prerequisites F, P10-M) — exactly one new leader is elected, the ring (N) is updated to point at it, and the shard resumes accepting writes, all without any human intervention.</p>
+<p><strong>Why followers serve reads rather than sitting idle (per F's assumption):</strong> a shard that only ever reads and writes through its leader wastes the follower's capacity entirely; letting followers serve reads spreads read load across the replica set — the same replica-read-scaling reasoning from Prerequisites C — at the direct cost of the staleness window discussed fully in V.</p>
+
+<h3 id="p11-p">P. Deep Dive 4 — The Hot-Key Problem</h3>
+<p><strong>Requirement this addresses:</strong> even load distribution (D) — and specifically the gap that N alone cannot close, per E's clarifying question 3.</p>
+<p class="callout"><strong>Why a perfectly balanced hash function doesn't prevent this:</strong> consistent hashing (N) guarantees that keys are spread evenly across nodes by <em>count</em> — it says nothing at all about the <em>traffic</em> each individual key receives. A single viral key can receive orders of magnitude more requests than its neighbors on the ring, and because it correctly hashes to exactly one shard, that one shard's leader (and its followers, if read traffic is also skewed) absorbs the entire spike alone, no matter how well-distributed every other key is. This is a fundamentally different problem than an unbalanced ring, and "just add more shards" does nothing to fix it — the hot key still lands on exactly one of them.</p>
+<ul>
+<li><strong>Client-side local (L1) caching of known-hot keys, with a short TTL</strong> — a thin, in-process cache directly inside each calling client absorbs a large share of repeat reads for a hot key before they ever reach the cluster at all, trading a small amount of extra staleness for removing the request from the network path entirely.</li>
+<li><strong>Key splitting</strong> — store a hot logical key's value under several derived physical keys (<code>key#0</code>, <code>key#1</code>, ... <code>key#N</code>) that consistent hashing naturally scatters across different shards, and have clients pick one at random or round-robin on read; a write now has to fan out to all the split copies, a real added cost, but read traffic for that one logical key is spread across several shards instead of concentrated on one.</li>
+<li><strong>Dedicated extra read replicas for specifically identified or predicted hot keys</strong> — rather than adding replicas uniformly across the whole cluster, add them only where monitoring (or predictable patterns, like a known upcoming product launch) shows the need, scaling read capacity for that one shard independently of the rest of the fleet.</li>
+</ul>
+<p><strong>Why this deserves its own deep dive rather than being folded into N:</strong> conflating "balance the keyspace" with "balance the traffic" is a common and understandable mistake — correctly separating them, and having a distinct answer for each, is a clear signal of real production experience with caching systems rather than textbook familiarity with hashing alone.</p>
+
+<h3 id="p11-q">Q. Deep Dive 5 — Cache Invalidation Strategies</h3>
+<p><strong>Requirement this addresses:</strong> the TTL functional requirement (D) plus the broader question of keeping cached data from silently drifting from its source of truth — famously one of the two genuinely hard problems in computer science.</p>
+<p><strong>TTL as a first-class property of every entry, not an optional extra:</strong> every <code>CacheEntry</code> (H) carries an <code>expires_at</code>, even if that value is "very far in the future" for effectively-permanent data — treating expiration as the norm rather than the exception is what makes automatic cleanup (M, R) a uniform mechanism instead of a special case bolted on for the entries that happen to have a TTL set.</p>
+<table>
+<tr><th>Write Strategy</th><th>How</th><th>Trade-off</th></tr>
+<tr><td>Write-through</td><td>A write goes to the cache and the backing database synchronously, before returning success</td><td>Cache and database never disagree, but write latency is the sum of both — directly costly for a system whose entire value proposition is speed</td></tr>
+<tr><td>Write-back / write-behind</td><td>A write lands in the cache immediately and is acknowledged; the database is updated asynchronously afterward</td><td>Fastest possible write, but a node crash before the async flush completes loses that write from the database's perspective entirely, not just the cache's</td></tr>
+<tr><td>Write-around / cache-aside (chosen default, per Prerequisites D)</td><td>Writes go directly to the database; the cache is populated lazily, only on a subsequent read miss, or invalidated explicitly on write</td><td>Avoids ever caching write-heavy, rarely-read data, at the cost of the first read after any write always being a guaranteed miss</td></tr>
+</table>
+<p><strong>Explicit invalidation on write:</strong> alongside write-around, a write to the source of truth also issues a <code>DEL</code> for the corresponding cache key, so the next read is a clean miss that repopulates fresh data rather than serving a now-incorrect cached value until its TTL happens to expire on its own.</p>
+<p class="callout"><strong>Thundering herd / cache stampede:</strong> when a single hot key's TTL expires, every concurrent request for it misses at the same instant and every one of them independently hammers the database to refetch the same value simultaneously — a self-inflicted traffic spike against the system this cache exists to protect. The fix is <strong>request coalescing</strong>: the first miss for a given key triggers the actual database fetch and marks that key as "refill in progress"; every other concurrent request for the same key waits on that one in-flight fetch instead of issuing its own, and all of them are satisfied once it completes. Where coalescing isn't practical, a short-lived distributed lock (Prerequisites E) around the refill step achieves the same effect — only the lock holder refetches, and this is exactly the kind of "protect one critical, narrow operation" case Prerequisites E names as the legitimate reason to reach for an external lock at all.</p>
+
+<h3 id="p11-r">R. Deep Dive 6 — Memory Management &amp; Eviction Under Pressure</h3>
+<p><strong>Requirement this addresses:</strong> bounded, predictable per-node memory (D) — M decided <em>which</em> entry to evict; this decides <em>when</em> eviction actually happens and what happens if it can't keep up.</p>
+<p><strong><code>maxmemory</code> policy, a hard per-node cap:</strong> each node is configured with a fixed memory ceiling and a policy for what to do once it's reached — evict something under one of M's policies to make room (the normal, expected behavior), or reject new writes outright with an out-of-memory error rather than evict anything at all, for workloads where "never lose a cached value early" matters more than "always accept new writes" (mirroring Redis's real <code>maxmemory-policy</code> options, including its literal <code>noeviction</code> setting).</p>
+<p><strong>Memory fragmentation:</strong> as entries of varying sizes are constantly created and freed, the freed gaps left behind don't always line up with the size of the next allocation that needs space, so a node's <em>actually usable</em> memory can be meaningfully less than its physical RAM even while plenty of memory is nominally "free" — a large factor behind G's conservative "usable RAM" estimate, and why allocator choice (e.g. jemalloc over the platform default) is a real, practical lever in production caching systems, not a micro-optimization.</p>
+<p><strong>OOM prevention as a design stance, not an afterthought:</strong> the system deliberately fails a write explicitly and immediately once truly out of room, rather than letting the underlying process actually exhaust system memory and get killed by the OS — an explicit, recoverable error is a far better failure mode than the whole node (and every key it owns) going down.</p>
+<p><strong>Eviction as background work, not purely inline:</strong> checking every single key for expiration or over-limit status on every write would add cost to the hottest path in the system; instead, a background reaper thread proactively scans and evicts expired/over-limit entries on its own schedule, while a lightweight lazy check on access (mirroring Redis's active-plus-lazy expiry hybrid) catches anything the background pass hasn't reached yet — most of the cleanup cost is moved off the request path entirely.</p>
+
+<h3 id="p11-s">S. Deep Dive 7 — Persistence &amp; Recovery</h3>
+<p><strong>Requirement this addresses:</strong> directly revisits E's clarifying question 1 — even granting F's pure-cache-semantics assumption, a cluster that has to rebuild every shard from nothing after every restart pays a real, recurring cost.</p>
+<table>
+<tr><th>Approach</th><th>How</th><th>Trade-off</th></tr>
+<tr><td>RDB-style snapshot</td><td>Periodically dump the entire in-memory dataset to disk as a point-in-time file</td><td>Fast to reload on restart (just read the file back into memory), but loses every write since the last snapshot was taken</td></tr>
+<tr><td>AOF-style append log</td><td>Log every write operation to disk sequentially as it happens</td><td>Far less data loss on crash (at most the last few unflushed writes), but replaying a long log on restart is slower than loading one snapshot, and the log grows unboundedly without periodic compaction</td></tr>
+</table>
+<p><strong>Why a cache would want any durability at all, given it's not the source of truth:</strong> persistence here is a <em>warm-up optimization</em>, not a correctness requirement — the real, current answer for any key still lives in the backing database (F's cache-aside assumption). Without it, a cluster-wide restart (a deploy, a power event) produces a fully cold cache across every shard simultaneously, and every single key becomes a guaranteed miss at once — precisely the thundering-herd scenario named in Q, except triggered by an operational event instead of a single key's TTL, and hitting the database with the traffic of the <em>entire</em> cache's worth of misses at once instead of one key's.</p>
+<p><strong>Warm-up strategy, in priority order:</strong> if a live, already-warm follower exists for a shard (O), the fastest recovery path is simply promoting or resyncing from it — no disk load needed at all. Only when no live replica exists does a node fall back to reloading from its own RDB snapshot or replaying its AOF log, trading some recovery time for not needing to hit the backing database cold.</p>
+
+<h3 id="p11-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  subgraph CLIENTS [" Client Layer "]
+    Lib["Shard-aware client library (I, N)"]
+  end
+  Lib -- "gossip-synced ring copy" --> Ring[("Ring Membership (N)")]
+
+  subgraph SHARD1 [" Shard 1 "]
+    direction LR
+    L1["Leader"]
+    F1a["Follower"]
+    F1b["Follower"]
+    L1 -- "async/semi-sync replication (O)" --> F1a
+    L1 -- "async/semi-sync replication (O)" --> F1b
+  end
+  subgraph SHARD2 [" Shard 2 "]
+    direction LR
+    L2["Leader"]
+    F2a["Follower"]
+    F2b["Follower"]
+    L2 -- "async/semi-sync replication (O)" --> F2a
+    L2 -- "async/semi-sync replication (O)" --> F2b
+  end
+
+  Lib -- "GET/SET by hashed key (N)" --> L1
+  Lib -- "GET/SET by hashed key (N)" --> L2
+  Lib -- "reads (F, O)" --> F1a
+  Lib -- "reads (F, O)" --> F2a
+
+  L1 -- "approximate LRU + maxmemory (M, R)" --> Mem1[("In-Memory Table")]
+  L1 -- "snapshot/AOF (S)" --> Disk1[("Optional Disk Backing")]
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p11-u">U. Design Evolution</h3>
+<table>
+<tr><th>Version</th><th>What Changed</th><th>Why</th></tr>
+<tr><td>V1</td><td>Single in-memory node, no partitioning, no replication (J)</td><td>Simplest possible thing that satisfies the functional requirement in isolation</td></tr>
+<tr><td>V2</td><td>Multiple standalone nodes with naive <code>hash(key) % N</code> client-side sharding</td><td>Fixes the memory ceiling, but rehashes nearly the entire keyspace on any topology change (J)</td></tr>
+<tr><td>V3</td><td>Consistent hashing with virtual nodes replaces naive modulo sharding</td><td>Only keys adjacent to a changed node actually move, fixing V2's core flaw (N)</td></tr>
+<tr><td>V4</td><td>Leader-follower replication added per shard</td><td>A single node crash no longer means that shard's data is simply gone (O)</td></tr>
+<tr><td>V5</td><td>Exact LRU replaced with sampled approximate LRU</td><td>Removes lock contention on the hottest operation in the system, at negligible precision cost (M)</td></tr>
+<tr><td>V6</td><td>Hot-key mitigations (local caching, key splitting, dedicated replicas) layered on top</td><td>Consistent hashing alone balances key count, not key traffic (P)</td></tr>
+<tr><td>V7</td><td>Request coalescing / locking added around cache-miss refills</td><td>Prevents a stampede of duplicate refetches against the backing database on a hot key's expiry (Q)</td></tr>
+<tr><td>V8</td><td>Optional RDB/AOF persistence added for warm restarts</td><td>Avoids a cluster-wide cold-cache stampede after a full restart, without changing the system's correctness model (S)</td></tr>
+</table>
+<p><strong>What stays stable throughout:</strong> the tiny <code>GET</code>/<code>SET</code>/<code>DEL</code> contract from I — every later refinement changes how a key is routed, replicated, evicted, or recovered, never the basic shape of what a client calls.</p>
+
+<h3 id="p11-v">V. Consistency Model</h3>
+<p>This is, by explicit design (F, O), a system built on <strong>eventual/weak consistency between a shard's leader and its followers</strong> — a follower's copy of any given key can lag the leader by some small, bounded window (replication lag, Prerequisites C), and a read served from that follower can return a value that's already stale by that same window. Reading from the leader only recovers <strong>read-your-own-writes</strong> and full strong consistency for that shard, at the direct cost of losing the read-scaling benefit that letting followers serve traffic provides (O) — clients that need to guarantee seeing their own immediately-preceding write (for example, right after a <code>SET</code>) should route that specific follow-up read to the leader, or accept a short client-side "sticky to leader" window after writing, rather than assuming every read anywhere in the cluster reflects every write everywhere. This is the same narrow, deliberate trade of a small strongly-consistent island (the leader, for a brief post-write window) against a much larger eventually-consistent surface (everywhere else, everywhen else) used throughout this document — here, uniquely, applied to the caching layer itself rather than to something the cache merely sits in front of.</p>
+
+<h3 id="p11-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>A shard's leader crashes:</strong> its heartbeat goes silent, a follower is promoted via lease-based election (O), and the ring (N) is updated to point at the new leader — writes since the last replicated update may be lost (per the async-replication trade-off), but the shard itself becomes available again within one election cycle, not permanently unavailable.</li>
+<li><strong>A follower crashes:</strong> no impact on writes at all; read capacity for that shard temporarily drops to whatever remains, and the follower resyncs from its leader once it recovers.</li>
+<li><strong>A node is added or removed from the cluster:</strong> only the keys in the ring arcs immediately adjacent to the change actually migrate (N); everything else on the ring is entirely unaffected.</li>
+<li><strong>A single key becomes disproportionately hot:</strong> the shard owning it absorbs elevated load regardless of how well-balanced the rest of the ring is, until one of P's mitigations (local caching, key splitting, dedicated replicas) is applied.</li>
+<li><strong>A node approaches its memory limit:</strong> eviction (M, R) proactively frees space under the configured policy; if configured for <code>noeviction</code> instead, new writes are rejected outright with an explicit error rather than the process crashing from real OOM.</li>
+<li><strong>The whole cluster restarts (a deploy, a power event):</strong> without persistence, every shard comes back fully cold and the backing database absorbs the resulting miss storm; with RDB/AOF (S), each node warms up from disk (or, faster, resyncs from an already-warm follower) instead.</li>
+</ul>
+
+<h3 id="p11-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 single node</td><td>Hard RAM ceiling, and a crash takes down the entire cache at once</td><td>Horizontal partitioning via consistent hashing across many nodes (N)</td></tr>
+<tr><td>Naive <code>hash % N</code> sharding</td><td>Any topology change relocates nearly the whole keyspace</td><td>Consistent hashing with virtual nodes; only adjacent-arc keys move (N)</td></tr>
+<tr><td>Unreplicated shards</td><td>Any single node crash permanently loses that shard's entire data</td><td>Leader-follower replication with automatic failover (O)</td></tr>
+<tr><td>Exact LRU under high concurrency</td><td>Lock contention on the recency list turns every read into a serialization point</td><td>Sampled approximate LRU removes the shared-structure update entirely (M)</td></tr>
+<tr><td>Well-balanced ring, skewed traffic</td><td>A single hot key overwhelms its one correctly-assigned shard</td><td>Client-side local caching, key splitting, dedicated hot-key replicas (P)</td></tr>
+<tr><td>Synchronized TTL expiry on a hot key</td><td>A stampede of simultaneous refetches against the backing database</td><td>Request coalescing / short-lived lock around the refill (Q)</td></tr>
+</table>
+
+<h3 id="p11-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Partitioning scheme</td><td>Naive <code>hash(key) % N</code></td><td>Consistent hashing with virtual nodes (chosen)</td><td>Modulo sharding is simpler to reason about but relocates nearly everything on any topology change; consistent hashing costs a bit more implementation complexity for vastly cheaper rebalancing</td></tr>
+<tr><td>Replication mode</td><td>Synchronous</td><td>Asynchronous (chosen default)</td><td>Synchronous replication never loses an acknowledged write but adds real latency to every write, fighting this system's core purpose; async is faster but can lose the most recent write(s) on a leader crash — acceptable under F's pure-cache assumption</td></tr>
+<tr><td>Eviction precision</td><td>Exact LRU</td><td>Sampled approximate LRU (chosen)</td><td>Exact LRU is textbook-correct but adds write-sized cost to every read via lock contention; approximate LRU trades negligible precision for removing that cost entirely</td></tr>
+<tr><td>Read routing</td><td>Leader-only reads</td><td>Leader + follower reads (chosen)</td><td>Leader-only reads are always fully consistent but waste follower capacity and cap read throughput at one node per shard; follower reads scale throughput at the cost of a bounded staleness window (V)</td></tr>
+<tr><td>Durability</td><td>Pure in-memory, no persistence</td><td>Optional RDB/AOF (chosen)</td><td>Pure in-memory is simplest and fastest but produces a full cold-cache stampede on every restart; on-disk backing adds write overhead and operational complexity in exchange for materially faster, gentler warm-up</td></tr>
+</table>
+
+<h3 id="p11-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>A single, unpartitioned cache node with no replication.</strong> A hard memory ceiling and a hard single point of failure at once — the most important mistake to avoid on this problem.</li>
+<li><strong>Naive <code>hash(key) % N</code> client-side sharding.</strong> "Solves" the memory ceiling while quietly reintroducing a full-keyspace-reshuffle problem on every scaling event.</li>
+<li><strong>Exact, textbook LRU implemented with a real shared linked list under concurrent access.</strong> Turns the system's most frequent, most latency-sensitive operation into a lock-contended one, directly undermining the core latency requirement.</li>
+<li><strong>Treating a well-balanced hash ring as sufficient protection against hot keys.</strong> Confuses balancing key count with balancing key traffic — two genuinely different problems with two genuinely different fixes (P).</li>
+<li><strong>No TTL story at all, or TTL bolted on as an afterthought rather than a property every entry carries.</strong> Leads to unbounded memory growth from data that should have expired long ago, and ad hoc, inconsistent cleanup logic.</li>
+</ul>
+
+<h3 id="p11-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"One key is suddenly getting 100x the traffic of every other key."</td><td>Directly exercises P's hot-key mitigations — client-side local caching first, key splitting or dedicated replicas if that's not enough</td><td>Client library, possibly key-splitting logic at the write path</td><td>Consistent hashing, replication, eviction</td></tr>
+<tr><td>"Support richer data structures — lists, sets, sorted sets — not just flat string values."</td><td>Extends the value model at the storage-engine level (K) — the partitioning, replication, and eviction machinery around it is entirely unaffected, since it never inspected value contents to begin with</td><td>Storage-engine value representation</td><td>Consistent hashing, replication, eviction policy, TTL mechanics</td></tr>
+<tr><td>"A client must always see its own most recent write, even immediately after."</td><td>Revisits V directly — route that read to the leader (or a short post-write sticky window) rather than a follower, trading some read-scaling benefit for a stronger per-client guarantee</td><td>Client read-routing logic</td><td>Replication topology, eviction, partitioning</td></tr>
+<tr><td>"What if a whole availability zone/data center goes down?"</td><td>Requires cross-AZ replica placement — at least one follower per shard lives outside the primary AZ, so a zone failure still leaves a promotable replica (O) alive elsewhere</td><td>Replica placement strategy</td><td>The replication and failover mechanism itself</td></tr>
+<tr><td>"How would you monitor this cluster in production?"</td><td>Per-shard hit/miss ratio, eviction rate, replication lag, and per-key traffic (to catch hot keys before P becomes an incident) as the core metrics — a natural extension, not a redesign</td><td>Observability/monitoring layer only</td><td>Everything structural</td></tr>
+</table>
+
+<h3 id="p11-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes a single cache node or naive <code>hash % N</code> sharding with no discussion of what happens on a topology change or a node crash; treats "use LRU" as a complete answer with no acknowledgment of what that actually costs at scale.</li>
+<li><strong>Mid-level:</strong> correctly reaches for consistent hashing and leader-follower replication, but doesn't reason about what happens to reads/writes during a rebalance or failover, and hasn't considered that a well-balanced ring says nothing about balanced traffic.</li>
+<li><strong>Senior:</strong> proactively distinguishes exact LRU from approximate/sampled LRU and explains why the approximation is the right production choice; treats TTL as a first-class property of every entry; is explicit about the eventual-consistency window between leader and followers rather than glossing over it.</li>
+<li><strong>Staff+:</strong> raises the hot-key problem unprompted as distinct from load balancing generally; reasons concretely about cache-stampede/thundering-herd mitigation via request coalescing; discusses persistence as a warm-up optimization rather than a correctness requirement, and can explain precisely why it isn't the latter.</li>
+</ul>
+
+<h3 id="p11-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a distributed cache — something like Redis Cluster, at scale.</div>
+<div class="dialog"><span class="who">Candidate:</span> The core problem is that one machine's RAM has a hard ceiling, and if it's the only node, it's also a single point of failure — a crash loses everything it held. I'd partition the keyspace across many nodes using consistent hashing rather than a naive <code>hash(key) % N</code>, because the naive version relocates almost every key whenever a node joins or leaves; consistent hashing with virtual nodes only moves the small slice of keys adjacent to the change.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Good. What happens when one of those nodes crashes?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's what replication is for — each shard has a leader and a couple of followers, using standard leader-follower replication. If the leader crashes, a follower gets promoted via leader election, and the ring gets updated to point at it. I'd default to asynchronous replication so writes stay fast, which does mean a crash right after a write can lose that one write — but for a cache backed by a real database as the source of truth, that's an acceptable trade, not a correctness violation.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you decide what to evict when a node's memory fills up?</div>
+<div class="dialog"><span class="who">Candidate:</span> Conceptually LRU, but not textbook exact LRU — a real linked list ordered by recency means every single read also has to update that list, which under high concurrency becomes a lock-contention bottleneck on the most frequent operation in the whole system. The practical answer, and what Redis actually does, is sampled approximate LRU: track a lightweight timestamp per key, and when you need to evict, sample a handful of random keys and evict the oldest among just that sample. It's not perfectly precise, but it's close enough in practice and removes the contention entirely.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Suppose one specific key becomes extremely hot — way more traffic than any other key.</div>
+<div class="dialog"><span class="who">Candidate:</span> That's a different problem than an unbalanced hash function — consistent hashing balances how many keys each shard owns, not how much traffic any one key gets. A viral key still lands on exactly one shard no matter how well-distributed everything else is. I'd handle it with a short-TTL local cache directly in the calling clients to absorb repeat reads before they even hit the cluster, and if that's not enough, split the key into several physical copies scattered across different shards by their own hashes, so reads for that one logical key spread across multiple shards instead of hammering one.</div>
+
+<h3 id="p11-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/" target="_blank">Redis Cluster (official docs)</a></td><td>16,384 fixed hash slots (not a classic unbounded ring) distributed across nodes via <code>CRC16(key) mod 16384</code>; a gossip-based cluster bus propagates slot ownership and node health; each slot's data is replicated to 0+ replicas with quorum-based automatic failover</td><td>The clearest production precedent for nearly every deep dive in this problem at once — partitioning, gossip-based membership, replication, and real approximate-LRU (<code>maxmemory-policy allkeys-lru</code>, sampled by default) and LFU (<code>allkeys-lfu</code>, an 8-bit probabilistic decaying counter) eviction policies</td><td>The fixed 16,384-slot model is a meaningfully different mechanism than a pure hash ring with virtual nodes, though it solves the identical rebalancing problem</td><td>Confirms N's rebalancing model and M's approximate-eviction reasoning are not interview simplifications but exactly how a real, widely-deployed system works</td></tr>
+<tr><td><a href="https://github.com/memcached/memcached/wiki" target="_blank">Memcached (project wiki)</a></td><td>An intentionally minimal, single-process slab-allocated LRU cache with <em>no</em> built-in clustering, replication, or persistence at all — sharding is done entirely client-side, typically via a consistent-hashing scheme like Ketama (used in libmemcached)</td><td>A useful contrast case: proof that a cache can be extremely fast specifically <em>because</em> it deliberately punts partitioning and availability to the client, rather than solving them internally</td><td>Losing a node means losing that node's data outright with no automatic recovery — a real production gap this problem's design deliberately closes with O</td><td>The slab allocator (fixed-size memory chunks per size class) is a concrete, real answer to R's fragmentation concern, trading some internal memory waste for eliminating fragmentation</td></tr>
+<tr><td><a href="https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/WhatIs.html" target="_blank">AWS ElastiCache (official docs)</a></td><td>A managed wrapper around both engines above — for Redis, adds Multi-AZ replication groups with automatic failover and S3-backed snapshot/restore; for Memcached, adds an Auto Discovery client feature specifically because Memcached itself has no native concept of cluster membership to discover</td><td>Confirms this problem's replication-plus-failover design (O) and optional-persistence design (S) mirror real managed-service defaults, not an invented interview convenience</td><td>Being a managed wrapper, it doesn't change either underlying engine's fundamental architecture — Memcached still has no native replication even when AWS-managed</td><td>The very existence of "Auto Discovery" as an AWS add-on for Memcached is itself confirmation of how real and non-trivial N's ring-membership-propagation problem is in practice</td></tr>
+</table>
+
+<h3 id="p11-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Distributed Cache</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced + Distributed Systems (simple single-node mechanics, hard correctness-and-availability-at-scale)</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Sub-millisecond GET/SET/DEL with TTL, horizontal scale past one machine's RAM, high availability, even load distribution, bounded per-node memory</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Consistent hashing for partitioning + leader-follower replication per shard for availability + approximate-LRU eviction + TTL as a first-class entry property</td></tr>
+<tr><td><strong>Partitioning</strong></td><td>Ring + virtual nodes; only keys adjacent to a topology change actually migrate, unlike naive <code>hash % N</code></td></tr>
+<tr><td><strong>Availability</strong></td><td>Async (default) or semi-sync replication per shard; lease-based leader election on failover, same mechanism as Job Scheduler's leader role</td></tr>
+<tr><td><strong>Eviction</strong></td><td>Sampled approximate LRU, not exact LRU — removes lock contention on the hottest operation at negligible precision cost</td></tr>
+<tr><td><strong>Hot keys</strong></td><td>A distinct problem from an unbalanced ring; fixed with client-side local caching, key splitting, or dedicated hot-key replicas — not more shards</td></tr>
+<tr><td><strong>Invalidation</strong></td><td>Cache-aside + explicit invalidation on write by default; request coalescing or a short-lived lock to prevent thundering-herd stampedes on expiry</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Single unpartitioned node; naive modulo sharding; exact LRU under real concurrency; assuming a balanced hash function balances traffic; no TTL discipline</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Rich data structures, multi-key transactions, and a full pub/sub layer — name them as real extensions (AA), not something to design from scratch here</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p10.html">&larr; 10. Distributed Job Scheduler</a><a class="prevnext-link next" href="p12.html">12. Notification System &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

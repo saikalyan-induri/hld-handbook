@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>5. Ride-Sharing (Uber) — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">5. Ride-Sharing (Uber) <span class="badge">Advanced + Geospatial</span></h1>
+
+<div class="section-toc">
+<a href="#p5-a">A. Interview Prompt</a><a href="#p5-b">B. Difficulty</a><a href="#p5-c">C. What It Tests</a>
+<a href="#p5-d">D. Requirements</a><a href="#p5-e">E. Clarifying Questions</a><a href="#p5-f">F. Assumptions</a>
+<a href="#p5-g">G. Capacity Estimation</a><a href="#p5-h">H. Core Entities</a><a href="#p5-i">I. API Design</a>
+<a href="#p5-j">J. Basic Design (V1)</a><a href="#p5-k">K. Data Model &amp; Store Choice</a><a href="#p5-l">L. End-to-End Flow</a>
+<a href="#p5-m">M. Deep Dive 1: Geospatial Index</a><a href="#p5-n">N. Deep Dive 2: Location Ingestion</a><a href="#p5-o">O. Deep Dive 3: Matching</a>
+<a href="#p5-p">P. Deep Dive 4: Atomic Assignment</a><a href="#p5-q">Q. Deep Dive 5: Match Reliability</a><a href="#p5-r">R. Deep Dive 6: Live Trip Tracking</a>
+<a href="#p5-s">S. Deep Dive 7: Surge/Supply-Demand</a><a href="#p5-t">T. Full Solution at Scale</a><a href="#p5-u">U. Design Evolution</a>
+<a href="#p5-v">V. Consistency Model</a><a href="#p5-w">W. Failure Scenarios</a><a href="#p5-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p5-y">Y. Trade-Offs</a><a href="#p5-z">Z. Common Bad Designs</a><a href="#p5-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p5-ab">AB. Interviewer Evaluation</a><a href="#p5-ac">AC. Interview Simulation</a><a href="#p5-ad">AD. Source Comparison</a>
+<a href="#p5-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p5">Jump to section:</label><select id="jump-p5" class="jump-select" data-jump-select><option value="p5-a">A. Realistic Interview Prompt</option><option value="p5-b">B. Difficulty</option><option value="p5-c">C. What This Problem Tests</option><option value="p5-d">D. Requirements</option><option value="p5-e">E. Clarifying Questions</option><option value="p5-f">F. Assumptions</option><option value="p5-g">G. Capacity Estimation</option><option value="p5-h">H. Core Entities</option><option value="p5-i">I. API Design</option><option value="p5-j">J. Basic / Naive High-Level Design (V1)</option><option value="p5-k">K. Data Model &amp; Store Choice</option><option value="p5-l">L. End-to-End Flow — Trip Request to Match</option><option value="p5-m">M. Deep Dive 1 — The Geospatial Index</option><option value="p5-n">N. Deep Dive 2 — High-Frequency Location Ingestion</option><option value="p5-o">O. Deep Dive 3 — Matching &amp; Ranking Candidates</option><option value="p5-p">P. Deep Dive 4 — Atomic Driver Assignment</option><option value="p5-q">Q. Deep Dive 5 — Match Offer Reliability &amp; Retries</option><option value="p5-r">R. Deep Dive 6 — Live Trip Tracking</option><option value="p5-s">S. Deep Dive 7 — Supply/Demand Imbalance (Surge, Conceptual)</option><option value="p5-t">T. Full Solution at Scale — Final Architecture</option><option value="p5-u">U. Design Evolution</option><option value="p5-v">V. Consistency Model</option><option value="p5-w">W. Failure Scenarios</option><option value="p5-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p5-y">Y. Design Trade-Offs</option><option value="p5-z">Z. Common Bad Designs</option><option value="p5-aa">AA. Interviewer Follow-Ups</option><option value="p5-ab">AB. Interviewer Evaluation Rubric</option><option value="p5-ac">AC. Interview Simulation</option><option value="p5-ad">AD. Online Solution Comparison</option><option value="p5-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p5-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a ride-sharing system like Uber: riders request a trip, nearby available drivers are found and matched to the request, and both parties can track the trip in real time."</div>
+<p>This problem introduces a dimension none of the previous four have: <strong>geography</strong>. Every prior design point (fanout, routing, ordering) assumed identity-based lookups (a user ID, a client ID); here the fundamental query is <em>"who/what is physically near this point,"</em> which a standard database index cannot answer efficiently at all. The second, equally load-bearing idea is that matching a rider to a driver is a genuine <strong>race for a single, physical, exclusive resource</strong> — two riders cannot be assigned the same driver, which forces a real consistency decision in a system that would otherwise lean entirely eventual.</p>
+
+<h3 id="p5-b">B. Difficulty</h3>
+<p><strong>Advanced + a genuinely distinct sub-domain (geospatial indexing)</strong> that most candidates haven't touched in other systems. Similar in spirit to Chat System in that there's no purely "naive but functional" V1 — even the most basic version requires picking a way to index location, because a naive full-scan-and-filter approach (P below) fails obviously and immediately, not just at scale.</p>
+
+<h3 id="p5-c">C. What This Problem Tests</h3>
+<ul>
+<li>Whether you know that "find things near a point" needs a specialized spatial index (geohash/quadtree/S2/H3), not a plain B-tree index or a linear scan with a distance filter</li>
+<li>Recognition that a match is a check-then-act race for an exclusive resource — the same class of bug named explicitly in Rate Limiter (N) and the LLD Parking Lot problem, now expressed as "assign this driver," and requiring a genuinely atomic compare-and-swap</li>
+<li>Judgment about where strong consistency is actually necessary (the assignment step) versus where it's not (location updates, ETA estimates) — an unusually narrow island of strong consistency inside an otherwise eventually-consistent system</li>
+<li>Comfort with "overwrite, don't accumulate" as the right model for a rapidly-changing, low-value-per-update stream (location pings) — a deliberately different data-lifecycle decision than message/post history</li>
+<li>Awareness that a long-running, multi-step process (request → match → accept → pickup → trip) benefits from a durable workflow/orchestration pattern rather than being modeled as a single synchronous call</li>
+</ul>
+
+<h3 id="p5-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>A rider can request a trip from a pickup location to a destination and get matched with a nearby available driver</li>
+<li>A driver can accept or decline a match offer; on decline (or timeout), the system retries with the next-best driver</li>
+<li>Both rider and driver can see the other's live location during an active trip</li>
+<li>Drivers continuously report their current location while online</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Low matching latency</strong> — a rider should be matched with a driver in <strong>&lt;10 seconds</strong>; this is the entire product experience, not a background job</li>
+<li><strong>High-frequency location updates at massive scale</strong> — this document uses <strong>5M drivers reporting location every ~4 seconds</strong> as the standard illustrative input</li>
+<li><strong>Strong consistency for the assignment step specifically</strong> — exactly one rider must end up matched to a given driver at a given time; this is the one place in the whole design where "eventually consistent" is not acceptable</li>
+<li><strong>High availability for location tracking and search</strong> — a brief delay in seeing a driver's dot move is a minor UX issue; failing to find any driver at all is a much bigger one</li>
+</ul>
+<p><strong>Out of scope:</strong> payments, pricing computation itself (surge is discussed at a conceptual level only, S), driver background checks/onboarding.</p>
+
+<h3 id="p5-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>How precise does "nearby" need to be — city-block precision, or exact routing distance?</td><td>Determines whether straight-line geospatial search is sufficient or a routing-engine ETA is required</td><td>Deep Dive 3 (O)</td></tr>
+<tr><td>2</td><td>How often do drivers report location, and does the server need history or just the latest point?</td><td>Confirms "overwrite" rather than "append" is the right model</td><td>Deep Dive 2 (N)</td></tr>
+<tr><td>3</td><td>What happens if the top-matched driver doesn't respond?</td><td>Requires a retry/timeout policy, not just a single match-and-done step</td><td>Deep Dive 5 (Q)</td></tr>
+<tr><td>4</td><td>Can two riders ever be offered the same driver simultaneously?</td><td>If yes, atomic assignment (P) is mandatory, not optional</td><td>Deep Dive 4 (P)</td></tr>
+<tr><td>5</td><td>Is dynamic pricing (surge) in scope?</td><td>A supply/demand-driven pricing layer is a substantial separate sub-system</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>6</td><td>Dense urban areas only, or also sparse rural regions?</td><td>Affects whether a fixed-grid geospatial scheme is efficient everywhere or needs to be adaptive</td><td>Geospatial Index (M)</td></tr>
+</table>
+
+<h3 id="p5-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> request → match → accept/decline → live-tracking as the core functional loop.</li>
+<li><strong>Assumption:</strong> straight-line/geospatial-proximity matching is an acceptable first approximation for "nearby," refined by ETA in the ranking step (O) — the standard simplification every major source makes before introducing a full routing engine.</li>
+<li><strong>Assumption:</strong> location updates are pure "current state," with no requirement to retain a full location history for matching purposes (E's clarifying question 2) — this is the assumption that unlocks the overwrite-based model in N.</li>
+<li><strong>Assumption:</strong> concurrent match offers on the same driver are possible and must be handled correctly (E's clarifying question 4) — the more interesting, more commonly-asked version of this problem, and what forces the atomic-assignment deep dive (P).</li>
+<li><strong>Assumption:</strong> surge pricing is discussed conceptually as an extension (S) but not designed as a full pricing engine — mirrors Rate Limiter's ranking-style "layer, not rearchitecture" treatment of a hard extension.</li>
+</ul>
+
+<h3 id="p5-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Concurrent online drivers</td><td>5M (illustrative, global peak)</td><td>Base input for location-ingestion load</td></tr>
+<tr><td>Location update interval</td><td>~4 seconds/driver</td><td>Sets the update frequency per driver</td></tr>
+<tr><td>Location update QPS</td><td>5,000,000 ÷ 4 ≈ <strong>~1.25M updates/sec</strong></td><td>The dominant write load in the entire system — far larger than trip-request volume itself</td></tr>
+<tr><td>Trip requests/sec</td><td>~50M trips/day ÷ 86,400s ≈ <strong>~600/sec average</strong> (peak several thousand/sec in dense metro + surge windows)</td><td>Small relative to location-update volume — confirms location ingestion, not matching itself, is the throughput-critical path</td></tr>
+<tr><td>Matching latency budget</td><td>&lt;10 seconds end-to-end (request → accepted match)</td><td>Bounds how exhaustive the candidate search + offer/retry cycle (Q) can be</td></tr>
+<tr><td>Geospatial cell size (illustrative, urban)</td><td>An H3/S2 cell edge length on the order of ~100-500m in dense areas</td><td>Fine enough that a handful of cells around a rider covers the realistic driver search radius without scanning irrelevant, far-away drivers</td></tr>
+<tr><td>Location data footprint</td><td>5M drivers × ~100 bytes (lat/lng/timestamp/driver_id) ≈ <strong>~500MB live state</strong> (overwritten continuously, not accumulated — N)</td><td>Tiny in memory terms — confirms the challenge is update <em>throughput</em>, not storage volume</td></tr>
+</table>
+
+<h3 id="p5-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>Driver</code></td><td>A driver account</td><td><code>driver_id</code>, <code>status</code> (available/on-trip/offline), <code>current_location</code> (latest only, N)</td></tr>
+<tr><td><code>Rider</code></td><td>A rider account</td><td><code>rider_id</code></td></tr>
+<tr><td><code>TripRequest</code></td><td>A rider's ask for a match</td><td><code>request_id</code>, <code>rider_id</code>, <code>pickup_location</code>, <code>destination</code>, <code>status</code> (searching/matched/expired)</td></tr>
+<tr><td><code>Trip</code></td><td>A confirmed, in-progress or completed ride</td><td><code>trip_id</code>, <code>driver_id</code>, <code>rider_id</code>, <code>status</code>, <code>route</code>, timestamps</td></tr>
+<tr><td><code>MatchOffer</code> (ephemeral)</td><td>One outstanding offer to one driver for one request</td><td><code>request_id</code>, <code>driver_id</code>, <code>expires_at</code> — drives the retry logic in Q</td></tr>
+</table>
+
+<h3 id="p5-i">I. API Design</h3>
+<pre><code>POST /v1/trip-requests          { rider_id, pickup, destination } -> { request_id }
+GET  /v1/trip-requests/{id}     -> { status, driver_info? }
+POST /v1/drivers/location       { driver_id, lat, lng } -> 200          (called every ~4s, N)
+POST /v1/match-offers/{id}/respond   { accept: bool }                   (driver's response, Q)
+GET  /v1/trips/{id}/location    -> { lat, lng, eta }                    (polled or WebSocket, R)
+</code></pre>
+<p><strong>Why the match offer is a distinct resource from the trip request itself:</strong> a single trip request can generate a <em>sequence</em> of offers to different drivers if earlier ones decline or time out (Q) — modeling the offer separately from the request lets that retry loop be expressed cleanly as "create a new offer" rather than mutating the request's state machine in place for every attempt.</p>
+
+<h3 id="p5-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: store every driver's last known location in a normal relational table, and on a trip request, scan for drivers within a bounding box using a plain <code>WHERE lat BETWEEN... AND lng BETWEEN...</code> query.</p>
+<div class="mermaid diagram">
+flowchart LR
+  R(["Rider requests trip"]) --> API["Matching Service"]
+  API -- "SELECT * FROM drivers WHERE lat/lng in range" --> DB[("Driver Location Table<br/>plain relational")]
+  DB --> API
+  API -- "pick nearest, assign" --> D(["Driver"])
+</div>
+<p class="diagram-caption">V1 — a plain range scan over lat/lng columns. Correct in a small dataset; catastrophic at real scale.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> a standard B-tree index on <code>lat</code> and <code>lng</code> independently cannot efficiently answer a 2D "near this point" query — indexing each dimension separately still forces a scan across a huge, non-contiguous set of rows once the table holds millions of drivers (a B-tree's ordering only helps one dimension at a time). This isn't a "gets slow at scale" problem, it's a wrong-tool-for-the-job problem from the very first realistic dataset size — exactly why M's specialized geospatial index isn't an optimization, it's the actual solution to the actual query.</p>
+
+<h3 id="p5-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Live driver location:</strong> an in-memory geospatial index (M) — e.g. Redis with its native <code>GEOADD</code>/<code>GEOSEARCH</code> commands (internally a geohash-sorted set), or a custom in-memory quadtree/S2/H3-bucketed structure — chosen for the same reason Rate Limiter chose Redis for counters: the access pattern (extremely frequent overwrite + frequent proximity read) matches an in-memory store's strengths, and losing the very latest location on a restart is harmless (the next ~4-second update replaces it, N).</p>
+<p><strong>Trips, trip requests, driver/rider profiles:</strong> a standard relational or wide-column durable store — this is the data that must survive restarts and support the request/accept/complete state machine (Q), a fundamentally different durability requirement than the ephemeral location index.</p>
+
+<h3 id="p5-l">L. End-to-End Flow — Trip Request to Match</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant Rider
+  participant MS as Matching Service
+  participant Geo as Geospatial Index
+  participant Driver
+  Rider->>MS: POST trip-request(pickup, destination)
+  MS->>Geo: search nearby available drivers
+  Geo-->>MS: candidate driver list
+  MS->>MS: rank by ETA (O), pick best candidate
+  MS->>MS: atomic assign attempt (P)
+  MS->>Driver: match offer (push)
+  alt driver accepts
+    Driver-->>MS: accept
+    MS-->>Rider: matched! driver info
+  else driver declines/times out
+    MS->>MS: retry with next candidate (Q)
+  end
+</div>
+
+<h3 id="p5-m">M. Deep Dive 1 — The Geospatial Index</h3>
+<p><strong>Requirement this addresses:</strong> directly fixes V1's fatal flaw (J) — efficient "who is near this point" queries are the foundation everything else in this problem is built on.</p>
+<table>
+<tr><th>Approach</th><th>How It Works</th><th>Strength</th><th>Weakness</th></tr>
+<tr><td>Geohash</td><td>Encodes lat/lng into a single sortable string; shared prefixes mean spatial proximity (mostly)</td><td>Simple, works natively with a sorted-set store like Redis</td><td>Edge/boundary cases — two physically close points can have very different geohash prefixes if they straddle a boundary</td></tr>
+<tr><td>Quadtree</td><td>Recursively subdivides space into 4 quadrants, denser subdivision where points are denser</td><td>Naturally adapts cell size to driver density (small cells in cities, large cells in rural areas)</td><td>More complex to shard/distribute than a flat hash scheme</td></tr>
+<tr><td>Google S2</td><td>Projects the sphere onto a cube, subdivides into a hierarchy of cells, uses Hilbert-curve ordering for locality</td><td>Handles the whole globe (including poles/edge cases geohash struggles with) correctly</td><td>Steeper conceptual learning curve than geohash</td></tr>
+<tr><td><strong>Uber's H3 (real-world answer, and this document's pick)</strong></td><td>Hexagonal hierarchical grid — hexagons have uniform adjacency (all 6 neighbors are equidistant, unlike a square grid's diagonal-vs-edge distance discrepancy)</td><td>Purpose-built by Uber specifically for ride-matching-style neighbor queries; open-sourced and battle-tested at Uber's own scale</td><td>A less commonly known structure than geohash — worth knowing it's Uber's own real system, not a hypothetical</td></tr>
+</table>
+<p><strong>Why hexagonal cells specifically solve a real problem square grids have:</strong> in a square grid, the four diagonal neighbors are ~41% farther away than the four edge-adjacent neighbors, distorting "nearby" queries right at cell boundaries; every one of a hexagon's six neighbors is equidistant, making neighbor expansion (checking one ring further out if too few drivers are found) uniform and predictable — precisely the operation the matching flow (L) performs repeatedly.</p>
+<p><strong>Recommendation:</strong> H3 as the specific, real-world-grounded answer (it's literally Uber's own open-sourced library for exactly this problem) — geohash is an entirely acceptable, simpler alternative to name if H3's specifics aren't recalled, as long as its boundary-distortion weakness is acknowledged.</p>
+
+<h3 id="p5-n">N. Deep Dive 2 — High-Frequency Location Ingestion</h3>
+<p><strong>Requirement this addresses:</strong> the ~1.25M updates/sec load from G — by far the largest sustained throughput number in this entire design, dwarfing trip-request volume.</p>
+<p><strong>Why "overwrite," not "append," is the correct model:</strong> per F's assumption, only the driver's <em>current</em> position matters for matching — there's no requirement to reconstruct a driver's full location history for the matching use case. This means each update is a write to the same key (<code>driver_id</code>'s cell/coordinate in the geospatial index, K) rather than an ever-growing log — the exact opposite lifecycle decision from a chat message (Chat System, K) or a post (News Feed, K), both of which must be durably retained forever. Recognizing which category a given piece of data falls into — durable history vs. disposable latest-state — is itself a meaningful piece of design judgment.</p>
+<p><strong>Why this still needs careful scaling despite being "just an overwrite":</strong> 1.25M overwrites/sec, each also potentially requiring a geospatial index update (moving a driver from one H3 cell to a neighboring one as they drive), must be sharded across many index instances/partitions — the same consistent-hashing-style sharding reasoning from Rate Limiter's scaling deep dive, here partitioned by geographic region/cell rather than by client ID.</p>
+<p><strong>A cheap but meaningful optimization:</strong> if a driver's reported position hasn't moved out of their current geospatial cell since the last update, the index update itself can be skipped (only the raw lat/lng is refreshed) — cutting a meaningful fraction of the expensive index-restructuring work without affecting matching correctness at all, since matching only cares about which cell a driver is in.</p>
+
+<h3 id="p5-o">O. Deep Dive 3 — Matching &amp; Ranking Candidates</h3>
+<p><strong>Requirement this addresses:</strong> the &lt;10 second matching-latency NFR (D) — the geospatial search (M) finds candidates; this decides which candidate is actually best.</p>
+<p><strong>Why straight-line distance alone is an incomplete ranking signal:</strong> the nearest driver by straight-line distance might be on the opposite side of a river, a highway median, or one-way streets that make their actual driving ETA much worse than a driver who's slightly farther in a straight line but has a clear route. A full solution refines the geospatial candidate set (a cheap, coarse first pass) with a call to a <strong>routing/ETA engine</strong> for the top few candidates only — expensive per-call, so deliberately not run against every driver in the city, only the short list M's index already narrowed things down to.</p>
+<p><strong>Why this two-stage funnel (coarse geospatial filter → expensive ETA refinement on a short list), not one or the other alone:</strong> pure geospatial ranking is cheap but occasionally wrong in exactly the way described above; pure ETA-engine ranking (calling the routing engine against every driver in a city) is accurate but far too expensive to run at 600+ requests/sec against potentially thousands of drivers each. The funnel gets the accuracy of the expensive computation at a small fraction of its cost by only ever running it against a handful of pre-filtered candidates.</p>
+
+<h3 id="p5-p">P. Deep Dive 4 — Atomic Driver Assignment</h3>
+<p><strong>Requirement this addresses:</strong> the strong-consistency NFR from D — this is the one place in the entire design where "eventually consistent" is explicitly not good enough, and the single highest-signal deep dive in this problem.</p>
+<p class="callout"><strong>The race, explicitly:</strong> two riders' requests can both identify the same driver as their best candidate within the same few-hundred-millisecond window (especially in a sparse area with few available drivers). If both matching attempts read "driver is available" and both then proceed to send an offer, the driver could end up double-booked — the same check-then-act race named explicitly in Rate Limiter's atomicity deep dive (N) and the LLD Parking Lot's last-spot race, here with a human being as the contested resource instead of a counter or a parking spot.</p>
+<p><strong>The fix — an atomic compare-and-swap (CAS) on the driver's status,</strong> executed as a single atomic operation (e.g. a Redis <code>WATCH</code>/<code>MULTI</code> transaction, an atomic Lua script analogous to Rate Limiter's N, or a conditional update in a store that supports it natively): "set driver's status to <code>pending_offer</code> for request X, <em>only if</em> it is currently <code>available</code>." Whichever matching attempt's CAS lands first wins the driver; the loser's CAS fails cleanly and immediately falls through to the next-best candidate (Q) — no separate locking service required, and no window where both attempts believe they've succeeded.</p>
+<p><strong>Why this is the narrow exception to an otherwise eventually-consistent system:</strong> location updates (N), ETA ranking (O), and trip tracking (R) all tolerate staleness measured in seconds with no real product harm — but "two riders assigned the same driver" is a directly visible, trust-breaking product failure with no acceptable staleness window at all. Naming this contrast explicitly — this design is eventually consistent everywhere except this one atomic step — is a stronger answer than either "everything is eventually consistent" (misses this) or "everything needs strong consistency" (needlessly slow and complex for location/ETA data that doesn't need it).</p>
+
+<h3 id="p5-q">Q. Deep Dive 5 — Match Offer Reliability &amp; Retries</h3>
+<p><strong>Requirement this addresses:</strong> the accept/decline/timeout functional requirement (D) — what happens after P's atomic assignment succeeds but the driver doesn't actually confirm.</p>
+<div class="mermaid diagram">
+flowchart TB
+  Offer["Offer sent to<br/>top-ranked driver (O, P)"] --> Wait{"Driver responds<br/>within timeout?"}
+  Wait -- "accepts" --> Done["Trip confirmed"]
+  Wait -- "declines / times out" --> Release["Atomically release driver<br/>back to available (P)"]
+  Release --> Next["Re-run ranking (O) against<br/>remaining candidates"]
+  Next --> Offer
+</div>
+<p><strong>Why this needs a durable, retry-aware workflow rather than a single synchronous function call:</strong> the full request→match→accept sequence can span multiple offer/decline cycles, each with its own timeout, potentially taking several seconds — exactly the kind of long-running, multi-step, failure-prone process that a <strong>durable workflow orchestration engine</strong> (e.g. Temporal, or an equivalent state-machine-as-infrastructure approach) is built for, rather than a single request handler holding state in memory for the whole sequence. If the matching service instance handling a request crashes mid-retry-loop, a durable workflow resumes exactly where it left off; a plain in-memory retry loop would lose all of that state and leave the rider stuck with no match and no explanation.</p>
+
+<h3 id="p5-r">R. Deep Dive 6 — Live Trip Tracking</h3>
+<p><strong>Requirement this addresses:</strong> the live-location-sharing functional requirement (D) — a distinct problem from N's ingestion, since this is about broadcasting one driver's position to specifically the matched rider (and vice versa) throughout an active trip.</p>
+<p><strong>Why this rhymes with the Chat System's connection/routing problem:</strong> once matched, the rider and driver need low-latency, bidirectional updates — the same WebSocket-based push model from Chat System's connection tier (M), with the "who is this update for" question answered trivially here (the trip ID directly identifies the other party), unlike chat's harder cross-server user routing problem. Location pushes during a trip reuse N's already-updated position data — no separate ingestion pipeline is needed, just a subscription from the trip's WebSocket channel to the same location stream.</p>
+<p><strong>Why polling is a reasonable, simpler fallback here specifically (unlike Chat System, where it was ruled out entirely):</strong> a rider watching a driver's dot move tolerates a few seconds of staleness far more gracefully than a chat message would — so a lower-frequency poll (matching N's own ~4-second update cadence) is a defensible, simpler alternative to a full WebSocket push for this one feature, even though WebSockets remain the better choice if the product wants smoother, more frequent visual updates.</p>
+
+<h3 id="p5-s">S. Deep Dive 7 — Supply/Demand Imbalance (Surge, Conceptual)</h3>
+<p class="callout">Discussed at the level this interview typically expects — the conceptual shape of the problem and how it plugs into the existing design, not a full pricing-engine derivation.</p>
+<p><strong>Why this is a natural extension of the existing geospatial structure, not a new system:</strong> the same geospatial cells already used for matching (M) are the natural unit for measuring local supply (available drivers per cell) versus demand (open trip requests per cell) — a simple ratio per cell, recomputed on a short interval, is enough to identify an imbalanced area without building new geospatial machinery. A high demand:supply ratio in a cell is both the trigger for surge pricing (out of scope in detail, per D) and a useful signal to widen the matching search radius for requests originating in that cell (a direct, in-scope tie-back to M's neighbor-expansion behavior).</p>
+
+<h3 id="p5-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  Driver(["Driver app"]) -- "location ping ~4s (N)" --> Ingest["Location Ingestion Service"]
+  Ingest --> GeoIdx[("Geospatial Index (M)<br/>H3-bucketed, sharded by region")]
+
+  Rider(["Rider app"]) -- "trip request" --> MS["Matching Service"]
+  MS -- "candidate search" --> GeoIdx
+  MS -- "ETA refine (O)" --> Routing["Routing/ETA Engine"]
+  MS -- "atomic CAS assign (P)" --> DriverStatus[("Driver Status Store")]
+
+  subgraph WORKFLOW [" Durable Match Workflow (Q) "]
+    direction LR
+    Offer["Offer + retry loop"]
+  end
+  MS --> WORKFLOW
+  WORKFLOW -- "offer" --> Driver
+  Driver -- "accept/decline" --> WORKFLOW
+
+  WORKFLOW -- "confirmed" --> TripDB[("Trip Store")]
+  TripDB --> Tracking["Live Tracking (R)<br/>WebSocket / poll"]
+  Tracking --> Rider
+  Tracking --> Driver
+
+  GeoIdx -.-> Surge["Supply/Demand Monitor (S)"]
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p5-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — plain relational lat/lng range scan (J):</strong> the wrong tool for a 2D proximity query from the first realistic dataset size.</li>
+<li><strong>V2 — dedicated geospatial index (H3/geohash):</strong> makes "nearby" queries actually efficient (M).</li>
+<li><strong>V3 — sharded, overwrite-based location ingestion:</strong> sustains the ~1.25M updates/sec load (N).</li>
+<li><strong>V4 — two-stage geospatial-filter + ETA-engine ranking:</strong> fixes straight-line distance's real-world inaccuracy (O).</li>
+<li><strong>V5 — atomic CAS-based assignment:</strong> eliminates the double-booking race, the single most important correctness fix in the design (P).</li>
+<li><strong>V6 — durable workflow-based offer/retry loop:</strong> survives failures mid-match instead of losing state (Q).</li>
+<li><strong>V7 — WebSocket/poll-based live tracking off the existing location stream:</strong> extends the design to in-trip visibility (R).</li>
+<li><strong>V8 — per-cell supply/demand monitoring:</strong> plugs surge and search-radius widening into the same geospatial structure (S).</li>
+</ul>
+<p><strong>What stays stable throughout:</strong> the <code>POST /trip-requests</code> and <code>POST /drivers/location</code> contracts from I — every version underneath changes without either app needing to change.</p>
+
+<h3 id="p5-v">V. Consistency Model</h3>
+<p>This is the most consistency-bifurcated design in the whole document: <strong>location updates (N), ETA ranking (O), and live tracking (R) are all deliberately eventually consistent</strong> — a few seconds of staleness in any of them causes no real harm and buys significant scalability. <strong>Driver assignment (P) is the one deliberately strongly-consistent island</strong> — a single atomic compare-and-swap that must never allow two riders to win the same driver. This is a sharper, more explicit version of Rate Limiter's "eventual everywhere except one atomic step" model (V in that section) — here the stakes of getting the one strong-consistency step wrong are a visibly broken product experience (a driver arriving for the wrong rider), not just a barely-noticeable over-count.</p>
+
+<h3 id="p5-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>Two matching attempts race for the same driver:</strong> P's atomic CAS ensures exactly one wins; the loser falls through to its next-best candidate with no double-booking window (P, O).</li>
+<li><strong>The matching service crashes mid-offer-retry-loop:</strong> the durable workflow (Q) resumes from its last durable checkpoint rather than losing the rider's in-progress match entirely.</li>
+<li><strong>A driver's location update is dropped or delayed:</strong> harmless in isolation — the next ~4-second update overwrites stale state (N); a driver silently going stale for too long can be aged out of "available" status defensively.</li>
+<li><strong>The routing/ETA engine is temporarily unavailable:</strong> matching degrades to pure geospatial-distance ranking (M) rather than failing entirely — a graceful accuracy degradation, not an outage (O).</li>
+<li><strong>A geospatial shard for one region is overloaded</strong> (e.g. a major event causing a local demand spike): the region-sharded design (N) contains the impact to that region's shard rather than degrading the global system, and S's supply/demand signal can trigger widening the search radius as a release valve.</li>
+</ul>
+
+<h3 id="p5-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 relational range scan</td><td>2D proximity queries don't map onto a 1D B-tree index at all</td><td>Dedicated geospatial index (M)</td></tr>
+<tr><td>Single geospatial index instance</td><td>~1.25M location updates/sec exceeds any single instance's throughput</td><td>Region-based sharding of the index (N)</td></tr>
+<tr><td>Sharded index, naive assignment</td><td>Concurrent matching attempts can double-book a driver</td><td>Atomic CAS-based assignment (P)</td></tr>
+<tr><td>Atomic assignment, in-memory retry loop</td><td>A crashed matching-service instance loses in-progress match state</td><td>Durable workflow orchestration (Q)</td></tr>
+</table>
+
+<h3 id="p5-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Geospatial structure</td><td>Geohash (simple)</td><td>H3 hexagonal grid (chosen)</td><td>Geohash is simpler and works natively with sorted-set stores; H3's uniform hexagon adjacency avoids the diagonal-distance distortion of any square/geohash-style grid</td></tr>
+<tr><td>Location data lifecycle</td><td>Append full history</td><td>Overwrite latest-only (chosen)</td><td>History enables analytics/replay; overwrite is far cheaper and is all matching actually needs, per F's assumption</td></tr>
+<tr><td>Ranking</td><td>Pure geospatial distance</td><td>Two-stage geospatial filter + ETA refinement (chosen)</td><td>Pure distance is cheap but occasionally wrong (rivers/highways); the two-stage funnel gets ETA accuracy at a fraction of calling the routing engine for every candidate</td></tr>
+<tr><td>Assignment consistency</td><td>Eventually consistent (like the rest of the system)</td><td>Strongly consistent atomic CAS (chosen)</td><td>Eventual consistency here directly causes double-booking, a visible product failure with no acceptable staleness window — this is the one place the extra coordination cost is mandatory</td></tr>
+<tr><td>Retry-loop architecture</td><td>In-memory retry logic in the request handler</td><td>Durable workflow orchestration (chosen)</td><td>In-memory is simpler but loses all state on a crash mid-retry; a durable workflow survives failures at the cost of an added orchestration dependency</td></tr>
+</table>
+
+<h3 id="p5-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Plain relational range queries on lat/lng with no spatial index.</strong> Works on a tiny dataset in a demo; is the wrong data structure for the query pattern from the first realistic dataset size — the most common mistake specifically on this problem.</li>
+<li><strong>Treating driver assignment as eventually consistent "like everything else."</strong> Misses the one genuinely load-bearing strong-consistency requirement in the whole design — leads directly to a double-booking bug if two matching attempts race.</li>
+<li><strong>A separate read-then-write for assignment</strong> (check availability, then set status in two calls) instead of one atomic CAS — the identical check-then-act race named in Rate Limiter's atomicity deep dive, recurring here with a driver instead of a counter (P).</li>
+<li><strong>Appending every location update to a growing history table</strong> when only the latest position is actually needed for matching — unnecessarily inflates storage and write cost for data whose value is disposable after the next update (N).</li>
+<li><strong>Modeling the offer/accept/retry sequence as a single synchronous function call</strong> with in-memory state — silently loses the rider's in-progress match if the handling instance crashes mid-sequence (Q).</li>
+</ul>
+
+<h3 id="p5-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"What if no drivers are available nearby at all?"</td><td>Expand the search to the next ring of neighboring geospatial cells (H3's uniform-neighbor property makes this a clean, predictable expansion) before failing the request</td><td>Search radius logic in M/O</td><td>Assignment, workflow, tracking</td></tr>
+<tr><td>"Two riders in the same area request at the exact same millisecond."</td><td>Directly exercises P's atomic CAS — one wins outright, the other's CAS fails and falls through to its next candidate</td><td>None — this is exactly what P already handles</td><td>Everything</td></tr>
+<tr><td>"Add pooled/shared rides (multiple riders, one driver, overlapping routes)."</td><td>The matching step now needs to consider route-overlap compatibility, not just proximity — a meaningfully harder ranking problem layered on the same geospatial foundation</td><td>Ranking logic in O</td><td>Geospatial index, assignment atomicity, tracking</td></tr>
+<tr><td>"A driver's app loses connectivity mid-trip."</td><td>Last-known-location is shown with a staleness indicator rather than treating the gap as an error; matching/assignment for other riders is unaffected since this driver is already on-trip</td><td>Tracking UI/degradation logic (R)</td><td>Matching, assignment</td></tr>
+<tr><td>"How would you detect and price for a supply/demand imbalance?"</td><td>Directly extends S's per-cell ratio monitoring into an actual pricing multiplier — conceptually straightforward on top of the existing structure, though a full pricing model is its own deep problem</td><td>New pricing-signal consumer of the existing per-cell metric</td><td>Matching, assignment, tracking</td></tr>
+</table>
+
+<h3 id="p5-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> proposes a plain SQL range query on lat/lng with no awareness that this is the wrong index structure for the query pattern; no mention of the double-booking race at all.</li>
+<li><strong>Mid-level:</strong> correctly identifies the need for a geospatial index by name, but doesn't yet flag the assignment race or the durability of the offer/retry loop.</li>
+<li><strong>Senior:</strong> proactively names the double-booking race and proposes an atomic CAS-style fix unprompted; distinguishes the strong-consistency requirement for assignment from the eventual-consistency tolerance everywhere else in the system.</li>
+<li><strong>Staff+:</strong> reasons about the two-stage geospatial-filter/ETA-refinement funnel as a deliberate cost/accuracy trade-off; discusses durable workflow orchestration for the multi-step match process; connects supply/demand monitoring back to the same geospatial structure rather than treating it as an unrelated new system.</li>
+</ul>
+
+<h3 id="p5-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a ride-sharing system — riders request trips, get matched to nearby drivers, and can track them live.</div>
+<div class="dialog"><span class="who">Candidate:</span> The first real problem is finding "nearby" drivers efficiently. A plain SQL query filtering on lat/lng ranges doesn't work well — a standard index only helps one dimension at a time, so at real scale it turns into a huge scan. I'd use a dedicated geospatial index — something like Uber's own H3 hexagonal grid, or geohash as a simpler alternative — so a proximity search is a fast lookup against a small number of nearby cells.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Why hexagons specifically, not a square grid?</div>
+<div class="dialog"><span class="who">Candidate:</span> In a square grid, the diagonal neighbors are farther away than the edge neighbors, so "expand my search by one ring" behaves inconsistently depending on direction. Every neighbor of a hexagon is the same distance away, so expanding the search radius is uniform and predictable.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Drivers are reporting location constantly — how do you handle that volume?</div>
+<div class="dialog"><span class="who">Candidate:</span> Each update overwrites that driver's current position rather than appending to a history — matching only cares where a driver is right now, not where they've been. That keeps the storage footprint tiny regardless of update frequency; the real cost is just making sure the update throughput itself is sharded, by region, across enough index instances.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Now — two riders' requests both pick the same driver as their best match, at nearly the same time. What happens?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's the one place in this whole design where I actually need strong consistency. I'd do the assignment as an atomic compare-and-swap — set the driver's status to "pending offer for this request," but only if it's currently "available." Whichever request's CAS lands first wins the driver; the other one's CAS just fails and falls through to its next-best candidate. Everything else in this system — location updates, ETA estimates — tolerates being a little stale, but assignment can't, because two riders getting the same driver is a real, visible failure.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What if the driver just doesn't respond to the offer?</div>
+<div class="dialog"><span class="who">Candidate:</span> That whole request→offer→accept-or-retry sequence can span several seconds and multiple attempts, so I wouldn't model it as one synchronous function call holding state in memory — if that process crashed partway through, the rider would just be stuck with no explanation. I'd use a durable workflow so the retry loop survives a crash and resumes exactly where it left off, releasing the unresponsive driver back to available and trying the next candidate.</div>
+
+<h3 id="p5-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/uber" target="_blank">Hello Interview</a></td><td>Geospatial-index-first framing, explicit atomic-assignment race discussion, staff-level durable-workflow recommendation</td><td>Clearest articulation of the double-booking race and why it's the one strong-consistency island — the core structure adopted for this section</td><td>Doesn't go deep into the specific H3-vs-geohash-vs-quadtree comparison</td><td>The "eventual everywhere except one atomic step" framing, directly reused from Rate Limiter's own consistency model in this document</td></tr>
+<tr><td><a href="https://bytebytego.com/courses/system-design-interview/design-uber" target="_blank">ByteByteGo</a></td><td>Detailed comparison of geospatial indexing approaches (geohash, quadtree) and the two-stage ranking funnel</td><td>Most rigorous side-by-side geospatial-structure comparison of any source reviewed</td><td>Lighter on the durable-workflow angle for offer retries</td><td>The geohash/quadtree trade-off table adapted into M</td></tr>
+<tr><td><a href="https://github.com/uber/h3" target="_blank">uber/h3 (GitHub, official)</a></td><td>The actual, real-world, open-sourced hexagonal geospatial indexing library Uber itself uses</td><td>Ground-truth confirmation that H3 is a real production system, not a hypothetical interview answer</td><td>A code/API reference, not a system-design walkthrough — needs translation into interview framing, which M provides</td><td>The uniform-hexagon-neighbor property, and that this is literally the company's own real infrastructure</td></tr>
+<tr><td>dev.to / independent write-ups on Uber-style system design (search-level review)</td><td>Various community breakdowns covering matching, surge pricing, and trip-state machines</td><td>Useful for cross-checking the trip-state-machine shape (H's <code>Trip</code>/<code>TripRequest</code> entities) against independent sources</td><td>Inconsistent depth and rigor across different write-ups — treated as supplementary, not primary</td><td>Confirms the request/match/accept/trip state progression used in H and L is the standard shape, not an invented simplification</td></tr>
+</table>
+
+<h3 id="p5-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Ride-Sharing (Uber)</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Advanced + Geospatial (a genuinely distinct sub-domain from the other four problems)</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Request/match/track a trip; 5M concurrent drivers, ~1.25M location updates/sec, &lt;10s match latency, strong consistency for assignment only</td></tr>
+<tr><td><strong>Central decision</strong></td><td>A dedicated geospatial index (H3/geohash/quadtree) — a plain relational range scan is the wrong tool from the first realistic dataset size</td></tr>
+<tr><td><strong>Location model</strong></td><td>Overwrite-latest, not append-history — matching only needs current position</td></tr>
+<tr><td><strong>Ranking</strong></td><td>Two-stage funnel: cheap geospatial filter, then expensive ETA-engine refinement on a short candidate list only</td></tr>
+<tr><td><strong>Assignment fix</strong></td><td>Atomic compare-and-swap on driver status — the one deliberate strong-consistency island in an otherwise eventually-consistent system</td></tr>
+<tr><td><strong>Reliability fix</strong></td><td>Durable workflow orchestration for the multi-step offer/accept/retry sequence, surviving mid-process crashes</td></tr>
+<tr><td><strong>Live tracking</strong></td><td>Reuses the same location stream via WebSocket (or a coarser poll, acceptable here unlike Chat System) — no separate ingestion pipeline</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Plain lat/lng range scans; treating assignment as eventually consistent; two-call check-then-set races; append-only location history; in-memory-only retry loops</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>A full dynamic-pricing/surge engine — name the conceptual tie-in to the existing geospatial cells, don't design a pricing model live</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p4.html">&larr; 4. Chat System (WhatsApp)</a><a class="prevnext-link next" href="p6.html">6. Web Crawler &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

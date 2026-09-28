@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>6. Web Crawler — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">6. Web Crawler <span class="badge">Intermediate → Advanced</span></h1>
+
+<div class="section-toc">
+<a href="#p6-a">A. Interview Prompt</a><a href="#p6-b">B. Difficulty</a><a href="#p6-c">C. What It Tests</a>
+<a href="#p6-d">D. Requirements</a><a href="#p6-e">E. Clarifying Questions</a><a href="#p6-f">F. Assumptions</a>
+<a href="#p6-g">G. Capacity Estimation</a><a href="#p6-h">H. Core Entities</a><a href="#p6-i">I. API Design</a>
+<a href="#p6-j">J. Basic Design (V1)</a><a href="#p6-k">K. Data Model &amp; Store Choice</a><a href="#p6-l">L. End-to-End Flow</a>
+<a href="#p6-m">M. Deep Dive 1: URL Frontier</a><a href="#p6-n">N. Deep Dive 2: Politeness</a><a href="#p6-o">O. Deep Dive 3: Distributed Crawling</a>
+<a href="#p6-p">P. Deep Dive 4: Duplicate Detection</a><a href="#p6-q">Q. Deep Dive 5: Storage</a><a href="#p6-r">R. Deep Dive 6: Freshness</a>
+<a href="#p6-s">S. Deep Dive 7: Traps &amp; Extensibility</a><a href="#p6-t">T. Full Solution at Scale</a><a href="#p6-u">U. Design Evolution</a>
+<a href="#p6-v">V. Consistency Model</a><a href="#p6-w">W. Failure Scenarios</a><a href="#p6-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p6-y">Y. Trade-Offs</a><a href="#p6-z">Z. Common Bad Designs</a><a href="#p6-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p6-ab">AB. Interviewer Evaluation</a><a href="#p6-ac">AC. Interview Simulation</a><a href="#p6-ad">AD. Source Comparison</a>
+<a href="#p6-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p6">Jump to section:</label><select id="jump-p6" class="jump-select" data-jump-select><option value="p6-a">A. Realistic Interview Prompt</option><option value="p6-b">B. Difficulty</option><option value="p6-c">C. What This Problem Tests</option><option value="p6-d">D. Requirements</option><option value="p6-e">E. Clarifying Questions</option><option value="p6-f">F. Assumptions</option><option value="p6-g">G. Capacity Estimation</option><option value="p6-h">H. Core Entities</option><option value="p6-i">I. API Design</option><option value="p6-j">J. Basic / Naive High-Level Design (V1)</option><option value="p6-k">K. Data Model &amp; Store Choice</option><option value="p6-l">L. End-to-End Flow — One Crawl Cycle</option><option value="p6-m">M. Deep Dive 1 — The URL Frontier</option><option value="p6-n">N. Deep Dive 2 — Politeness</option><option value="p6-o">O. Deep Dive 3 — Distributed Crawling at Scale</option><option value="p6-p">P. Deep Dive 4 — Duplicate Detection</option><option value="p6-q">Q. Deep Dive 5 — Storage at Scale</option><option value="p6-r">R. Deep Dive 6 — Freshness &amp; Recrawl Scheduling</option><option value="p6-s">S. Deep Dive 7 — Crawler Traps &amp; Extensibility</option><option value="p6-t">T. Full Solution at Scale — Final Architecture</option><option value="p6-u">U. Design Evolution</option><option value="p6-v">V. Consistency Model</option><option value="p6-w">W. Failure Scenarios</option><option value="p6-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p6-y">Y. Design Trade-Offs</option><option value="p6-z">Z. Common Bad Designs</option><option value="p6-aa">AA. Interviewer Follow-Ups</option><option value="p6-ab">AB. Interviewer Evaluation Rubric</option><option value="p6-ac">AC. Interview Simulation</option><option value="p6-ad">AD. Online Solution Comparison</option><option value="p6-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p6-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a web crawler that starts from a set of seed URLs, discovers and downloads pages across the web, extracts links to crawl further, and stores the content — at the scale of billions of pages."</div>
+<p>This problem looks like a simple graph-traversal exercise (BFS/DFS over links) until scale and etiquette enter the picture. The two ideas that separate a toy crawler from a real one are: <strong>politeness</strong> (a crawler that hits one server too fast is indistinguishable from a denial-of-service attack, and will get the crawler's IP blocked) and <strong>the URL frontier's prioritization problem</strong> (deciding what to crawl next isn't a plain queue — it has to balance fairness across domains, priority, and revisit frequency simultaneously).</p>
+
+<h3 id="p6-b">B. Difficulty</h3>
+<p><strong>Intermediate</strong> to state ("BFS from seed URLs, download, extract links, repeat") escalating to <strong>Advanced</strong> the moment politeness, duplicate detection at billions-of-pages scale, and freshness/recrawl scheduling enter — three genuinely distinct sub-problems layered on top of what looks like a simple traversal.</p>
+
+<h3 id="p6-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognition that "crawl the web" is not one queue — it's a prioritized, per-host-fair scheduling problem (the URL Frontier) with real production precedent (Google's Mercator architecture)</li>
+<li>Understanding of politeness as a hard constraint, not a nice-to-have — treating every host as if it can absorb unlimited concurrent requests is the single most common mistake on this problem</li>
+<li>Judgment on deduplication at two distinct levels — identical URLs (easy) and near-duplicate content reachable via different URLs (harder, needs content fingerprinting)</li>
+<li>Awareness that crawling is a continuous, never-finished process (freshness/recrawl), not a one-time batch job that terminates</li>
+<li>Comfort reasoning about a system with almost no external-facing API at all — this is an internal, autonomous pipeline, a different shape of problem than the previous five</li>
+</ul>
+
+<h3 id="p6-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Given a set of seed URLs, fetch each page, extract outbound links, and add new, previously-unseen URLs to the crawl queue</li>
+<li>Store downloaded page content (and metadata) for downstream consumption (e.g. indexing — out of scope itself)</li>
+<li>Respect each site's <code>robots.txt</code> exclusion rules and avoid overloading any single host</li>
+<li>Periodically recrawl previously-seen pages to keep content fresh</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>Massive scale</strong> — this document uses <strong>1 billion pages crawled per month</strong> as the standard illustrative target, the same order of magnitude used across most published treatments of this problem</li>
+<li><strong>Politeness</strong> — no single host should ever receive a disproportionate concurrent request rate; this is treated as a correctness requirement, not a performance nicety</li>
+<li><strong>Extensibility</strong> — new content types (HTML today, PDFs/images/JS-rendered pages later) should be pluggable without a redesign</li>
+<li><strong>Robustness</strong> — a single malformed page, redirect loop, or intentionally hostile "crawler trap" must not stall or crash the crawler fleet</li>
+</ul>
+<p><strong>Out of scope:</strong> the search-indexing/ranking pipeline that consumes crawled content, JavaScript-heavy rendering (assume mostly static HTML, with headless rendering named as a known extension, not designed in depth).</p>
+
+<h3 id="p6-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>What's the target scale — pages/month, and how large is "the web" we're crawling (whole internet vs. a bounded domain set)?</td><td>Sets every downstream throughput/storage number</td><td>Capacity Estimation (G)</td></tr>
+<tr><td>2</td><td>Must we respect robots.txt and crawl-delay directives?</td><td>Assumed yes for any legitimate crawler — confirms politeness is mandatory, not optional</td><td>Deep Dive 2 (N)</td></tr>
+<tr><td>3</td><td>Do we need near-duplicate content detection, or just exact-URL dedup?</td><td>Near-duplicate detection needs content fingerprinting, a materially bigger system than a URL-seen-set</td><td>Deep Dive 4 (P)</td></tr>
+<tr><td>4</td><td>How fresh does content need to be — recrawled daily, weekly, or priority-based on how often a page tends to change?</td><td>Determines whether recrawl is a fixed schedule or an adaptive, priority-driven one</td><td>Deep Dive 6 (R)</td></tr>
+<tr><td>5</td><td>Is dynamic/JS-rendered content in scope?</td><td>Requires a headless-browser rendering tier, a substantial architectural addition</td><td>Deep Dive 7 (S)</td></tr>
+<tr><td>6</td><td>What happens with malicious or malformed pages — infinite redirect loops, deliberately generated infinite link mazes?</td><td>Requires explicit trap-detection safeguards, not just "the crawler will naturally stop"</td><td>Deep Dive 7 (S)</td></tr>
+</table>
+
+<h3 id="p6-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> seed-based link-following crawl, content storage, robots.txt compliance, periodic recrawl.</li>
+<li><strong>Assumption:</strong> primarily static HTML content; headless-rendering for JS-heavy pages is named as an extension (S) rather than designed in depth — the standard simplification most sources make.</li>
+<li><strong>Assumption:</strong> near-duplicate content detection is in scope (E's clarifying question 3) — the more interesting, more commonly-tested version of this problem.</li>
+<li><strong>Assumption:</strong> adaptive, priority-based recrawl (not a fixed blanket schedule) — reflects how real crawlers (Googlebot) actually behave and gives more to discuss in R.</li>
+<li><strong>Assumption:</strong> politeness is enforced per-host via both robots.txt directives and a self-imposed rate limit, even where robots.txt is silent — treated as a floor, not a ceiling, on politeness.</li>
+</ul>
+
+<h3 id="p6-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Pages/month target</td><td>1 billion</td><td>Base input for every number below</td></tr>
+<tr><td>Pages/sec (average)</td><td>1B ÷ (30 × 86,400s) ≈ <strong>~385 pages/sec</strong></td><td>Sets the average fetch-throughput target for the whole crawler fleet</td></tr>
+<tr><td>Average page size</td><td>~500KB (HTML + inline assets metadata, media handled separately)</td><td>Base input for bandwidth and storage</td></tr>
+<tr><td>Bandwidth</td><td>385/sec × 500KB ≈ <strong>~190MB/sec sustained</strong></td><td>A real, non-trivial network-egress number to size the fetcher fleet against</td></tr>
+<tr><td>Storage/month</td><td>1B × 500KB ≈ <strong>~500TB/month</strong></td><td>Confirms a distributed blob store, not a single-machine filesystem, is required (Q)</td></tr>
+<tr><td>Distinct hosts (illustrative)</td><td>~100M-500M distinct domains reachable from seeds at this scale</td><td>Motivates per-host queue partitioning in the Frontier (M) — the fan-out is enormous</td></tr>
+<tr><td>Politeness delay per host</td><td>~1 request per host per few seconds (a conservative, illustrative default absent an explicit crawl-delay)</td><td>Directly limits how much of the 385 pages/sec can come from any one host — this is why parallelism must come from <em>host diversity</em>, not per-host request rate (N)</td></tr>
+</table>
+
+<h3 id="p6-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>URL</code></td><td>A discovered link, queued or crawled</td><td><code>url</code>, <code>host</code>, <code>priority</code>, <code>last_crawled_at</code>, <code>status</code></td></tr>
+<tr><td><code>Page</code></td><td>Downloaded content for one URL</td><td><code>url</code>, <code>content_hash</code> (P), <code>storage_ref</code>, <code>fetched_at</code>, <code>content_type</code></td></tr>
+<tr><td><code>Host</code></td><td>A domain being crawled — the unit politeness is scoped to</td><td><code>host</code>, <code>robots_rules</code>, <code>crawl_delay</code>, <code>last_request_at</code></td></tr>
+<tr><td><code>FrontierQueue</code> (ephemeral, per-host)</td><td>Pending URLs waiting to be fetched, one queue per host</td><td>lives in the frontier's shared store (K) — losing it on a crash just means those URLs get rediscovered later</td></tr>
+</table>
+
+<h3 id="p6-i">I. API Design</h3>
+<pre><code>Internal / operator-facing only — this system has almost no external API:
+  POST /v1/seeds              { urls: [...] }         -> enqueue new seed URLs
+  GET  /v1/crawl-stats                                -> pages/sec, queue depth, error rate
+  POST /v1/hosts/{host}/pause                          -> operator override for a misbehaving/blocking host
+
+Internal worker contract (not externally exposed):
+  Frontier.dequeue() -> URL                (respecting per-host politeness, M/N)
+  Fetcher.fetch(URL) -> { html, headers, status }
+  Parser.extractLinks(html) -> [URL]
+</code></pre>
+<p><strong>Why so little external API surface:</strong> unlike every previous problem, a web crawler has no end-user-facing request path at all — it's an autonomous internal pipeline whose only "customers" are the seed-injection interface and whatever downstream system (a search indexer) consumes its output. Naming this explicitly is itself a useful observation — it signals the design should focus entirely on the internal pipeline's throughput and correctness, not on external API ergonomics.</p>
+
+<h3 id="p6-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: a single worker, one global FIFO queue of URLs, fetch-parse-enqueue in a loop.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Seeds(["Seed URLs"]) --> Q[("Single Global Queue")]
+  Q --> W["Single Worker:<br/>fetch -> parse -> extract links"]
+  W -- "new URLs" --> Q
+  W --> Store[("Page Storage")]
+</div>
+<p class="diagram-caption">V1 — one queue, one worker. Correct in shape, but has no concept of politeness or fleet parallelism at all.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> two failures happen simultaneously the moment this needs to run at real scale. First, a single global FIFO has no per-host awareness — nothing stops the worker from fetching 50 URLs from the same host back-to-back, which is exactly the impolite behavior that gets a crawler IP-banned. Second, one worker fetching one page at a time can never approach 385 pages/sec (G) — network fetch latency alone (hundreds of ms per request) caps a single worker at a few requests/sec. This V1 fails on both scale and etiquette before any refinement is even considered.</p>
+
+<h3 id="p6-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Frontier queue state:</strong> a distributed queue/priority-queue system (e.g. Kafka partitioned by host-hash, or a Redis-backed priority structure) — must support per-host partitioning (M) and priority ordering, and losing an in-flight URL on a crash is recoverable (it simply gets rediscovered via a re-crawl or another inbound link), so strict durability isn't required here, the same "ephemeral, recoverable state" reasoning applied to Rate Limiter's counters and Uber's location index.</p>
+<p><strong>Crawled content:</strong> a blob store (S3-class) for raw page bytes, referenced by a metadata row in a wide-column store keyed by URL, storing <code>content_hash</code>, fetch time, and status — the same "small structured metadata pointing at large blob storage" split used for media in the News Feed and Chat System problems.</p>
+<p><strong>Seen-URL and content-fingerprint sets (P):</strong> Bloom filters — a probabilistic set membership structure, chosen specifically because billions of URLs make an exact set too large to hold cheaply, and false positives (occasionally skipping a URL that was actually new) are an acceptable trade against the massive space savings, unlike the false negatives a naive set could never produce anyway.</p>
+
+<h3 id="p6-l">L. End-to-End Flow — One Crawl Cycle</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant F as Frontier (M)
+  participant Pol as Politeness Gate (N)
+  participant Fetch as Fetcher Worker
+  participant Parse as Parser
+  participant Dedup as Dedup Filter (P)
+  participant Store as Storage (Q)
+  F->>Pol: dequeue next URL for host X
+  Pol->>Pol: check robots.txt + rate limit for host X
+  alt allowed now
+    Pol-->>Fetch: proceed
+    Fetch->>Fetch: HTTP GET
+    Fetch->>Parse: raw HTML
+    Parse->>Dedup: content hash + extracted links
+    Dedup->>Dedup: seen before? (URL + content fingerprint)
+    alt new content
+      Dedup->>Store: persist page
+      Dedup->>F: enqueue new, unseen links
+    else duplicate
+      Dedup->>Dedup: discard, no re-store
+    end
+  else not yet allowed (politeness delay)
+    Pol-->>F: requeue for later
+  end
+</div>
+
+<h3 id="p6-m">M. Deep Dive 1 — The URL Frontier</h3>
+<p><strong>Requirement this addresses:</strong> directly fixes V1's flaw of treating the crawl queue as one undifferentiated FIFO (J) — this is the central data structure of the entire system, modeled closely on Google's own published Mercator crawler architecture.</p>
+<div class="mermaid diagram">
+flowchart TB
+  Front["Front Queues<br/>(priority buckets)"] --> Selector{"Priority Selector"}
+  Selector --> Back["Back Queues<br/>(one per host)"]
+  Back --> Assign{"Host mapping table"}
+  Assign -- "host A" --> QA["Queue: host A"]
+  Assign -- "host B" --> QB["Queue: host B"]
+  Assign -.-> QN["... one queue per active host"]
+</div>
+<p class="diagram-caption">Front queues express priority; back queues express per-host fairness. A URL passes through both.</p>
+<p><strong>Why two layers, not one:</strong> a single priority queue alone would let a host with thousands of high-priority URLs monopolize the crawler (the fairness problem); a single per-host-queue layer alone would have no way to express "crawl this page sooner because it's more important" (the priority problem). The two-layer front-queue/back-queue split — front queues bucket URLs by priority, a selector round-robins fairly across back queues, and each back queue maps to exactly one host — solves both simultaneously: a worker pulling from the back queues can never accidentally starve or flood any single host, regardless of how the front queues prioritized the URLs feeding into them.</p>
+<p><strong>Why the host-to-back-queue mapping matters:</strong> ensuring exactly one back queue per active host (not per URL) is what makes per-host politeness (N) enforceable at all — if one host's URLs could land in multiple back queues, two different workers could pull from the same host concurrently with no coordination.</p>
+
+<h3 id="p6-n">N. Deep Dive 2 — Politeness</h3>
+<p><strong>Requirement this addresses:</strong> the politeness NFR (D) — treated as a hard correctness constraint, not a tunable performance knob.</p>
+<p class="callout"><strong>Why this is non-negotiable, not just good manners:</strong> a crawler that fetches too aggressively from one host looks identical, from that host's perspective, to a denial-of-service attack — the practical consequence is IP-blocking or legal exposure, either of which ends the crawl for that host (and potentially others sharing the same IP range) permanently. This makes politeness a functional requirement with real failure consequences, not a "nice to have."</p>
+<ul>
+<li><strong><code>robots.txt</code> compliance</strong> — fetched and cached per host, respecting <code>Disallow</code> rules and any explicit <code>Crawl-delay</code> directive; a legitimate crawler simply does not fetch a disallowed path, full stop.</li>
+<li><strong>Self-imposed rate limiting per host</strong> — even where <code>robots.txt</code> is silent (many sites don't specify a crawl-delay at all), the crawler enforces its own conservative minimum delay between requests to the same host (G's illustrative "a few seconds" figure) — a floor, not just a ceiling respected only when explicitly told to.</li>
+<li><strong>Enforcement point:</strong> the per-host back queue from M is exactly where this check belongs — a worker dequeuing from host X's back queue checks "has enough time passed since the last request to host X" before fetching, and re-queues (with a delay) if not.</li>
+</ul>
+
+<h3 id="p6-o">O. Deep Dive 3 — Distributed Crawling at Scale</h3>
+<p><strong>Requirement this addresses:</strong> the throughput NFR (D, G) — a single worker (V1) can never approach 385 pages/sec; this requires a real distributed fetcher fleet.</p>
+<p><strong>Why parallelism has to come from host diversity, not per-host request rate:</strong> politeness (N) caps how fast any one host can be hit, so the entire 385 pages/sec target must be assembled from many different hosts being crawled concurrently, not from crawling any single host faster — directly explaining why the frontier's per-host queue structure (M) isn't just a fairness nicety, it's the mechanism that makes horizontal scaling possible at all.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Frontier[("Sharded Frontier (M)")] --> W1["Fetcher Worker 1"]
+  Frontier --> W2["Fetcher Worker 2"]
+  Frontier -.-> WN["... Fetcher Worker N"]
+  W1 --> DNS[("DNS Cache")]
+  W2 --> DNS
+  WN --> DNS
+</div>
+<p class="diagram-caption">Many workers pull from many different hosts' back queues concurrently — parallelism via host diversity, not per-host speed.</p>
+<p><strong>Why a shared DNS cache matters at this scale:</strong> a DNS lookup is a real, non-trivial latency cost per new host encountered; with hundreds of millions of distinct hosts (G), a shared cache across the whole fetcher fleet avoids redundant lookups for hosts multiple workers happen to crawl — a small, concrete optimization with an outsized effect given the sheer host cardinality involved.</p>
+
+<h3 id="p6-p">P. Deep Dive 4 — Duplicate Detection</h3>
+<p><strong>Requirement this addresses:</strong> avoiding wasted crawl/storage capacity on content already seen — a distinct problem at two different levels.</p>
+<table>
+<tr><th>Level</th><th>Problem</th><th>Mechanism</th></tr>
+<tr><td>Exact-URL dedup</td><td>The same URL discovered via multiple inbound links shouldn't be queued twice</td><td>A Bloom filter of already-seen/queued URLs (K) — probabilistic, but false positives (rarely skipping a genuinely new URL) are an acceptable trade against holding billions of exact URLs in memory</td></tr>
+<tr><td>Near-duplicate content dedup</td><td>Different URLs (mirrors, tracking-parameter variants, syndicated copies) serving effectively the same content shouldn't both be stored and processed downstream</td><td>A content fingerprint (e.g. SimHash or MinHash over the page's shingled content) compared against previously-seen fingerprints — designed specifically to detect <em>near</em>-identical content, not just byte-exact duplicates</td></tr>
+</table>
+<p><strong>Why exact hashing (e.g. a plain SHA-256 of page bytes) isn't sufficient on its own:</strong> two pages that are substantively identical (the same article with a different ad banner, or a tracking query parameter appended to an otherwise-identical URL) will still produce completely different exact hashes — a fingerprinting scheme like SimHash is deliberately designed so that near-identical inputs produce near-identical fingerprints, making "close enough" content detectable via a cheap similarity comparison rather than requiring exact equality.</p>
+
+<h3 id="p6-q">Q. Deep Dive 5 — Storage at Scale</h3>
+<p><strong>Requirement this addresses:</strong> the ~500TB/month storage volume from G — this needs to be durable, cheap-per-byte, and organized for whatever downstream consumer (a search indexer) reads it.</p>
+<p><strong>Why a blob store, not a database, for the raw content:</strong> page HTML is large, write-once, and read infrequently after initial processing — exactly the access pattern object storage is built for and priced for, versus a database optimized for small, frequently-updated rows. The metadata table (URL, content hash, fetch timestamp, storage pointer) stays small and queryable in a proper database, while the bulk bytes live in cheap blob storage — the same pattern used for media in News Feed (R) and Chat System, just applied to crawled HTML instead of user-uploaded photos/video.</p>
+<p><strong>Compression:</strong> HTML compresses extremely well (large amounts of repetitive markup/whitespace) — storing compressed content routinely cuts the effective storage bill by more than half, a cheap, high-leverage optimization at this volume.</p>
+
+<h3 id="p6-r">R. Deep Dive 6 — Freshness &amp; Recrawl Scheduling</h3>
+<p><strong>Requirement this addresses:</strong> the recrawl functional requirement (D) — crawling is a continuous process, not a one-time batch job that terminates once the frontier empties.</p>
+<p><strong>Why a fixed blanket recrawl interval is the wrong default:</strong> a news homepage changes multiple times a day; a static reference page might not change for years — recrawling both on the same fixed schedule wastes enormous capacity on the reference page while under-serving freshness on the news page. An <strong>adaptive, priority-based recrawl schedule</strong> — estimating each page's historical change frequency (did the content hash (P) change since the last fetch?) and using that to set the next recrawl priority — directly mirrors how real crawlers like Googlebot actually operate, and is a meaningfully stronger answer than a fixed interval.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Fetch["Recrawl fetch"] --> Compare{"content_hash changed<br/>since last fetch?"}
+  Compare -- "yes, frequently" --> High["Higher recrawl priority<br/>(shorter interval)"]
+  Compare -- "no, rarely" --> Low["Lower recrawl priority<br/>(longer interval)"]
+  High --> Front["Feed back into Frontier (M)<br/>front queue, priority bucket"]
+  Low --> Front
+</div>
+<p><strong>Why this reuses the Frontier (M) rather than needing a separate scheduling system:</strong> a recrawl is simply a URL being re-enqueued into the same front-queue/back-queue structure that handles first-time crawls, just with a priority informed by observed change frequency instead of link-discovery order — one mechanism serving both the initial crawl and the ongoing refresh cycle.</p>
+
+<h3 id="p6-s">S. Deep Dive 7 — Crawler Traps &amp; Extensibility</h3>
+<p><strong>Requirement this addresses:</strong> the robustness NFR (D) and the extensibility NFR — a crawler operating autonomously across the open, occasionally-hostile web needs defenses that a request/response API serving trusted internal traffic never needed.</p>
+<ul>
+<li><strong>Crawler traps</strong> — pages that dynamically generate an effectively infinite number of distinct URLs (e.g. a calendar page with a "next month" link that never terminates), which can trap a naive crawler in an infinite loop on one host forever. Mitigations: a maximum crawl depth per host, a cap on total URLs crawled per host per time window, and heuristics flagging suspiciously repetitive URL patterns (e.g. an ever-growing query string) for manual review or exclusion.</li>
+<li><strong>Redirect loops</strong> — two or more URLs redirecting to each other indefinitely; mitigated with a hard cap on redirect-chain length before abandoning the fetch.</li>
+<li><strong>Extensibility for new content types</strong> — the parser stage (L) is deliberately a pluggable interface (<code>extractLinks(content) -> [URL]</code>) rather than HTML-specific logic baked into the fetch loop, so adding a PDF parser or a headless-browser renderer for JS-heavy pages (E's clarifying question 5) is a new implementation of the same interface, not a rearchitecture of the pipeline.</li>
+</ul>
+
+<h3 id="p6-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  Seeds(["Seed URLs"]) --> Frontier
+
+  subgraph Frontier [" URL Frontier (M) "]
+    direction LR
+    FrontQ["Front Queues<br/>(priority)"]
+    BackQ["Back Queues<br/>(per-host)"]
+    FrontQ --> BackQ
+  end
+
+  BackQ -- "politeness gate (N)" --> Fleet
+
+  subgraph Fleet [" Distributed Fetcher Fleet (O) "]
+    direction LR
+    W1["Worker 1"]
+    W2["... Worker N"]
+  end
+
+  Fleet --> DNS[("Shared DNS Cache (O)")]
+  Fleet --> Parse["Parser<br/>(pluggable, S)"]
+  Parse --> Dedup{"Dedup Filter (P)<br/>URL + content fingerprint"}
+  Dedup -- "new" --> Storage[("Blob Store + Metadata (Q)")]
+  Dedup -- "new links" --> Frontier
+  Storage -.-> Recrawl["Freshness / Recrawl<br/>Scheduler (R)"]
+  Recrawl -.-> Frontier
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here.</p>
+
+<h3 id="p6-u">U. Design Evolution</h3>
+<ul>
+<li><strong>V1 — single worker, single global queue (J):</strong> no politeness, no real parallelism.</li>
+<li><strong>V2 — per-host back queues + priority front queues:</strong> introduces fairness and prioritization simultaneously (M).</li>
+<li><strong>V3 — enforced per-host rate limiting + robots.txt compliance:</strong> makes the crawler actually polite, not just theoretically capable of being (N).</li>
+<li><strong>V4 — distributed fetcher fleet + shared DNS cache:</strong> hits the real throughput target via host-diversity parallelism (O).</li>
+<li><strong>V5 — Bloom-filter URL dedup + content fingerprinting:</strong> avoids wasted crawl/storage capacity on already-seen content (P).</li>
+<li><strong>V6 — blob store + compressed metadata-indexed storage:</strong> sustains the ~500TB/month volume durably and cheaply (Q).</li>
+<li><strong>V7 — adaptive, change-frequency-driven recrawl:</strong> turns the crawler into a continuous, self-tuning process instead of a one-shot batch job (R).</li>
+<li><strong>V8 — trap detection + pluggable content parsers:</strong> hardens the crawler against the open web's hostile/unusual edge cases (S).</li>
+</ul>
+<p><strong>What stays stable throughout:</strong> the Frontier's dequeue/enqueue contract from L — every version underneath changes without the fetch-parse-store loop's shape needing to change.</p>
+
+<h3 id="p6-v">V. Consistency Model</h3>
+<p>Almost the entire system is <strong>best-effort and eventually consistent</strong> by nature — losing a queued URL on a crash just means it's rediscovered later via another inbound link or the next recrawl cycle (R); a duplicate slipping through the Bloom filter's false-positive/negative edge cases causes, at worst, one wasted or skipped fetch, not a correctness failure anyone downstream would notice. There is no analogous "one atomic step" requirement here the way Rate Limiter or Uber had — this system's entire design philosophy is that individual failures are cheap and recoverable, so no component needs strong coordination guarantees.</p>
+
+<h3 id="p6-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>A fetcher worker crashes mid-fetch:</strong> the URL simply isn't dequeued successfully and remains available in its back queue (or times out and is retried) — no special recovery logic needed, matching V's eventually-consistent philosophy.</li>
+<li><strong>A host starts returning errors or blocking the crawler's IP:</strong> back off that host's queue (exponential backoff, or an operator-triggered pause via the API in I) rather than continuing to hammer a host that's actively rejecting requests.</li>
+<li><strong>A crawler trap is entered:</strong> per-host depth/URL-count caps (S) bound the damage to that one host rather than consuming fleet-wide capacity indefinitely.</li>
+<li><strong>The dedup Bloom filter produces a false positive</strong> (treats a genuinely new URL as already seen): a bounded, accepted loss — that one URL is missed, but the overall crawl continues unaffected, and it may still be discovered again via another link.</li>
+<li><strong>DNS resolution fails for a host:</strong> that host's URLs are requeued with backoff rather than blocking the worker or the shared DNS cache for other hosts.</li>
+</ul>
+
+<h3 id="p6-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 single global queue</td><td>No per-host fairness, no parallelism</td><td>Front/back queue frontier structure (M)</td></tr>
+<tr><td>Frontier with unbounded per-host rate</td><td>Politeness violations risk IP-blocking, ending the crawl for that host</td><td>Enforced per-host rate limiting + robots.txt (N)</td></tr>
+<tr><td>Single worker fetching</td><td>Can't approach the required pages/sec throughput</td><td>Distributed fetcher fleet, parallel via host diversity (O)</td></tr>
+<tr><td>Unbounded recrawl scheduling</td><td>Fixed intervals waste capacity on rarely-changing pages, under-serve fast-changing ones</td><td>Adaptive, change-frequency-based recrawl priority (R)</td></tr>
+</table>
+
+<h3 id="p6-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Frontier structure</td><td>Single global priority queue</td><td>Front/back two-layer queue (chosen)</td><td>Single queue is simpler but can't express fairness and priority simultaneously; two layers solve both at the cost of one extra indirection</td></tr>
+<tr><td>URL dedup</td><td>Exact in-memory set</td><td>Bloom filter (chosen)</td><td>An exact set has zero false positives but is far too large to hold at billions-of-URLs scale; a Bloom filter trades a small false-positive rate for a dramatically smaller footprint</td></tr>
+<tr><td>Content dedup</td><td>Exact hash</td><td>Similarity fingerprint (SimHash, chosen)</td><td>Exact hashing is simpler but misses near-identical content with trivial variations; fingerprinting catches near-duplicates at the cost of a fuzzier, probabilistic match</td></tr>
+<tr><td>Recrawl scheduling</td><td>Fixed interval for all pages</td><td>Adaptive, change-frequency-driven (chosen)</td><td>Fixed is simple to reason about; adaptive better matches real content behavior at the cost of tracking change history per page</td></tr>
+<tr><td>Politeness enforcement</td><td>Rely solely on robots.txt</td><td>robots.txt + a self-imposed floor (chosen)</td><td>Relying only on robots.txt is simpler but many sites specify no crawl-delay at all, leaving no protection; a self-imposed floor is the safer, more defensible default</td></tr>
+</table>
+
+<h3 id="p6-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>A single undifferentiated FIFO queue with no per-host structure.</strong> Works in a small demo; is both impolite and unable to scale the instant real hosts and real volume are involved — the most common mistake specifically on this problem.</li>
+<li><strong>Ignoring politeness entirely, or treating it as a "nice to have."</strong> Leads directly to IP-blocking in the real world — a design that "works" until the very first host it actually overwhelms.</li>
+<li><strong>Exact-hash-only duplicate detection presented as sufficient.</strong> Misses the extremely common case of near-identical content reachable via cosmetically different URLs.</li>
+<li><strong>Modeling the crawl as a one-time batch job that terminates.</strong> Misses that a real crawler is a continuous process requiring ongoing freshness/recrawl scheduling, not a job with a defined "done" state.</li>
+<li><strong>No defense against crawler traps or redirect loops.</strong> A single hostile or misconfigured host can consume unbounded crawler capacity indefinitely without an explicit cap.</li>
+</ul>
+
+<h3 id="p6-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"A specific host is blocking our crawler."</td><td>Back off that host's back queue and surface it via the operator API (I) for investigation — no fleet-wide change needed</td><td>That host's queue state only</td><td>Everything else</td></tr>
+<tr><td>"We need to crawl JavaScript-heavy single-page apps."</td><td>Plug a headless-browser renderer into the parser interface (S) for hosts that need it</td><td>New parser implementation</td><td>Frontier, politeness, dedup, storage</td></tr>
+<tr><td>"How do you prioritize crawling more 'important' pages first?"</td><td>Feed a page-importance signal (e.g. inbound link count, a simple PageRank-style score) into the front queue's priority bucket assignment</td><td>Front queue priority scoring in M</td><td>Back queue fairness, politeness, fetch mechanics</td></tr>
+<tr><td>"Storage costs are too high."</td><td>More aggressive compression, and shorter retention for low-value/rarely-changing pages informed by R's freshness signal</td><td>Storage policy (Q)</td><td>Frontier, fetching, dedup</td></tr>
+<tr><td>"A crawler trap is consuming a disproportionate share of capacity."</td><td>Directly exercises S's per-host depth/URL-count caps</td><td>None — this is exactly what S already handles</td><td>Everything</td></tr>
+</table>
+
+<h3 id="p6-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> "BFS from seed URLs with one queue" with no mention of politeness, scale, or duplicate content at all.</li>
+<li><strong>Mid-level:</strong> proposes a distributed fetcher fleet and basic robots.txt compliance, but treats the frontier as one undifferentiated queue.</li>
+<li><strong>Senior:</strong> proactively designs the front-queue/back-queue frontier structure for fairness+priority; names both levels of duplicate detection (URL and content) without being prompted; treats politeness as a hard constraint with real consequences.</li>
+<li><strong>Staff+:</strong> discusses adaptive recrawl scheduling and crawler-trap defenses unprompted; reasons about the DNS-caching and host-diversity-driven parallelism angle; recognizes and names the near-total absence of external API surface as a defining trait of this problem's shape.</li>
+</ul>
+
+<h3 id="p6-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a web crawler that starts from seed URLs and crawls billions of pages.</div>
+<div class="dialog"><span class="who">Candidate:</span> The core structure is a queue of URLs to visit, workers that fetch and parse them, and newly discovered links feeding back into the queue. But a single queue doesn't work at real scale — it has no concept of not overwhelming any one host, and no way to prioritize more important pages.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How would you fix that?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd use a two-layer frontier — similar to what Google's own Mercator crawler paper describes. Front queues bucket URLs by priority; a selector then round-robins across back queues, where each back queue holds URLs for exactly one host. That guarantees no single host gets flooded regardless of how many high-priority URLs point to it.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Why does per-host matter so much?</div>
+<div class="dialog"><span class="who">Candidate:</span> Politeness. Hitting one host too fast looks like a denial-of-service attack from their side, and gets the crawler's IP blocked — that's a hard failure for that host, not just a performance issue. I'd enforce robots.txt rules plus a self-imposed minimum delay between requests to the same host, even when robots.txt doesn't specify one.</div>
+<div class="dialog"><span class="who">Interviewer:</span> If politeness limits per-host speed, how do you hit real throughput targets?</div>
+<div class="dialog"><span class="who">Candidate:</span> Parallelism has to come from crawling many different hosts concurrently, not from crawling any one host faster — that's exactly what the per-host back queues enable. A large fleet of fetcher workers each pull from different hosts' queues at once.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you avoid storing the same content twice?</div>
+<div class="dialog"><span class="who">Candidate:</span> Two levels. Exact-URL duplicates are cheap to catch with a Bloom filter of seen URLs — a plain set would be too large at billions of URLs, and a small false-positive rate is an acceptable trade. But near-duplicate content reachable via different URLs — mirrors, tracking parameters — needs content fingerprinting, something like SimHash, since an exact hash would treat two nearly-identical pages as completely unrelated.</div>
+<div class="dialog"><span class="who">Interviewer:</span> Last one — content changes over time. How do you keep it fresh?</div>
+<div class="dialog"><span class="who">Candidate:</span> I wouldn't use one fixed recrawl interval for everything — a news page and a static reference page have very different change rates. I'd track whether a page's content hash actually changed on each recrawl and use that to adjust its priority going forward, feeding it back into the same frontier structure rather than building a separate scheduling system.</div>
+
+<h3 id="p6-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/web-crawler" target="_blank">Hello Interview</a></td><td>Frontier-first framing, explicit politeness-as-a-hard-constraint discussion, staff-level freshness/recrawl treatment</td><td>Clearest articulation of the frontier as the central data structure — adopted directly for M</td><td>Lighter on the specific fingerprinting algorithm choices for near-duplicate detection</td><td>The front-queue/back-queue framing and the "politeness is a hard requirement, not a performance knob" stance used throughout N</td></tr>
+<tr><td><a href="https://bytebytego.com/courses/system-design-interview/design-a-web-crawler" target="_blank">ByteByteGo</a></td><td>Detailed URL frontier, DNS resolver, and content-storage component breakdown with real numeric estimates</td><td>The most concrete numeric-estimation treatment of any source reviewed for this problem</td><td>Less depth on adaptive/change-frequency-driven recrawl specifically</td><td>The bandwidth/storage capacity math adapted into G</td></tr>
+<tr><td><a href="https://github.com/donnemartin/system-design-primer#design-a-web-crawler" target="_blank">donnemartin/system-design-primer (GitHub)</a></td><td>General crawler architecture walkthrough covering the frontier, DNS caching, and robots.txt handling</td><td>Good grounding in the general queue+worker+dedup shape used consistently across this document's other fanout-style problems</td><td>Less detailed on the specific Mercator-style two-layer frontier structure</td><td>Cross-referencing the general shape against the more crawler-specific sources above</td></tr>
+<tr><td>Google's Mercator paper ("Mercator: A Scalable, Extensible Web Crawler")</td><td>The actual, real-world published architecture the front-queue/back-queue frontier design in M is based on</td><td>Ground-truth confirmation this is a real, production-proven design, not a hypothetical interview construct</td><td>Academic paper framing, not an interview-oriented walkthrough — needs translation, which M provides</td><td>The original source of the politeness-via-per-host-queue idea used throughout this section</td></tr>
+</table>
+
+<h3 id="p6-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Web Crawler</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Intermediate → Advanced</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Seed-based link-following crawl, content storage, robots.txt compliance, periodic recrawl; 1B pages/month, ~385 pages/sec, ~500TB/month storage</td></tr>
+<tr><td><strong>Central decision</strong></td><td>A two-layer URL Frontier (priority front queues + per-host back queues) — a plain FIFO can't express both fairness and priority</td></tr>
+<tr><td><strong>Politeness</strong></td><td>robots.txt compliance + a self-imposed per-host rate floor — a hard correctness constraint, not a performance tunable</td></tr>
+<tr><td><strong>Scale fix</strong></td><td>Distributed fetcher fleet parallelized via host diversity (not per-host speed) + shared DNS cache</td></tr>
+<tr><td><strong>Dedup</strong></td><td>Bloom filter for exact-URL dedup; content fingerprinting (SimHash-style) for near-duplicate content</td></tr>
+<tr><td><strong>Freshness</strong></td><td>Adaptive, change-frequency-driven recrawl priority, fed back into the same Frontier structure</td></tr>
+<tr><td><strong>Robustness</strong></td><td>Per-host depth/URL-count caps against crawler traps; redirect-chain length caps; pluggable parser interface for new content types</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Single undifferentiated queue; ignoring politeness; exact-hash-only dedup; treating the crawl as a one-time batch job; no trap defenses</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>A full headless-browser JS-rendering pipeline or ranking/indexing system — name them as pluggable extensions, don't design them in depth</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p5.html">&larr; 5. Ride-Sharing (Uber)</a><a class="prevnext-link next" href="p7.html">7. Video Streaming (YouTube) &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

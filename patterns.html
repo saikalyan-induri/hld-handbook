@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>21. Patterns Playbook — What Recurs, and What to Reach For — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">21. Patterns Playbook — What Recurs, and What to Reach For <span class="badge">Synthesis Across All 20 Problems</span></h1>
+
+<div class="section-toc">
+<a href="#patterns-a">A. Why This Section Exists</a><a href="#patterns-b">B. Pattern 1: The Check-Then-Act Race</a><a href="#patterns-c">C. Pattern 2: Keep Expensive Work Off the Hot Path</a>
+<a href="#patterns-d">D. Pattern 3: Metadata / Blob Store Split</a><a href="#patterns-e">E. Pattern 4: Idempotent Retries via Client-Generated Keys</a><a href="#patterns-f">F. Pattern 5: Push vs. Pull (Fan-Out Write vs. Fan-Out Read)</a>
+<a href="#patterns-g">G. Pattern 6: Shard by the Natural Ownership Key</a><a href="#patterns-h">H. Pattern 7: Connection Routing at Scale</a><a href="#patterns-i">I. Pattern 8: Leader Election for Singleton Responsibilities</a>
+<a href="#patterns-j">J. Pattern 9: Narrow Strong-Consistency Islands</a><a href="#patterns-k">K. Pattern 10: Reusing Rate Limiting as a Cross-Cutting Concern</a><a href="#patterns-l">L. Pattern 11: Consistent Hashing for Elastic Ownership</a>
+<a href="#patterns-m">M. Master "What to Use When" Decision Table</a><a href="#patterns-n">N. How to Use This in an Actual Interview</a>
+</div><div class="jumpbar"><label for="jump-patterns">Jump to section:</label><select id="jump-patterns" class="jump-select" data-jump-select><option value="patterns-a">A. Why This Section Exists</option><option value="patterns-b">B. Pattern 1 — The Check-Then-Act Race</option><option value="patterns-c">C. Pattern 2 — Keep Expensive Work Off the Hot Path</option><option value="patterns-d">D. Pattern 3 — Metadata / Blob Store Split</option><option value="patterns-e">E. Pattern 4 — Idempotent Retries via Client-Generated Keys</option><option value="patterns-f">F. Pattern 5 — Push vs. Pull (Fan-Out Write vs. Fan-Out Read)</option><option value="patterns-g">G. Pattern 6 — Shard by the Natural Ownership Key</option><option value="patterns-h">H. Pattern 7 — Connection Routing at Scale</option><option value="patterns-i">I. Pattern 8 — Leader Election for Singleton Responsibilities</option><option value="patterns-j">J. Pattern 9 — Narrow Strong-Consistency Islands</option><option value="patterns-k">K. Pattern 10 — Reusing Rate Limiting as a Cross-Cutting Concern</option><option value="patterns-l">L. Pattern 11 — Consistent Hashing for Elastic Ownership</option><option value="patterns-m">M. Master "What to Use When" Decision Table</option><option value="patterns-n">N. How to Use This in an Actual Interview</option></select></div>
+
+<h3 id="patterns-a">A. Why This Section Exists</h3>
+<p>Ten problems that look unrelated on the surface — a URL shortener and a collaborative document editor share almost no domain vocabulary — turn out, underneath, to be built from a surprisingly small, repeating set of moves. Once you notice that Ticketmaster's overselling fix, Rate Limiter's atomic increment, and Uber's driver-assignment race are <em>the same underlying problem</em> wearing three different costumes, you stop needing to re-derive the answer from scratch every time it shows up — you just need to recognize which named pattern applies, and why.</p>
+<p>This section is that catalog: each pattern names the recurring shape of the problem, the concrete mechanism reached for, where it actually appeared (with links back to the specific deep dive), and — just as important — when that mechanism is the wrong tool. Section 0 (Prerequisites) explained <em>what each building block is</em>; this section explains <em>which building block to reach for, given a symptom</em>, which is the actual skill being tested in a live interview.</p>
+
+<h3 id="patterns-b">B. Pattern 1 — The Check-Then-Act Race</h3>
+<p><strong>The shape of the problem:</strong> a request reads some shared state ("is this available?"), decides what to do based on what it read, then writes a change based on that decision — and the gap between the read and the write is exactly wide enough for a second, concurrent request to read the same stale state and make the same decision, resulting in two writes that should never have both succeeded.</p>
+<p><strong>The fix, in every case:</strong> collapse the read-decide-write sequence into a single atomic operation, so there is no gap in which a second request can observe the same pre-decision state.</p>
+<table>
+<tr><th>Where It Appeared</th><th>What Was Racing</th><th>Mechanism Used</th></tr>
+<tr><td>Rate Limiter (P2, Deep Dive N)</td><td>Two requests both reading "under the limit" before either increments the counter</td><td>A single atomic Redis operation (or a Lua script bundling check + increment)</td></tr>
+<tr><td>Ride-Sharing / Uber (P5, Deep Dive P)</td><td>Two riders' requests both matching to the same available driver</td><td>An atomic conditional update (compare-and-swap) on the driver's assignment status</td></tr>
+<tr><td>Ticketmaster (P8, Deep Dive M)</td><td>Two buyers both reserving the same seat</td><td>A single atomic conditional database update (<code>UPDATE ... WHERE status='available'</code>), checked via affected-row count</td></tr>
+<tr><td>Notification System (P12)</td><td>Two requests both checking "not yet seen" for the same dedup key before either claims it</td><td>Redis's atomic <code>SET key NX EX dedup_window</code> — the check and the claim collapsed into one call</td></tr>
+<tr><td>Distributed File Storage (P14)</td><td>Two devices both committing a new version of the same file</td><td>A version-vector compare-and-swap at commit time — the one instance in this document where the "losing" request isn't rejected, but resolved into a conflicted copy instead</td></tr>
+<tr><td>Payment System (P15)</td><td>Two concurrent requests carrying the same idempotency key, both arriving before either has finished processing</td><td>A unique database constraint on <code>(merchant_id, key)</code>, enforced as a single atomic insert-if-absent on the idempotency record itself</td></tr>
+</table>
+<p><strong>When NOT to reach for an external distributed lock as the fix:</strong> if the entire check-then-act sequence can be expressed as one atomic database statement or one Redis command/Lua script, that's simpler and more robust than adding a separate lock service — reserve an external lock for when the protected operation genuinely needs to span systems a single atomic statement can't reach (Prerequisites E elaborates on this trade-off directly).</p>
+
+<h3 id="patterns-c">C. Pattern 2 — Keep Expensive Work Off the Hot Path</h3>
+<p><strong>The shape of the problem:</strong> a user-facing request has one fast, essential part and one slow, non-essential part bundled together — and doing both synchronously means the user waits for the slow part even though it doesn't actually need to finish before a response can be returned.</p>
+<p><strong>The fix:</strong> do the essential part synchronously, hand the slow part off to an async queue and a background worker, and return to the user immediately. The user-visible latency becomes the fast part's latency only.</p>
+<table>
+<tr><th>Where It Appeared</th><th>The Fast, Essential Part</th><th>The Slow Part, Moved Off-Path</th></tr>
+<tr><td>URL Shortener (P1)</td><td>Redirecting the user</td><td>Recording click analytics</td></tr>
+<tr><td>News Feed (P3)</td><td>Accepting a new post</td><td>Fanning it out to every follower's feed</td></tr>
+<tr><td>Video Streaming (P7)</td><td>Accepting an uploaded file</td><td>Transcoding it into multiple resolutions</td></tr>
+<tr><td>Video Streaming (P7)</td><td>Serving a video playback request</td><td>Aggregating/incrementing the view count</td></tr>
+<tr><td>Ticketmaster (P8)</td><td>Holding the seat</td><td>N/A — deliberately the one place this pattern is <em>not</em> applied; see the callout below</td></tr>
+<tr><td>Notification System (P12)</td><td>Accepting a notification request</td><td>Actually delivering it through the push/SMS/email provider</td></tr>
+<tr><td>Ad Click Aggregation (P16)</td><td>Accepting a click event into the ingestion log</td><td>Windowed aggregation, HyperLogLog rollups, and fraud filtering</td></tr>
+<tr><td>Yelp (P17)</td><td>Serving a business's rating</td><td>Recomputing the aggregate rating — incrementally (an O(1) running-sum adjustment per new review) or on a short batch interval, rather than an O(n) rescan on every read</td></tr>
+</table>
+<p class="callout"><strong>The important exception, worth stating explicitly:</strong> Ticketmaster's payment charge is <em>not</em> moved off the hot path the way analytics or view-counting are — it's sequenced strictly after the seat hold succeeds, not deferred to an async worker, because the user is actively waiting for a definitive yes/no on their purchase. Payment System (P15) generalizes this same exception across its whole design: nothing on the ledger-write path is deferred either, for the identical reason. This pattern applies specifically to work whose outcome the user doesn't need to see immediately — not to every "slow" operation indiscriminately.</p>
+
+<h3 id="patterns-d">D. Pattern 3 — Metadata / Blob Store Split</h3>
+<p><strong>The shape of the problem:</strong> an entity has a small amount of structured, frequently-queried metadata (owner, timestamp, status) alongside a large binary payload (an image, a video file, a page of HTML) — and storing both together forces every system that touches the metadata to also carry the weight of the payload.</p>
+<p><strong>The fix:</strong> store the metadata in a database (fast to query, cheap to replicate) and the actual bytes in dedicated blob/object storage (I in Prerequisites), with the metadata row holding a pointer/key into the blob store.</p>
+<table>
+<tr><th>Where It Appeared</th><th>The Metadata</th><th>The Blob</th></tr>
+<tr><td>News Feed (P3)</td><td>Post record (author, timestamp, caption)</td><td>Attached photo/video</td></tr>
+<tr><td>Chat System (P4)</td><td>Message record (sender, timestamp, conversation_id)</td><td>Attached file/image</td></tr>
+<tr><td>Web Crawler (P6)</td><td>URL, crawl timestamp, content hash</td><td>The fetched page's raw content</td></tr>
+<tr><td>Video Streaming (P7)</td><td>Video record (title, owner, status)</td><td>Raw upload and each transcoded resolution</td></tr>
+<tr><td>Google Docs (P9)</td><td>Current revision number</td><td>Periodic full-document snapshot</td></tr>
+<tr><td>Distributed File Storage (P14)</td><td>File record + ordered chunk-hash list + version vector</td><td>The actual chunk bytes, deduplicated across the whole chunk store — even across different users' files</td></tr>
+</table>
+
+<h3 id="patterns-e">E. Pattern 4 — Idempotent Retries via Client-Generated Keys</h3>
+<p><strong>The shape of the problem:</strong> a client sends a mutating request, the request actually succeeds server-side, but the client never receives confirmation (a timeout, a dropped connection) — and from the client's perspective this is indistinguishable from the request never having arrived, so a naive retry risks repeating a side effect that already happened.</p>
+<p><strong>The fix:</strong> the client attaches a stable, unique key to the request; the server remembers which keys it has already processed and, on a repeat, returns the original result instead of repeating the side effect.</p>
+<table>
+<tr><th>Where It Appeared</th><th>The Key</th><th>The Side Effect Being Protected</th></tr>
+<tr><td>Chat System (P4)</td><td><code>client_msg_id</code></td><td>Sending the same message twice</td></tr>
+<tr><td>Ticketmaster (P8)</td><td>Payment confirmation idempotency key</td><td>Double-charging a customer's card</td></tr>
+<tr><td>Job Scheduler (P10)</td><td>Per-execution idempotency key</td><td>A job's side effect (e.g. sending an email) firing twice after an at-least-once delivery redelivers it</td></tr>
+<tr><td>Notification System (P12)</td><td>Client-supplied dedup key at ingest + a second check at the worker layer</td><td>Sending the same push/SMS/email twice on a client retry</td></tr>
+<tr><td>Payment System (P15)</td><td>Mandatory idempotency key at the API boundary</td><td>Double-charging a card on a client or network retry — the highest-stakes instance of this pattern in the document</td></tr>
+<tr><td>Ad Click Aggregation (P16)</td><td>Idempotency key + Bloom-filter pre-filter</td><td>Counting the same click twice from a retried/duplicated event</td></tr>
+<tr><td>Distributed Message Queue (P20)</td><td>Consumer-side idempotent processing, paired with broker-level at-least-once delivery</td><td>Reprocessing a message the broker redelivers after a consumer crash/rebalance — the capstone example: the pattern applied by the queue's own consumers, not just by systems that happen to use a queue</td></tr>
+</table>
+<p><strong>Why this pattern is really an admission, not a workaround:</strong> every one of these systems delivers at-least-once, not exactly-once, because exactly-once delivery isn't achievable over an unreliable network (Prerequisites O). Idempotency isn't a patch over a bug — it's the correct, honest design response to that fact.</p>
+
+<h3 id="patterns-f">F. Pattern 5 — Push vs. Pull (Fan-Out Write vs. Fan-Out Read)</h3>
+<p><strong>The shape of the problem:</strong> one piece of content needs to reach many downstream viewers/consumers — and there's a real choice between doing that work once, in advance, at write time (<strong>push</strong> / fan-out-on-write) versus doing it fresh, on demand, at read time (<strong>pull</strong> / fan-out-on-read).</p>
+<table>
+<tr><th>Approach</th><th>Best When</th><th>Where Used</th></tr>
+<tr><td>Push (fan-out on write)</td><td>Read volume vastly exceeds write volume, and readers have a typical/bounded fan-out (most users' feed)</td><td>News Feed's default path (P3) — a new post is proactively written into each follower's feed</td></tr>
+<tr><td>Pull (fan-out on read)</td><td>The write side has an extreme, atypical fan-out (a celebrity with millions of followers) where pushing to every follower at write time would be prohibitively expensive</td><td>News Feed's celebrity-account exception (P3) — merged into the reader's feed at read time instead</td></tr>
+</table>
+<p><strong>The general lesson:</strong> push and pull aren't competing answers to the same problem — they're each correct for a different shape of fan-out, and a mature design (as News Feed's does) uses both simultaneously, choosing per-case rather than picking one globally.</p>
+
+<h3 id="patterns-g">G. Pattern 6 — Shard by the Natural Ownership Key</h3>
+<p><strong>The shape of the problem:</strong> a dataset is too large or too write-heavy for one machine, and needs to be split (sharded, per Prerequisites C) across many — but the wrong shard key forces most requests to fan out across many shards instead of hitting just one.</p>
+<p><strong>The fix:</strong> pick the shard key that matches the boundary within which data is almost always accessed together — the entity that "owns" a self-contained slice of the problem.</p>
+<table>
+<tr><th>Where It Appeared</th><th>Shard Key</th><th>Why That Key</th></tr>
+<tr><td>Rate Limiter (P2)</td><td>User/client ID (via consistent hashing)</td><td>A rate-limit decision only ever needs that one client's own counters</td></tr>
+<tr><td>Ticketmaster (P8)</td><td><code>event_id</code></td><td>All seats, holds, and orders for one event are always accessed together; contains one viral on-sale's load to its own shard</td></tr>
+<tr><td>Google Docs (P9)</td><td><code>doc_id</code></td><td>All operations for one document must be sequenced by a single authority to have any well-defined order at all</td></tr>
+<tr><td>Job Scheduler (P10)</td><td><code>job_id</code></td><td>A job's schedule, executions, and dependency edges are always evaluated as a unit</td></tr>
+<tr><td>Real-Time Leaderboard (P19)</td><td>Segment key (per-game/region/time-window)</td><td>Score updates and rank queries within one segment are always evaluated together; keeps one viral game's write volume off every other segment's shard</td></tr>
+<tr><td>Search Autocomplete (P13)</td><td>Query prefix (first one to two characters)</td><td>The same ownership-boundary reasoning applied to a tree's own structural branches instead of a row's primary key — one shard owns everything rooted under "a"-"f," another "g"-"m," and so on</td></tr>
+<tr><td>Payment System (P15)</td><td><code>merchant_id</code></td><td>All of one merchant's ledger transactions are always accessed together; keeps one merchant's volume from contending with another's</td></tr>
+<tr><td>Distributed Message Queue (P20)</td><td>Partition count and key-hash, sized deliberately upfront</td><td>Partition count isn't casually resizable the way a stateless service's instance count is — getting the shard key and its stability right matters more here than almost anywhere else this pattern appears</td></tr>
+</table>
+
+<h3 id="patterns-h">H. Pattern 7 — Connection Routing at Scale</h3>
+<p><strong>The shape of the problem:</strong> a fleet of servers each hold a slice of long-lived, stateful connections (WebSockets, per Prerequisites K) — and a message meant for a specific connected user has to somehow find whichever specific server currently holds that user's connection, out of potentially thousands of servers.</p>
+<p><strong>The fix:</strong> a shared, fast lookup table (<code>user_id → server_id</code>) combined with a pub/sub broker layer — a sender's server looks up the owning server, then publishes to a channel that server is subscribed to, decoupling "who has this connection right now" from "how do I actually deliver to them."</p>
+<table>
+<tr><th>Where It Appeared</th><th>What's Being Routed</th></tr>
+<tr><td>Chat System (P4, Deep Dive N)</td><td>A message, to whichever connection server holds the recipient's WebSocket</td></tr>
+<tr><td>Google Docs (P9, Deep Dive S)</td><td>A document's operations, to whichever coordinating server currently owns that <code>doc_id</code></td></tr>
+</table>
+
+<h3 id="patterns-i">I. Pattern 8 — Leader Election for Singleton Responsibilities</h3>
+<p><strong>The shape of the problem:</strong> some function must be performed by exactly one active instance at a time — zero active instances means the function silently stops happening; more than one active instance means duplicated, potentially harmful work.</p>
+<p><strong>The fix:</strong> lease-based leader election (Prerequisites F) — instances race for a TTL'd lock representing the leader role; the winner renews it periodically; if it stops renewing, another instance takes over automatically.</p>
+<table>
+<tr><th>Where It Appeared</th><th>The Singleton Responsibility</th></tr>
+<tr><td>Job Scheduler (P10, Deep Dive M)</td><td>Deciding which jobs are due to trigger right now — the central, defining example of this pattern in the document</td></tr>
+</table>
+<p><strong>Why this is distinct from Pattern 1 (the check-then-act race):</strong> Pattern 1 is about two requests racing over a piece of <em>data</em>; this pattern is about ensuring exactly one instance is even allowed to <em>act at all</em> for an entire category of decisions — the granularity is a whole role, not a single record.</p>
+
+<h3 id="patterns-j">J. Pattern 9 — Narrow Strong-Consistency Islands</h3>
+<p><strong>The shape of the problem:</strong> a system is, by default, eventually consistent almost everywhere (because that's simpler, cheaper, and more available) — but one specific piece of state genuinely cannot tolerate staleness or ambiguity without producing an actual correctness failure a user will notice.</p>
+<p><strong>The fix:</strong> default to eventual consistency everywhere, and deliberately carve out the smallest possible piece of state that needs strong consistency, giving <em>only</em> that piece the more expensive guarantee.</p>
+<table>
+<tr><th>Where It Appeared</th><th>The Strong-Consistency Island</th><th>Everything Else, Eventually Consistent</th></tr>
+<tr><td>URL Shortener (P1)</td><td>Short-code uniqueness at creation time</td><td>The redirect-serving path itself</td></tr>
+<tr><td>Ride-Sharing / Uber (P5)</td><td>A single driver-rider assignment</td><td>Driver location updates, ETA estimates</td></tr>
+<tr><td>Ticketmaster (P8)</td><td>A seat's hold/sold status — the most strongly-consistency-weighted example in the document</td><td>The browse/seat-map display</td></tr>
+<tr><td>Job Scheduler (P10)</td><td>The leader lock itself</td><td>Execution history/status visibility</td></tr>
+<tr><td>Payment System (P15)</td><td>The double-entry ledger write itself — the strongest-consistency requirement in the document</td><td>Notifications, async reconciliation jobs, webhook processing</td></tr>
+<tr><td>Notification System (P12)</td><td>The dedup check itself — a single atomic operation against a store that guarantees a check-and-claim never races</td><td>Delivery status, retry bookkeeping</td></tr>
+</table>
+<p><strong>Another instructive exception — Distributed Key-Value Store (P18):</strong> rather than carving out one fixed strong-consistency island, it exposes the N/R/W quorum knobs directly to the caller, so <em>any</em> key can be read/written at whatever point on the consistency/availability spectrum that specific use case needs — the island isn't fixed by the system, it's chosen per-request.</p>
+<p><strong>The instructive exception — Google Docs (P9):</strong> its consistency model isn't "eventual by default, with one strong island" — it targets <em>strong eventual consistency</em> for content itself (all replicas converge, guaranteed, regardless of arrival order) precisely because there's no single "seat" to protect; every concurrent edit must be preserved and reconciled, never rejected. Worth noticing this is a genuinely different shape than Pattern 9's more common form, not a variation of it.</p>
+<p><strong>A third distinct shape — Distributed File Storage (P14):</strong> not a strong-consistency island (there's no single scarce resource being contended for — no seat, no leader lock) and not quite Google Docs's strong eventual consistency either — it's offline-tolerant, with conflicts surfaced to the user via a conflicted copy rather than silently merged or silently discarded. Worth keeping this as a third named shape rather than folding it into either of the other two.</p>
+
+<h3 id="patterns-k">K. Pattern 10 — Reusing Rate Limiting as a Cross-Cutting Concern</h3>
+<p><strong>The shape of the problem:</strong> a system needs to bound how fast a given actor can perform some action — not as the main subject of the design, but as a supporting concern layered on top of something else entirely.</p>
+<p><strong>The fix:</strong> the token-bucket/sliding-window mechanisms designed once, in full, for Rate Limiter (P2) get reused directly wherever this need resurfaces elsewhere, rather than being reinvented per-problem.</p>
+<table>
+<tr><th>Where It Appeared</th><th>What's Being Bounded</th></tr>
+<tr><td>Ticketmaster (P8, Deep Dive S)</td><td>Reservation attempts per user/IP, as part of bot/scalper mitigation</td></tr>
+<tr><td>Notification System (P12, Deep Dive Q)</td><td>Notifications per user per channel, to prevent notification storms; batched into a digest above the limit rather than just dropped</td></tr>
+<tr><td>Search Autocomplete (P13)</td><td>Queries per client, to bound the damage a malicious or buggy client hammering a rare, expensive prefix can do to the shared origin tier</td></tr>
+</table>
+<p><strong>The lesson:</strong> recognizing "this is just rate limiting again" and pointing back to an already-solved problem, rather than re-deriving a bespoke throttling mechanism from scratch, is itself a signal of strong pattern recognition in an interview.</p>
+
+<h3 id="patterns-l">L. Pattern 11 — Consistent Hashing for Elastic Ownership</h3>
+<p><strong>The shape of the problem:</strong> a fleet of servers each "own" some slice of a much larger keyspace (shards, connections, documents) — and the fleet needs to grow or shrink without triggering a massive, disruptive reshuffling of ownership every time.</p>
+<p><strong>The fix:</strong> consistent hashing (Prerequisites J) — map both servers and keys onto a ring, so adding or removing a server only reassigns the small slice of keys immediately adjacent to it.</p>
+<table>
+<tr><th>Where It Appeared</th><th>What's Being Elastically Assigned</th></tr>
+<tr><td>Rate Limiter (P2)</td><td>Which shard owns a given client's rate-limit counters</td></tr>
+<tr><td>Chat System (P4)</td><td>Which connection server a user's session lands on (in combination with Pattern 7's routing table)</td></tr>
+<tr><td>Google Docs (P9, Deep Dive S)</td><td>Which coordinating server owns a given active document</td></tr>
+<tr><td>Distributed Cache (P11, Deep Dive N)</td><td>Which cache shard owns a given key — the ring is the primary partitioning mechanism for the whole design, not an incidental detail</td></tr>
+<tr><td>Distributed Key-Value Store (P18, Deep Dive M)</td><td>Which node (and, via the preference list, which replica set) owns a given key — the deepest treatment of this pattern in the document, including virtual-node count trade-offs</td></tr>
+<tr><td>Distributed File Storage (P14)</td><td>Which chunk-store node owns a given chunk — an unusually clean case, since content-hash keys are already uniformly, pseudo-randomly distributed, with no hot-range concerns to design around</td></tr>
+</table>
+
+<h3 id="patterns-m">M. Master "What to Use When" Decision Table</h3>
+<p>A condensed, symptom-first index into everything above — read down the left column for whatever problem you're facing, and land on the pattern and mechanism to reach for.</p>
+<table>
+<tr><th>Symptom / Question</th><th>Reach For</th><th>Pattern</th></tr>
+<tr><td>"Two requests could both act on the same stale read"</td><td>Atomic conditional update / single Redis command or Lua script</td><td>B — Check-Then-Act Race</td></tr>
+<tr><td>"This request has a slow part the user doesn't need to wait for"</td><td>Async queue + background worker</td><td>C — Hot Path Offloading</td></tr>
+<tr><td>"This entity has a small record plus a large binary payload"</td><td>Metadata in DB, bytes in blob/object storage</td><td>D — Metadata/Blob Split</td></tr>
+<tr><td>"A retried request might repeat a real-world side effect"</td><td>Client-generated idempotency key, checked server-side</td><td>E — Idempotent Retries</td></tr>
+<tr><td>"One write needs to reach a huge, variable number of readers"</td><td>Push (fan-out on write) normally; pull (fan-out on read) for extreme outlier fan-out</td><td>F — Push vs. Pull</td></tr>
+<tr><td>"This dataset needs to be split across machines"</td><td>Shard by the key that matches the natural access-together boundary</td><td>G — Shard by Ownership Key</td></tr>
+<tr><td>"A message needs to reach a specific user's persistent connection"</td><td>Shared session store (user_id → server_id) + pub/sub broker</td><td>H — Connection Routing</td></tr>
+<tr><td>"Exactly one instance must perform this function, never zero, never two"</td><td>Lease-based leader election</td><td>I — Leader Election</td></tr>
+<tr><td>"Most of this can be eventually consistent, but not this one specific field"</td><td>Default to eventual consistency; isolate one narrow strong-consistency island</td><td>J — Strong-Consistency Islands</td></tr>
+<tr><td>"We need to throttle some actor's request rate, as a side concern"</td><td>Reuse token bucket / sliding window, don't reinvent</td><td>K — Rate Limiting Reuse</td></tr>
+<tr><td>"A fleet of servers needs to grow/shrink without mass reassignment"</td><td>Consistent hashing ring</td><td>L — Consistent Hashing</td></tr>
+</table>
+
+<h3 id="patterns-n">N. How to Use This in an Actual Interview</h3>
+<p>The value of this catalog isn't reciting pattern names — it's the speed and confidence it gives you when a new, unfamiliar-sounding prompt turns out to contain a familiar shape. When an interviewer describes a new problem, listen for which symptom in Section M's table is actually present, and reach for that mechanism directly rather than re-deriving it from first principles under time pressure. Just as importantly, listen for when a pattern <em>doesn't</em> apply — Section C's callout on Ticketmaster's payment flow is a reminder that these are judgment tools, not checklists to apply mechanically regardless of context. The strongest signal you can give an interviewer is naming the pattern, explaining <em>why</em> it fits this specific case, and — just as tellingly — explaining why a superficially similar pattern would be the wrong fit here.</p><div class="prevnext"><a class="prevnext-link prev" href="p20.html">&larr; 20. Distributed Message Queue (Build Kafka)</a><span></span></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>

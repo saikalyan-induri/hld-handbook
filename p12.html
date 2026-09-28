@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('hld-theme') || 'light');</script>
+<title>12. Notification System — HLD Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+<button id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+<nav id="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" href="index.html">HLD Handbook</a>
+    <button id="theme-toggle" aria-label="Toggle dark mode">&#127769;</button>
+  </div>
+  <div class="search-wrap">
+    <input id="search-box" type="text" placeholder="Search problems &amp; sections...">
+    <div id="search-results"></div>
+  </div>
+  <ul class="nav-list">
+    <li><a href="index.html" data-page="index.html">Home</a></li>
+    <li><a href="prereq.html" data-page="prereq.html">0. Prerequisites — Core Building Blocks</a></li>
+    <li><a href="p1.html" data-page="p1.html">1. URL Shortener (Bitly)</a></li>
+    <li><a href="p2.html" data-page="p2.html">2. Rate Limiter</a></li>
+    <li><a href="p3.html" data-page="p3.html">3. Twitter / News Feed</a></li>
+    <li><a href="p4.html" data-page="p4.html">4. Chat System (WhatsApp)</a></li>
+    <li><a href="p5.html" data-page="p5.html">5. Ride-Sharing (Uber)</a></li>
+    <li><a href="p6.html" data-page="p6.html">6. Web Crawler</a></li>
+    <li><a href="p7.html" data-page="p7.html">7. Video Streaming (YouTube)</a></li>
+    <li><a href="p8.html" data-page="p8.html">8. Ticketmaster (Event Ticket Booking)</a></li>
+    <li><a href="p9.html" data-page="p9.html">9. Google Docs (Collaborative Editing)</a></li>
+    <li><a href="p10.html" data-page="p10.html">10. Distributed Job Scheduler</a></li>
+    <li><a href="p11.html" data-page="p11.html">11. Distributed Cache</a></li>
+    <li><a href="p12.html" data-page="p12.html">12. Notification System</a></li>
+    <li><a href="p13.html" data-page="p13.html">13. Search Autocomplete / Typeahead</a></li>
+    <li><a href="p14.html" data-page="p14.html">14. Distributed File Storage (Dropbox)</a></li>
+    <li><a href="p15.html" data-page="p15.html">15. Payment System (Stripe-like)</a></li>
+    <li><a href="p16.html" data-page="p16.html">16. Ad Click Aggregation</a></li>
+    <li><a href="p17.html" data-page="p17.html">17. Yelp / Nearby Places Search</a></li>
+    <li><a href="p18.html" data-page="p18.html">18. Distributed Key-Value Store (Dynamo-style)</a></li>
+    <li><a href="p19.html" data-page="p19.html">19. Real-Time Leaderboard</a></li>
+    <li><a href="p20.html" data-page="p20.html">20. Distributed Message Queue (Build Kafka)</a></li>
+    <li><a href="patterns.html" data-page="patterns.html">Patterns Playbook</a></li>
+  </ul>
+</nav>
+<main id="content">
+<div class="content-inner">
+<h1 class="problem-title">12. Notification System <span class="badge">Intermediate → Advanced</span></h1>
+
+<div class="section-toc">
+<a href="#p12-a">A. Interview Prompt</a><a href="#p12-b">B. Difficulty</a><a href="#p12-c">C. What It Tests</a>
+<a href="#p12-d">D. Requirements</a><a href="#p12-e">E. Clarifying Questions</a><a href="#p12-f">F. Assumptions</a>
+<a href="#p12-g">G. Capacity Estimation</a><a href="#p12-h">H. Core Entities</a><a href="#p12-i">I. API Design</a>
+<a href="#p12-j">J. Basic Design (V1)</a><a href="#p12-k">K. Data Model &amp; Store Choice</a><a href="#p12-l">L. End-to-End Flow</a>
+<a href="#p12-m">M. Deep Dive 1: Async Fan-Out</a><a href="#p12-n">N. Deep Dive 2: Provider Abstraction</a><a href="#p12-o">O. Deep Dive 3: Preferences &amp; Opt-Outs</a>
+<a href="#p12-p">P. Deep Dive 4: Dedup &amp; Idempotency</a><a href="#p12-q">Q. Deep Dive 5: Rate Limiting &amp; Digesting</a><a href="#p12-r">R. Deep Dive 6: Retry &amp; Failure Handling</a>
+<a href="#p12-s">S. Deep Dive 7: Priority &amp; Delivery Guarantees</a><a href="#p12-t">T. Full Solution at Scale</a><a href="#p12-u">U. Design Evolution</a>
+<a href="#p12-v">V. Consistency Model</a><a href="#p12-w">W. Failure Scenarios</a><a href="#p12-x">X. Bottlenecks &amp; Scaling Boundary</a>
+<a href="#p12-y">Y. Trade-Offs</a><a href="#p12-z">Z. Common Bad Designs</a><a href="#p12-aa">AA. Interviewer Follow-Ups</a>
+<a href="#p12-ab">AB. Interviewer Evaluation</a><a href="#p12-ac">AC. Interview Simulation</a><a href="#p12-ad">AD. Source Comparison</a>
+<a href="#p12-ae">AE. Cheat Sheet</a>
+</div><div class="jumpbar"><label for="jump-p12">Jump to section:</label><select id="jump-p12" class="jump-select" data-jump-select><option value="p12-a">A. Realistic Interview Prompt</option><option value="p12-b">B. Difficulty</option><option value="p12-c">C. What This Problem Tests</option><option value="p12-d">D. Requirements</option><option value="p12-e">E. Clarifying Questions</option><option value="p12-f">F. Assumptions</option><option value="p12-g">G. Capacity Estimation</option><option value="p12-h">H. Core Entities</option><option value="p12-i">I. API Design</option><option value="p12-j">J. Basic / Naive High-Level Design (V1)</option><option value="p12-k">K. Data Model &amp; Store Choice</option><option value="p12-l">L. End-to-End Flow — A Backend Service Triggers a Notification</option><option value="p12-m">M. Deep Dive 1 — Async Fan-Out via Queue</option><option value="p12-n">N. Deep Dive 2 — Multi-Channel Provider Abstraction</option><option value="p12-o">O. Deep Dive 3 — User Preferences &amp; Opt-Outs</option><option value="p12-p">P. Deep Dive 4 — Deduplication &amp; Idempotency</option><option value="p12-q">Q. Deep Dive 5 — Rate Limiting &amp; Digesting</option><option value="p12-r">R. Deep Dive 6 — Retry &amp; Failure Handling</option><option value="p12-s">S. Deep Dive 7 — Priority &amp; Delivery Guarantees</option><option value="p12-t">T. Full Solution at Scale — Final Architecture</option><option value="p12-u">U. Design Evolution</option><option value="p12-v">V. Consistency Model</option><option value="p12-w">W. Failure Scenarios</option><option value="p12-x">X. Bottlenecks &amp; Scaling Boundary</option><option value="p12-y">Y. Design Trade-Offs</option><option value="p12-z">Z. Common Bad Designs</option><option value="p12-aa">AA. Interviewer Follow-Ups</option><option value="p12-ab">AB. Interviewer Evaluation Rubric</option><option value="p12-ac">AC. Interview Simulation</option><option value="p12-ad">AD. Online Solution Comparison</option><option value="p12-ae">AE. Interview Cheat Sheet</option></select></div>
+
+<h3 id="p12-a">A. Realistic Interview Prompt</h3>
+<div class="prompt">"Design a notification system — the kind of infrastructure sitting behind Uber, Amazon, or Slack — that lets any internal service tell a user something happened (an order shipped, a message arrived, a price dropped) and have that reach the user wherever they'll actually see it: a push notification, a text message, an email, or an in-app alert."</div>
+<p>Nearly every problem in this document has, at some point, waved at "send the user a notification" as an unexamined side effect — News Feed's new-post event (P3), Chat System's offline-delivery fallback (P4), Ticketmaster's booking confirmation (P8), and Job Scheduler's own worked example of "a job that sends a best-effort notification email" (Problem 10, Deep Dive P). This problem is the system all of those were quietly assuming already exists. The honest, load-bearing answer underneath "send a notification" turns out to be one integrated decision: <strong>an async fan-out pipeline — ingest, dedupe, queue, and hand off to per-channel worker pools behind a pluggable provider adapter for push, SMS, email, and in-app — with a client-supplied idempotency key on every request, and per-user rate limiting plus digesting layered on top so one busy upstream service never turns into a wall of pings on someone's phone.</strong></p>
+
+<h3 id="p12-b">B. Difficulty</h3>
+<p><strong>Intermediate, growing distributed-systems-heavy in the deep dives</strong> — the "accept a request, put it on a queue" shape is already familiar from half this document's async-offload examples (<a href="#patterns-c">Patterns Playbook C</a>); what makes this problem genuinely hard is the fan-out surface itself: one logical event can need to become zero, one, or several physical delivery attempts across entirely different external systems, each with its own delivery semantics, rate limits, and failure modes, all while still guaranteeing that no single event turns into a flood on any one user's device.</p>
+
+<h3 id="p12-c">C. What This Problem Tests</h3>
+<ul>
+<li>Recognizing "send a notification" as async, off-the-hot-path work (<a href="#patterns-c">Patterns Playbook C</a>) rather than something a caller waits on synchronously — the same instinct behind click analytics in URL Shortener (P1) and view-count aggregation in Video Streaming (P7), applied here as the central design decision instead of a supporting one</li>
+<li>Idempotent retries via a client-generated key (<a href="#prereq-o">Prerequisites O</a>; <a href="#patterns-e">Patterns Playbook E</a>) as the load-bearing defense against duplicate sends — the same mechanism as Chat System's <code>client_msg_id</code> and Ticketmaster's payment-confirmation key, here protecting a user from receiving the same push twice</li>
+<li>The adapter pattern applied to genuinely heterogeneous downstream systems — push, SMS, and email are not interchangeable, and a design that treats them as one uniform "send" call is missing the actual substance of the problem</li>
+<li>Distinguishing "this exact event was already delivered" (deduplication — a correctness problem) from "this user is being sent too much, too fast" (rate limiting and digesting — a UX and abuse-mitigation problem) — two problems that look superficially similar and need two genuinely different mechanisms</li>
+<li>Reusing rate limiting as a cross-cutting concern (<a href="#patterns-k">Patterns Playbook K</a>) rather than reinventing throttling logic from scratch — the same token-bucket mechanism from Rate Limiter (P2), now applied per-user instead of per-API-client</li>
+</ul>
+
+<h3 id="p12-d">D. Requirements</h3>
+<p><strong>Functional</strong></p>
+<ol>
+<li>Any internal service can submit a notification request specifying a target user, a notification type, and payload data for the message content</li>
+<li>The system resolves which channel(s) — push, SMS, email, in-app — a notification is delivered through, honoring an explicit override from the caller when one is supplied</li>
+<li>Every request carries a client-supplied idempotency key; resubmitting the same key within a bounded window results in exactly one delivery attempt, not two</li>
+<li>Users can view and update, per notification type and per channel, which channels they're opted into or out of</li>
+<li>Per-channel delivery status for a given notification (queued, sent, delivered, failed) is queryable after the fact</li>
+</ol>
+<p><strong>Non-Functional</strong></p>
+<ul>
+<li><strong>High, bursty throughput</strong> — a single triggering event (a flash sale, an outage alert, a viral post) can legitimately need to fan out to millions of recipients within seconds</li>
+<li><strong>At-least-once delivery of the underlying send attempt</strong>, with the dedup guarantee above absorbing the user-visible duplicates that at-least-once mechanically produces</li>
+<li><strong>Low latency specifically for critical/transactional notifications</strong> (an OTP code, a security alert, a payment confirmation) — low seconds, not "eventually"</li>
+<li><strong>Best-effort, delay-tolerant delivery for low-priority notifications</strong> (marketing, engagement nudges), which can be batched, deferred, or dropped under load without violating any correctness guarantee</li>
+<li><strong>Resilience to a single downstream provider being degraded or fully down</strong> — one SMS gateway or push provider having an outage should not take down that entire channel</li>
+<li><strong>Users are never buried under a burst of near-duplicate low-priority notifications</strong> generated by the same underlying activity spike (ten people liking the same post inside a minute)</li>
+</ul>
+<p><strong>Out of scope:</strong> this system is not itself a real-time messaging/chat product — Chat System (P4) already owns person-to-person messaging; rich template-authoring/CMS tooling; a full engagement-analytics dashboard (acknowledged as a real extension in AA); owning the business logic behind <em>what</em> "an order shipped" means — this system only owns getting a notification <em>about</em> that event delivered.</p>
+
+<h3 id="p12-e">E. Clarifying Questions</h3>
+<table>
+<tr><th>#</th><th>Question</th><th>Why It Matters</th><th>Design Decision Affected</th></tr>
+<tr><td>1</td><td>Is all notification traffic equally urgent, or is there a real mix of transactional (OTP, security alerts, payment confirmations) and best-effort (marketing, engagement) traffic?</td><td>Determines whether one uniform pipeline suffices or priority-differentiated queues and SLAs are required from the start</td><td>Deep Dive 7 (S), Capacity Estimation (G)</td></tr>
+<tr><td>2</td><td>Does the calling service specify the exact channel(s) to use, or does the system decide based on the user's own preferences?</td><td>Changes where channel-routing logic actually lives, and who's responsible for respecting a user's stated preferences</td><td>API Design (I), Deep Dive 3 (O)</td></tr>
+<tr><td>3</td><td>Is exact-duplicate suppression for the identical triggering event required, or is the bigger concern overall notification volume regardless of duplication?</td><td>Separates deduplication (a correctness problem, P) from rate limiting/digesting (a UX and volume problem, Q) — two different problems that are easy to conflate</td><td>Deep Dive 4 (P), Deep Dive 5 (Q)</td></tr>
+<tr><td>4</td><td>What does "delivered" need to mean — handed off successfully to the channel provider, or confirmed opened/read by the user?</td><td>Sets the scope of delivery-receipt tracking and how deep into each provider's callback/webhook mechanics the design needs to go</td><td>Core Entities (H), Deep Dive 2 (N)</td></tr>
+<tr><td>5</td><td>Can one logical event legitimately fan out across more than one channel for the same user (push <em>and</em> email for a security alert), or is it always exactly one channel per notification?</td><td>Changes whether "channel" is a single resolved value or a set resolved independently per notification</td><td>API Design (I), Deep Dive 3 (O)</td></tr>
+</table>
+
+<h3 id="p12-f">F. Assumptions</h3>
+<ul>
+<li><strong>Confirmed:</strong> submission via an API call carrying an idempotency key, channel resolution with an explicit-override escape hatch, and queryable per-channel delivery status.</li>
+<li><strong>Assumption:</strong> traffic is a genuine mix of transactional and best-effort notifications (E's clarifying question 1) — the assumption that makes priority-differentiated queues (S) a first-class part of the design rather than a footnote.</li>
+<li><strong>Assumption:</strong> the system resolves channels from stored user preference by default, honoring an explicit override for the minority of cases (security alerts) where a caller legitimately needs to force multi-channel delivery regardless of preference (E's clarifying questions 2 and 5).</li>
+<li><strong>Assumption:</strong> exact deduplication of a repeated idempotency key and volume-based rate limiting/digesting are both required, and are treated throughout this design as two distinct mechanisms rather than one (E's clarifying question 3).</li>
+<li><strong>Assumption:</strong> "delivered" means "successfully handed off to the channel provider" (a push accepted by APNs/FCM, an SMS accepted by the carrier gateway) — true open/read receipts are a real, named extension (AA) but not required for the core design (E's clarifying question 4).</li>
+</ul>
+
+<h3 id="p12-g">G. Capacity Estimation</h3>
+<table>
+<tr><th>Metric</th><th>Value / Calculation</th><th>Why It Matters</th></tr>
+<tr><td>Total registered users</td><td>Illustratively, 100M</td><td>Sets the outer bound on how many distinct preference records and dedup/rate-limit counters the system needs to be able to hold state for</td></tr>
+<tr><td>Baseline daily notification volume</td><td>Illustratively, ~500M notifications/day, transactional and best-effort combined</td><td>500M / 86,400s ≈ ~5,800/sec average — a modest steady-state number that badly understates the real design pressure, which is the burst below</td></tr>
+<tr><td>Peak fan-out burst</td><td>A single triggering event (a flash sale, an incident alert) reaching 10M recipients within a few minutes ≈ 30,000–50,000 notifications/sec sustained for that window</td><td>The queue (M) must absorb a peak-to-average ratio of roughly 5–10x without the ingest API itself slowing down — this is fundamentally a burst-absorption problem, not a steady-throughput one</td></tr>
+<tr><td>Channel split</td><td>Illustratively, 60% push, 20% email, 15% in-app, 5% SMS</td><td>SMS is priced per-message and reserved disproportionately for high-value/critical traffic (S); push dominates volume precisely because it's the cheapest channel to send at scale</td></tr>
+<tr><td>Average request payload</td><td>~1–2 KB (template ID, idempotency key, a small dynamic payload)</td><td>Confirms the ingest path is throughput-bound, not bandwidth-bound — the hard part is request <em>rate</em>, not request <em>size</em></td></tr>
+</table>
+
+<h3 id="p12-h">H. Core Entities</h3>
+<table>
+<tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr>
+<tr><td><code>NotificationRequest</code></td><td>One logical "something happened, tell the user" event, as submitted by a calling service</td><td><code>notification_id</code>, <code>idempotency_key</code> (P), <code>user_id</code>, <code>type</code>, <code>priority</code> (S), <code>payload</code>, <code>requested_channels</code> (nullable override), <code>created_at</code></td></tr>
+<tr><td><code>Template</code></td><td>Per-type, per-channel content template that a request's payload is rendered into</td><td><code>template_id</code>, <code>type</code>, <code>channel</code>, <code>body_template</code>, <code>version</code></td></tr>
+<tr><td><code>UserPreference</code></td><td>One user's opt-in/opt-out state for one notification type on one channel</td><td><code>user_id</code>, <code>type</code>, <code>channel</code>, <code>opted_in</code>, <code>quiet_hours</code> (O)</td></tr>
+<tr><td><code>DeliveryAttempt</code></td><td>One concrete attempt to deliver one notification over one channel via one provider</td><td><code>attempt_id</code>, <code>notification_id</code>, <code>channel</code>, <code>provider</code> (N), <code>status</code>, <code>attempted_at</code>, <code>error_code</code> (R)</td></tr>
+<tr><td><code>DigestBatch</code></td><td>A window of accumulated low-priority notifications for one user/type, pending a single consolidated send</td><td><code>batch_id</code>, <code>user_id</code>, <code>type</code>, <code>window_start</code>, <code>window_end</code>, <code>member_notification_ids</code> (Q)</td></tr>
+</table>
+
+<h3 id="p12-i">I. API Design</h3>
+<pre><code>-- caller-facing (any internal service):
+POST /notifications
+  { idempotency_key, user_id, type, payload, priority, channels? (optional override) }
+  -&gt; { notification_id, status: "queued" }
+GET  /notifications/{id}/status          -&gt; per-channel DeliveryAttempt status list (H)
+GET  /users/{id}/preferences             -&gt; current per-type, per-channel opt-in state (O)
+PUT  /users/{id}/preferences             -&gt; update opt-in state
+-- internal, cluster-facing, not caller-facing:
+(ingest) validate + dedup (P) + persist request -&gt; enqueue onto priority-appropriate queue (S)
+(channel worker pools) consume queue -&gt; resolve provider adapter (N) -&gt; call provider -&gt; record DeliveryAttempt
+(digest scheduler) periodically flush an open DigestBatch (Q) into one consolidated send
+</code></pre>
+<p><strong>Why <code>POST /notifications</code> returns <code>"queued"</code> immediately rather than waiting for the actual send:</strong> the caller only needs confirmation that the request was accepted and will be handled — waiting for an actual push/SMS/email round trip before responding would tie the caller's request latency to a downstream provider's latency, directly undermining the fast, non-blocking ingest path this system exists to provide (<a href="#patterns-c">Patterns Playbook C</a>). A caller that genuinely needs to know the outcome polls <code>GET /notifications/{id}/status</code>, or subscribes to a webhook/callback — never by blocking the original submission.</p>
+
+<h3 id="p12-j">J. Basic / Naive High-Level Design (V1)</h3>
+<p>The simplest thing that satisfies the functional requirement in isolation: an API endpoint that, in the same request, directly calls a single hardcoded provider for whichever channel is requested.</p>
+<div class="mermaid diagram">
+flowchart LR
+  Service["Calling Service"] --> API["Notification API"]
+  API --> Provider["Push/SMS/Email Provider<br/>(called synchronously, in-request)"]
+  Provider --> API
+  API --> Service
+</div>
+<p class="diagram-caption">V1 — one synchronous call, straight from the request path, to one hardcoded provider per channel. No queue, no dedup.</p>
+<p class="callout"><strong>Why this breaks immediately, not eventually:</strong> two separate, independent flaws, both fatal on their own. First, calling the channel provider synchronously inside the request path ties the calling service's own latency to the provider's — a slow or degraded push provider now makes every unrelated feature that happens to send a notification slow too, and a burst of triggering events (G) has nowhere to go but directly at the provider's own rate limit, with no buffer in between. Second, there is no deduplication at all: if the calling service's request times out and it retries — the standard, correct behavior for a client facing an ambiguous failure (<a href="#prereq-o">Prerequisites O</a>) — the notification is sent a second time, because nothing recorded that the first attempt might already have gone through. A user ends up with two identical push notifications for one event, and the system has no way to know or prevent it. Both flaws point at the same fix: move the send off the request path entirely, and give every request an idempotency key before it ever reaches a provider.</p>
+
+<h3 id="p12-k">K. Data Model &amp; Store Choice</h3>
+<p><strong>Preferences and templates live in a relational database:</strong> both are comparatively low in volume relative to raw notification traffic, need simple, consistent key-based lookups ("what are this user's preferences," "what's the current template for this type"), and benefit from the referential structure a relational store provides — this is the same "match the store to the access pattern" reasoning from Prerequisites B and Distributed Cache's storage choice (P11-K), just landing on the opposite side of that decision here.</p>
+<p><strong>Delivery attempt logs live in a high-write-throughput, append-only store</strong> (a wide-column store in the Cassandra/DynamoDB mold), partitioned by <code>notification_id</code> or by <code>user_id</code> plus a time bucket — this is write-heavy, rarely-updated, mostly-append data at a volume (G) that would overwhelm a relational store's indexing and replication overhead if forced through the same engine as preferences.</p>
+<p><strong>Dedup keys and rate-limit counters live in Redis, keyed with a TTL matching their respective window:</strong> both need an atomic check-and-set at very high throughput (thousands of operations per second per hot user during a burst) and both are inherently time-bounded — a dedup window or a rate-limit window that never expires would leak memory forever. Redis's atomic <code>SET ... NX EX</code> primitive is exactly the "collapse read-decide-write into one operation" move named generally in <a href="#patterns-b">Patterns Playbook B</a>.</p>
+<p><strong>Digest batches are similarly short-lived, held in Redis (or an equivalently fast, TTL-capable store)</strong> rather than the durable delivery-log store — a batch's entire lifecycle is "accumulate for a bounded window, then flush and cease to exist," which is a poor fit for a store optimized for permanent, queryable history.</p>
+
+<h3 id="p12-l">L. End-to-End Flow — A Backend Service Triggers a Notification</h3>
+<div class="mermaid diagram">
+sequenceDiagram
+  participant Svc as Calling Service
+  participant API as Ingest API
+  participant Dedup as Dedup Store (Redis, P)
+  participant Q as Priority Queue (S)
+  participant W as Channel Worker
+  participant Pref as Preference Service (O)
+  participant Ad as Provider Adapter (N)
+  Svc->>API: POST /notifications (idempotency_key, user_id, type, payload)
+  API->>Dedup: SET NX idempotency_key (P)
+  alt key already exists
+    Dedup-->>API: already processed
+    API-->>Svc: original notification_id, status
+  else key is new
+    Dedup-->>API: claimed
+    API->>Q: enqueue by priority tier (S)
+    API-->>Svc: notification_id, status=queued
+    Q->>W: deliver message (at-least-once, prereq-g)
+    W->>Pref: resolve channel(s) + opt-in check (O)
+    Pref-->>W: allowed channel(s)
+    W->>Ad: send via channel-specific adapter (N)
+    Ad-->>W: provider result
+    W->>W: record DeliveryAttempt, retry if transient (R)
+  end
+</div>
+<p class="diagram-caption">Deduplication happens once, at ingest, before anything is queued — everything after that point is free to retry at the message-delivery layer without re-litigating "have we seen this before."</p>
+
+<h3 id="p12-m">M. Deep Dive 1 — Async Fan-Out via Queue</h3>
+<p><strong>Requirement this addresses:</strong> high, bursty throughput (D), and directly fixes V1's fatal synchronous-send flaw (J).</p>
+<p>The ingest API's only job is to validate the request, run the dedup check (P), persist the <code>NotificationRequest</code>, and enqueue it — then return immediately. Everything downstream of that queue happens on its own schedule, at whatever rate the channel worker pools and the providers behind them can sustainably handle. This is the exact "keep expensive work off the hot path" move named generally in <a href="#patterns-c">Patterns Playbook C</a> — the fast, essential part (accepting and recording the request) is synchronous; the slow, non-essential-to-the-caller part (actually contacting a push/SMS/email provider) is deferred entirely.</p>
+<p><strong>Why a Kafka-style log, not just a traditional delete-on-consume queue (<a href="#prereq-g">Prerequisites G</a>), is the right default here:</strong> a single triggering event frequently needs to feed more than one independent downstream consumer at once — the push worker pool needs to send it, and an analytics/engagement pipeline may independently need to record that it happened, at its own pace, without either one blocking the other. This is precisely the scenario Prerequisites G names as the reason to reach for a log-based broker: "multiple entirely independent downstream systems can each read the full stream of events at their own pace." A traditional single-delivery queue would force an artificial choice about which one consumer gets the message.</p>
+<p><strong>What the queue actually buys under a burst (G):</strong> queue depth absorbs the gap between a 30,000–50,000/sec ingest spike and whatever steady rate the channel workers and their downstream providers can sustain — the burst is smoothed into a longer, steadier drain instead of being thrown directly at a provider's own rate limits, which would simply produce a wave of provider-side throttling errors instead of a smooth, if slightly delayed, delivery.</p>
+
+<h3 id="p12-n">N. Deep Dive 2 — Multi-Channel Provider Abstraction</h3>
+<p><strong>Requirement this addresses:</strong> the multi-channel functional requirement (D) — push, SMS, email, and in-app are not interchangeable; each has its own addressing scheme, payload format, and failure vocabulary.</p>
+<table>
+<tr><th>Channel</th><th>Representative Real Provider</th><th>What the Adapter Normalizes</th></tr>
+<tr><td>Push</td><td>APNs (iOS) / FCM (Android, web)</td><td>Per-device registration token, per-platform payload formatting, and cleanup of tokens the provider reports as invalid/unregistered</td></tr>
+<tr><td>SMS</td><td>A Twilio-like carrier gateway</td><td>Phone-number validation/formatting, and reconciling delivery confirmation, which arrives as a webhook/callback rather than a synchronous response</td></tr>
+<tr><td>Email</td><td>An SES-like transactional email relay</td><td>Bounce and spam-complaint handling, and required unsubscribe headers (O)</td></tr>
+<tr><td>In-app</td><td>Internal service, no external vendor</td><td>Write to the in-app inbox store, and push over the user's existing connection if currently online — reusing Chat System's connection-routing pattern (<a href="#prereq-k">Prerequisites K</a>) rather than inventing a new one</td></tr>
+</table>
+<p><strong>The adapter pattern, concretely:</strong> each channel worker pool talks to one internal interface — <code>send(notification) -&gt; DeliveryResult</code> — and a separate adapter implementation behind that interface handles the actual vendor-specific request/response shape. The worker pool itself never branches on "which vendor," only on "which channel," keeping the fan-out logic (M) and the provider-integration logic (N) cleanly separated — the same separation of concerns that lets Distributed Cache's storage engine stay ignorant of what a value actually contains (P11-K).</p>
+<p><strong>Provider failover within a single channel:</strong> a channel can be configured with a ranked list of provider adapters (a primary and one or more secondaries) rather than exactly one; when the primary's error rate or latency crosses a threshold, new sends for that channel route to the next provider in the list automatically, and traffic shifts back once the primary recovers. This bounds the blast radius of a single vendor outage to "degraded, temporarily slower delivery on one channel," rather than "that entire channel is down for every user."</p>
+
+<h3 id="p12-o">O. Deep Dive 3 — User Preferences &amp; Opt-Outs</h3>
+<p><strong>Requirement this addresses:</strong> per-type, per-channel opt-in/opt-out (D) — and, for several channels, a genuine legal compliance obligation, not just a UX nicety.</p>
+<p><strong>The preference check happens before channel resolution, not after:</strong> a channel worker resolves which channel(s) a notification should go out on by first checking <code>UserPreference</code> (H) for that user and type; a channel the user has explicitly opted out of is simply removed from the candidate set, the same way it would be if the calling service had never requested it.</p>
+<p><strong>Compliance is a first-class part of this deep dive, not an afterthought:</strong> email delivery must include a functioning, one-click unsubscribe mechanism (the practical requirement behind CAN-SPAM compliance); SMS delivery must honor carrier-mandated opt-out keywords (a user texting <code>STOP</code> must actually stop receiving messages, a TCPA-driven requirement); both are enforced at the preference layer, not left to each calling service to reimplement independently.</p>
+<p><strong>Transactional notifications are the deliberate exception to marketing opt-out, not a bug:</strong> a payment confirmation, a security alert, or an OTP code is <em>not</em> subject to the same marketing-opt-out rules — a user who has opted out of promotional email has not opted out of being told their account was just accessed from a new device. The system distinguishes <code>type</code>s that are legally/functionally transactional from those that are marketing at the template/type level (H), and the preference check for a transactional type only ever restricts <em>channel choice</em>, never whether the user is notified at all.</p>
+
+<h3 id="p12-p">P. Deep Dive 4 — Deduplication &amp; Idempotency</h3>
+<p><strong>Requirement this addresses:</strong> exactly-once-feeling delivery for a repeated request (D), and directly fixes V1's second fatal flaw (J) — this is the identical mechanism generalized in <a href="#prereq-o">Prerequisites O</a> and named as its own pattern in <a href="#patterns-e">Patterns Playbook E</a>, here protecting a user from a duplicate push instead of protecting a customer from a duplicate charge.</p>
+<p><strong>The mechanism:</strong> the calling service attaches a stable, unique <code>idempotency_key</code> to every request (D). At ingest, the API performs an atomic <code>SET key NX EX dedup_window</code> against Redis (K) — if the key doesn't yet exist, this call both claims it and sets it in one atomic step, exactly the "collapse the check and the write into one operation" move from <a href="#patterns-b">Patterns Playbook B</a>; if the key already exists, the request is a duplicate, and the API simply returns the original <code>notification_id</code> and status instead of enqueueing anything new.</p>
+<p><strong>Why this single check is not the whole story:</strong> the queue itself (M) only guarantees at-least-once delivery of a message to a worker (<a href="#prereq-g">Prerequisites G</a>) — a worker can crash after calling a provider but before acknowledging the queue message, causing the same enqueued message to be redelivered and reprocessed. The ingest-time dedup check above already prevented a second <em>request</em> from becoming a second queued message, but it says nothing about a single queued message being processed twice. The fix is a second, narrower idempotency check at the worker layer, keyed by <code>notification_id + channel</code>, immediately before calling the provider adapter (N) — the same principle (a stable key, checked atomically before the side effect) applied a second time, against a different source of at-least-once delivery.</p>
+<p><strong>Choosing the dedup window:</strong> long enough to cover any realistic retry interval a calling service might use (minutes to low hours), short enough that the Redis key set doesn't grow unbounded — this is a tunable, not a fundamental constraint, and is called out explicitly as a configuration decision rather than a fixed constant.</p>
+
+<h3 id="p12-q">Q. Deep Dive 5 — Rate Limiting &amp; Digesting</h3>
+<p><strong>Requirement this addresses:</strong> protecting a user from notification volume, not duplication (D) — a genuinely different problem from P, per E's clarifying question 3.</p>
+<p><strong>Per-user, per-channel rate limiting:</strong> the same token-bucket mechanism designed in full for Rate Limiter (P2) and named as a reusable cross-cutting concern in <a href="#patterns-k">Patterns Playbook K</a>, applied here per <code>(user_id, channel)</code> pair instead of per API client — each pair gets a bucket that refills at a configured rate, capping how many raw sends a single user can receive on a single channel in a short window, protecting them from a buggy or unexpectedly bursty upstream service (ten retried webhook deliveries for one shipment update, say).</p>
+<p><strong>Digesting — the better answer than simply dropping overflow:</strong> rather than silently discarding notifications a rate limit would otherwise reject, low-priority notifications in excess of the limit accumulate into an open <code>DigestBatch</code> (H) keyed by <code>(user_id, type)</code> over a bounded window (fifteen minutes, or hourly, depending on type); a background digest scheduler flushes the batch as a single consolidated notification once the window closes or a size threshold is hit — "5 people liked your post" instead of five separate, near-simultaneous pushes.</p>
+<p class="callout"><strong>Critical/transactional notifications are exempt from both mechanisms entirely, by design:</strong> an OTP code delayed by a digest window, or dropped by a rate limit tuned for marketing traffic, is a functional failure, not a UX rough edge — priority (S) is checked before rate limiting or digesting is ever applied, and a critical notification bypasses both unconditionally.</p>
+<p><strong>The trade-off digesting makes explicitly:</strong> a digested notification's individual member is, by construction, visible to the user later than it would have been sent standalone — a deliberate latency cost, traded for a materially better experience than either a flood of near-duplicate pings or silent, unexplained drops.</p>
+
+<h3 id="p12-r">R. Deep Dive 6 — Retry &amp; Failure Handling</h3>
+<p><strong>Requirement this addresses:</strong> resilience to a degraded provider (D) — a delivery attempt can fail for reasons ranging from a transient network blip to a permanently invalid destination, and the two need genuinely different handling.</p>
+<table>
+<tr><th>Failure Type</th><th>Example</th><th>Handling</th></tr>
+<tr><td>Retryable / transient</td><td>Provider 5xx, timeout, temporary rate-limit response</td><td>Exponential backoff with a bounded maximum attempt count — the same retry shape reused conceptually from Job Scheduler's Deep Dive P (<a href="#p10-p">P10-P</a>), which named a best-effort notification email as its own worked example of exactly this trade-off</td></tr>
+<tr><td>Permanent</td><td>Invalid/unregistered push token, unsubscribed phone number, malformed email address</td><td>No retry at all — retrying a guaranteed-permanent failure only wastes worker capacity and hammers the provider for no benefit; the attempt is marked failed immediately and surfaced</td></tr>
+</table>
+<p><strong>Dead-lettering after exhausting retries:</strong> a retryable attempt that fails every allowed attempt moves to a distinct "failed permanently" state in the delivery log (H), available for investigation, rather than being retried forever or silently dropped — the same dead-letter pattern common to message-queue systems generally.</p>
+<p><strong>Permanent failures feed a token-cleanup loop, not just a log entry:</strong> a push provider reporting a device token as invalid/unregistered is fed back to remove that token from the user's device record — otherwise every future notification to that user repeats the identical, guaranteed-to-fail attempt indefinitely, quietly wasting capacity on a channel that will never again succeed for that device until the app re-registers.</p>
+
+<h3 id="p12-s">S. Deep Dive 7 — Priority &amp; Delivery Guarantees</h3>
+<p><strong>Requirement this addresses:</strong> low-latency delivery for critical notifications alongside best-effort delivery for everything else (D) — a single shared queue and worker pool cannot honor both at once, because a large marketing blast sitting ahead of an OTP in the same queue delays the OTP by however long the blast takes to drain.</p>
+<p><strong>Physically separate queues/topics per priority tier, each with its own worker pool:</strong> critical/transactional traffic and best-effort/marketing traffic are never colocated in the same queue, so a backlog on one tier has no mechanical way to delay the other. Each tier's worker pool is sized and alerted on independently — the critical tier's alerting fires on seconds of consumer lag; the best-effort tier's tolerates minutes.</p>
+<table>
+<tr><th>Priority Tier</th><th>Examples</th><th>Target SLA</th><th>Isolation</th></tr>
+<tr><td>Critical / transactional</td><td>OTP codes, security alerts, payment confirmations</td><td>Low seconds, end to end</td><td>Dedicated queue and worker pool; bypasses rate limiting and digesting (Q) unconditionally</td></tr>
+<tr><td>Standard</td><td>Order-status updates, chat-offline fallback, activity alerts</td><td>Seconds to low minutes</td><td>Its own queue/pool; subject to per-user rate limiting (Q)</td></tr>
+<tr><td>Best-effort / digestible</td><td>Marketing, engagement nudges, social activity summaries</td><td>Minutes to an hour, by design</td><td>Feeds the digest pipeline (Q); smallest, most elastic worker pool, scaled to absorb the largest bursts (G)</td></tr>
+</table>
+<p><strong>Why this belongs in its own deep dive rather than folded into M:</strong> M established that queuing decouples ingest from delivery generally; this decides that "one queue" is the wrong shape once traffic has genuinely different latency requirements — the same "not every pattern applies uniformly" lesson the Patterns Playbook draws explicitly about hot-path offloading (<a href="#patterns-c">Patterns Playbook C</a>'s payment-flow exception), applied here to fan-out instead.</p>
+
+<h3 id="p12-t">T. Full Solution at Scale — Final Architecture</h3>
+<div class="mermaid diagram">
+flowchart TB
+  Svc["Calling Services"] --> API["Ingest API<br/>(validate + dedup, P)"]
+  API --> Dedup[("Dedup Store<br/>Redis, TTL'd, P")]
+  API --> Log[("NotificationRequest + Preferences<br/>Relational DB, K")]
+
+  subgraph QUEUES [" Priority-Separated Queues (S) "]
+    direction LR
+    QCrit["Critical Queue"]
+    QStd["Standard Queue"]
+    QDigest["Digest-Eligible Queue"]
+  end
+  API --> QCrit
+  API --> QStd
+  API --> QDigest
+
+  QCrit --> WCrit["Critical Worker Pool"]
+  QStd --> WStd["Standard Worker Pool"]
+  QDigest --> Digester["Digest Scheduler<br/>(accumulate + flush, Q)"]
+  Digester --> WStd
+
+  WCrit --> Pref[("Preference Service, O")]
+  WStd --> Pref
+  Pref --> Adapters["Provider Adapter Layer, N"]
+  Adapters --> Push["Push (APNs/FCM)"]
+  Adapters --> SMS["SMS Gateway"]
+  Adapters --> Email["Email Relay"]
+  Adapters --> InApp["In-App Inbox"]
+
+  WCrit --> DLog[("DeliveryAttempt Log<br/>Wide-column store, K")]
+  WStd --> DLog
+</div>
+<p class="diagram-caption">Everything above is the composition of M through S — no new component introduced here that wasn't already justified by a specific deep dive.</p>
+
+<h3 id="p12-u">U. Design Evolution</h3>
+<table>
+<tr><th>Version</th><th>What Changed</th><th>Why</th></tr>
+<tr><td>V1</td><td>Synchronous, in-request call to one hardcoded provider per channel, no dedup (J)</td><td>Simplest possible thing that satisfies the functional requirement in isolation</td></tr>
+<tr><td>V2</td><td>Async ingest-and-queue replaces the synchronous send</td><td>Decouples caller latency from provider latency, and absorbs bursts instead of throwing them directly at a provider (M)</td></tr>
+<tr><td>V3</td><td>Client-generated idempotency key with an atomic ingest-time dedup check added</td><td>Fixes V1's duplicate-send flaw directly (P)</td></tr>
+<tr><td>V4</td><td>Provider adapter layer replaces a single hardcoded integration per channel</td><td>Normalizes genuinely heterogeneous vendor APIs behind one internal interface, and enables provider failover (N)</td></tr>
+<tr><td>V5</td><td>Per-user preference checks added before channel resolution</td><td>Respects opt-outs and satisfies compliance obligations that didn't exist in the naive version at all (O)</td></tr>
+<tr><td>V6</td><td>Per-user rate limiting and digest batching layered on top of delivery</td><td>Protects users from volume, a distinct problem from the duplication P already solved (Q)</td></tr>
+<tr><td>V7</td><td>Priority-separated queues and worker pools replace one shared queue</td><td>Prevents best-effort traffic from delaying critical/transactional delivery (S)</td></tr>
+<tr><td>V8</td><td>Retry classification (retryable vs. permanent) and dead-lettering added around provider calls</td><td>Stops wasted retries against guaranteed-permanent failures and surfaces genuine outages for investigation (R)</td></tr>
+</table>
+<p><strong>What stays stable throughout:</strong> the small <code>POST /notifications</code> contract from I — every later refinement changes how a request is routed, throttled, or delivered, never the basic shape of what a calling service submits.</p>
+
+<h3 id="p12-v">V. Consistency Model</h3>
+<p>This system is, by deliberate design, <strong>eventually consistent almost everywhere, with one narrow strong-consistency island</strong> — the same shape named generally in <a href="#patterns-j">Patterns Playbook J</a>. The dedup check (P) is that island: it must be a single atomic operation against a store that guarantees a check-and-claim never race, because the entire correctness guarantee of "no duplicate delivery for one idempotency key" collapses the moment two concurrent requests can both observe "not yet claimed" before either writes its claim — exactly Pattern B's check-then-act race, resolved the same way. Everything downstream of that one check is eventually consistent by default and deliberately so: preference updates (O) may take a short, bounded amount of time to propagate to a worker's cached view; delivery-status visibility (H) lags slightly behind the actual provider call; a digest batch's contents (Q) are, by definition, not "final" until the window closes. None of this looseness threatens correctness, because the one guarantee users and calling services actually depend on — "you won't get this exact notification twice" — lives entirely inside the one strongly-consistent check, not smeared across the rest of the pipeline.</p>
+
+<h3 id="p12-w">W. Failure Scenarios</h3>
+<ul>
+<li><strong>A calling service retries a request after a timeout:</strong> the ingest-time dedup check (P) recognizes the repeated idempotency key and returns the original result without enqueueing a second delivery — the exact scenario V1 (J) had no defense against.</li>
+<li><strong>A channel worker crashes mid-send:</strong> the queue's at-least-once delivery (<a href="#prereq-g">Prerequisites G</a>) redelivers the message to another worker; the worker-layer idempotency check (P) prevents that redelivery from becoming a second provider call if the first one had already gone through.</li>
+<li><strong>A push provider (APNs/FCM) is fully degraded:</strong> provider failover (N) routes new sends to a configured secondary provider for that channel; if none is configured, that channel's queue backs up while other channels continue delivering normally, isolated by the priority/channel separation in place.</li>
+<li><strong>A single user's activity spikes</strong> (many likes, comments, or events in a short window): per-user rate limiting caps raw send volume, and digesting (Q) consolidates the overflow into one notification instead of dropping it silently.</li>
+<li><strong>A marketing campaign generates a massive best-effort burst:</strong> the priority-separated queues (S) contain the resulting backlog to the best-effort worker pool alone — the critical queue's latency is entirely unaffected.</li>
+<li><strong>A device's push token has gone stale (app uninstalled, token rotated):</strong> the provider reports it as invalid on the next send attempt; the permanent-failure path (R) marks the attempt failed without retrying and triggers cleanup of the stale token, rather than repeating a guaranteed-failing call indefinitely.</li>
+</ul>
+
+<h3 id="p12-x">X. Bottlenecks &amp; Scaling Boundary</h3>
+<table>
+<tr><th>Stage</th><th>Actual Bottleneck</th><th>Fix Applied</th></tr>
+<tr><td>V1 synchronous send</td><td>Caller latency is directly coupled to provider latency; no burst absorption at all</td><td>Async ingest-and-queue decouples the two entirely (M)</td></tr>
+<tr><td>No dedup at ingest</td><td>A caller's own retry, the correct client behavior under an ambiguous failure, produces a duplicate send</td><td>Atomic ingest-time idempotency check (P)</td></tr>
+<tr><td>Shared queue across all priorities</td><td>A large best-effort backlog delays time-sensitive critical notifications behind it</td><td>Priority-separated queues and worker pools (S)</td></tr>
+<tr><td>One hardcoded provider per channel</td><td>A single vendor outage takes an entire channel down for every user</td><td>Ranked provider failover behind the adapter layer (N)</td></tr>
+<tr><td>Uncapped per-user send volume</td><td>A single busy upstream service can flood one user with near-duplicate notifications</td><td>Per-user, per-channel rate limiting plus digest batching (Q)</td></tr>
+<tr><td>Retrying every failed send identically</td><td>Permanently invalid destinations (a dead push token) get retried forever for zero benefit</td><td>Retryable/permanent failure classification and dead-lettering (R)</td></tr>
+</table>
+
+<h3 id="p12-y">Y. Design Trade-Offs</h3>
+<table>
+<tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Trade-off</th></tr>
+<tr><td>Send path</td><td>Synchronous, in-request</td><td>Async via queue (chosen)</td><td>Synchronous is simpler to reason about but couples caller latency to provider latency and has no burst buffer; async adds a queue and eventual-status semantics in exchange for isolating callers entirely from provider slowness</td></tr>
+<tr><td>Queue topology</td><td>One shared queue for all priorities</td><td>Priority-separated queues (chosen)</td><td>One queue is simpler to operate, but a best-effort backlog can delay critical delivery; separate queues cost more operational surface area for a hard isolation guarantee</td></tr>
+<tr><td>Overflow handling for rate-limited traffic</td><td>Drop silently</td><td>Digest and consolidate (chosen)</td><td>Dropping is simplest and cheapest, but the user never learns what happened; digesting adds real scheduling complexity and a deliberate latency cost, in exchange for a materially better user experience</td></tr>
+<tr><td>Provider integration</td><td>Hardcoded, single provider per channel</td><td>Adapter layer with ranked failover (chosen)</td><td>Hardcoding is less code to write initially, but a single vendor outage takes down an entire channel; the adapter layer costs more upfront abstraction for real resilience to any one vendor's downtime</td></tr>
+<tr><td>Retry policy</td><td>Retry every failure identically</td><td>Classify retryable vs. permanent (chosen)</td><td>Retrying everything is simpler but wastes capacity retrying guaranteed-permanent failures forever; classification requires the provider adapter to surface a meaningful error type, in exchange for not hammering dead destinations</td></tr>
+</table>
+
+<h3 id="p12-z">Z. Common Bad Designs</h3>
+<ul>
+<li><strong>Sending synchronously, in the request path, directly to the provider.</strong> Couples the caller's latency to a third-party vendor's latency and leaves no buffer for any real burst — the single most important mistake to avoid on this problem.</li>
+<li><strong>No idempotency key, or an idempotency key that isn't checked atomically.</strong> A caller's correct, standard retry behavior under an ambiguous failure silently becomes a duplicate notification to the user.</li>
+<li><strong>Treating deduplication and rate limiting as the same mechanism.</strong> They solve two genuinely different problems — "did this already happen" versus "is this happening too much" — and conflating them tends to produce a design that does neither one correctly.</li>
+<li><strong>One shared queue for every notification, regardless of priority.</strong> Guarantees that a large best-effort campaign will, sooner or later, delay a time-sensitive transactional notification behind it.</li>
+<li><strong>Retrying every provider failure identically, with no classification.</strong> Wastes worker and provider capacity retrying destinations (a dead push token, an unsubscribed number) that will never succeed, no matter how many times they're tried.</li>
+</ul>
+
+<h3 id="p12-aa">AA. Interviewer Follow-Ups</h3>
+<table>
+<tr><th>Follow-Up</th><th>Design Change</th><th>Components Changed</th><th>Components Unchanged</th></tr>
+<tr><td>"How would you support scheduling a notification for a future time?"</td><td>The <code>NotificationRequest</code> (H) gains a <code>scheduled_for</code> field; ingest holds it in a time-indexed store instead of enqueueing immediately, and a lightweight scheduler enqueues it once due — conceptually the same triggering mechanism as Job Scheduler's due-job check (P10-M), reused rather than reinvented</td><td>Ingest logic, a new scheduling component</td><td>Queueing, provider adapters, dedup, rate limiting</td></tr>
+<tr><td>"We need true read/open receipts, not just 'handed to the provider.'"</td><td>Extends <code>DeliveryAttempt</code> (H) with a receipt-callback path — most provider ecosystems (push, email) expose delivery/open webhooks that feed back into the same status record</td><td>Delivery-status data model, provider adapter callback handling</td><td>Queueing, dedup, rate limiting, channel selection</td></tr>
+<tr><td>"What if an entire region goes down?"</td><td>Requires multi-region queue and worker deployment, with dedup/rate-limit state either replicated or intentionally partitioned per-region by user home region, since a cross-region atomic check adds latency the dedup path (P) can't easily absorb</td><td>Deployment topology, dedup/rate-limit store placement</td><td>The dedup and rate-limiting mechanisms themselves</td></tr>
+<tr><td>"A calling service wants to know exactly why a notification failed, in real time."</td><td>Adds a webhook/callback subscription model on top of the existing <code>GET /status</code> polling endpoint (I) — an additive API surface, not a redesign</td><td>API layer only</td><td>Everything structural underneath it</td></tr>
+</table>
+
+<h3 id="p12-ab">AB. Interviewer Evaluation Rubric</h3>
+<ul>
+<li><strong>Weak candidate:</strong> sends notifications synchronously from the request path with no queue at all, and has no answer for what happens when a provider is slow or a caller retries; treats "call the push API" as the entire design.</li>
+<li><strong>Mid-level:</strong> correctly reaches for an async queue and a basic idempotency key, but doesn't distinguish deduplication from rate limiting, and hasn't considered that different notification types have genuinely different latency requirements.</li>
+<li><strong>Senior:</strong> proactively separates critical from best-effort traffic into different queues/SLAs; treats the provider integration as an adapter behind one internal interface rather than a hardcoded call; is explicit about where the one strongly-consistent check in the system lives and why it needs to be there.</li>
+<li><strong>Staff+:</strong> raises digesting unprompted as a better answer than dropping overflow traffic; reasons concretely about a second idempotency check at the worker layer, not just at ingest, because at-least-once delivery shows up twice in the pipeline; discusses compliance (unsubscribe, opt-out keywords) as a real design constraint rather than an implementation detail to hand-wave past.</li>
+</ul>
+
+<h3 id="p12-ac">AC. Interview Simulation</h3>
+<div class="dialog"><span class="who">Interviewer:</span> Design a notification system that can send push, SMS, email, and in-app notifications, triggered by lots of different internal services.</div>
+<div class="dialog"><span class="who">Candidate:</span> The first thing I want to avoid is calling the actual push/SMS/email provider synchronously inside the request path — that couples whatever service is sending the notification to a third party's latency, and a burst of triggering events has nowhere to absorb the spike. So the core shape is: an ingest API that validates the request and puts it on a queue, then returns immediately, and separate worker pools per channel that pull from that queue at whatever rate they can sustain.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What happens if the calling service's request times out and it retries?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's exactly why every request needs a client-supplied idempotency key. At ingest, I do an atomic check-and-set against Redis — if the key hasn't been seen, it's claimed and the request gets queued; if it has, I just return the original result without queueing anything new. But that's not the whole story — the queue itself only guarantees at-least-once delivery to a worker, so a worker could still get the same message redelivered after a crash. So there's a second, narrower idempotency check right before the worker actually calls the provider, keyed by notification and channel, protecting against that second source of duplication.</div>
+<div class="dialog"><span class="who">Interviewer:</span> How do you keep one really active user from getting spammed with notifications?</div>
+<div class="dialog"><span class="who">Candidate:</span> That's actually a different problem from the duplicate-send one — this is about volume, not duplication. I'd put a per-user, per-channel rate limit in front of delivery, the same token-bucket mechanism as a standard rate limiter, just keyed by user instead of API client. But instead of just dropping whatever's over the limit, I'd batch the overflow into a digest — accumulate it for a short window and send one consolidated notification instead of five separate ones. The one thing I'd explicitly carve out is transactional notifications, like an OTP — those skip rate limiting and digesting entirely, because delaying or batching a security code is a functional bug, not a UX tradeoff.</div>
+<div class="dialog"><span class="who">Interviewer:</span> What if the push provider itself is having an outage?</div>
+<div class="dialog"><span class="who">Candidate:</span> I'd put an adapter layer between the worker pool and the actual vendor, so the worker only ever calls one internal "send" interface, and the adapter behind it can be configured with a ranked list of providers — a primary and a fallback. If the primary starts erroring or timing out past a threshold, new sends shift to the fallback automatically. That way one vendor's bad day degrades that channel instead of taking it down entirely.</div>
+
+<h3 id="p12-ad">AD. Online Solution Comparison</h3>
+<table>
+<tr><th>Source</th><th>Approach</th><th>Strength</th><th>Weakness</th><th>Worth Learning</th></tr>
+<tr><td><a href="https://docs.aws.amazon.com/sns/latest/dg/welcome.html" target="_blank">AWS SNS (official docs)</a></td><td>A publish/subscribe topic model where one published message fans out to many independent subscribed endpoints — SQS queues, Lambda functions, HTTP endpoints, email, and, via registered "platform applications," mobile push through APNs/FCM/ADM directly; the <a href="https://docs.aws.amazon.com/sns/latest/dg/sns-common-scenarios.html" target="_blank">documented fan-out pattern</a> is exactly "one event, many independent downstream consumers"</td><td>The clearest production precedent for M's core fan-out shape — a single triggering event legitimately needing to reach multiple, entirely independent consumers, each at its own pace</td><td>SNS itself doesn't natively solve per-user deduplication, digesting, or preference management — those are left to whatever's built on top of it, exactly the gap this problem's design fills in</td><td>Confirms that "one publish, many independent subscribers" is a real, load-bearing production pattern, not an interview simplification</td></tr>
+<tr><td><a href="https://firebase.google.com/docs/cloud-messaging" target="_blank">Firebase Cloud Messaging (official docs)</a></td><td>Push delivery to registered per-device tokens, plus topic messaging that lets a single send reach every device subscribed to a topic without the caller needing to track individual tokens; delivery is explicitly documented as best-effort, and stale/invalid tokens are surfaced back to the caller for cleanup</td><td>Confirms N's token-invalidation-and-cleanup reasoning is exactly how a real push provider actually behaves, not a hypothetical edge case</td><td>FCM is push-only — it says nothing about SMS, email, or cross-channel preference resolution, all of which this problem's design has to add on top</td><td>The explicit "delivery is best-effort, not guaranteed" framing is a direct, real-world confirmation of why this design treats push as one adapter among several, not the whole system</td></tr>
+<tr><td><a href="https://docs.novu.co" target="_blank">Novu (open-source notification infrastructure, docs)</a></td><td>A workflow-based notification layer sitting above individual channel providers — supporting per-subscriber channel preferences, multiple provider integrations per channel with configured ordering, and a "digest" workflow step that explicitly accumulates multiple triggering events over a time window into one consolidated notification</td><td>The most direct real-world precedent for this problem's central integrated decision — preferences, provider abstraction, and digesting, all as first-class, named concerns of the same system rather than afterthoughts</td><td>As an orchestration layer, it still depends on the underlying channel providers (an APNs/FCM, an SMS gateway) for actual delivery — it doesn't replace them</td><td>Confirms that digesting (Q) and per-subscriber, per-channel preferences (O) are treated as core, load-bearing features in a real production notification system, not embellishments invented for this exercise</td></tr>
+</table>
+
+<h3 id="p12-ae">AE. Interview Cheat Sheet</h3>
+<table>
+<tr><td><strong>Problem</strong></td><td>Notification System</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Intermediate → Advanced (familiar async-offload shape, hard fan-out-and-idempotency surface)</td></tr>
+<tr><td><strong>Core requirements</strong></td><td>Multi-channel delivery (push/SMS/email/in-app), idempotent submission, per-type/per-channel preferences, queryable delivery status</td></tr>
+<tr><td><strong>Central decision</strong></td><td>Async fan-out pipeline (ingest → queue → per-channel worker pools) + pluggable provider adapters + client-supplied idempotency key + per-user rate limiting/digesting</td></tr>
+<tr><td><strong>Async offload</strong></td><td>Ingest validates, dedupes, and enqueues, then returns immediately — the send itself never blocks the caller (Patterns Playbook C)</td></tr>
+<tr><td><strong>Dedup vs. rate limiting</strong></td><td>Two distinct mechanisms: an idempotency key stops the <em>same</em> event from sending twice; per-user rate limiting/digesting stops <em>too much</em> volume regardless of duplication</td></tr>
+<tr><td><strong>Provider abstraction</strong></td><td>One internal <code>send()</code> interface per channel, with vendor-specific adapters and ranked failover behind it — never a hardcoded single-vendor call</td></tr>
+<tr><td><strong>Priority</strong></td><td>Physically separate queues/worker pools per priority tier so best-effort traffic can never delay critical/transactional delivery</td></tr>
+<tr><td><strong>Consistency</strong></td><td>Eventually consistent everywhere except one narrow strong-consistency island: the atomic idempotency check itself</td></tr>
+<tr><td><strong>Common mistakes</strong></td><td>Synchronous in-request sends; no idempotency key; conflating dedup with rate limiting; one shared queue for all priorities; retrying permanent failures forever</td></tr>
+<tr><td><strong>What NOT to over-engineer</strong></td><td>Real-time chat delivery (already Chat System's job), a full template CMS, and deep engagement analytics — name them as real extensions (AA), not something to design from scratch here</td></tr>
+</table><div class="prevnext"><a class="prevnext-link prev" href="p11.html">&larr; 11. Distributed Cache</a><a class="prevnext-link next" href="p13.html">13. Search Autocomplete / Typeahead &rarr;</a></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  securityLevel: 'loose',
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  themeVariables: {
+    primaryColor: '#eef1ff',
+    primaryTextColor: '#0f2540',
+    primaryBorderColor: '#7c3aed',
+    lineColor: '#2563eb',
+    secondaryColor: '#f3ecff',
+    secondaryBorderColor: '#7c3aed',
+    tertiaryColor: '#f4f6f8',
+    tertiaryBorderColor: '#d8dee5',
+    noteBkgColor: '#fff7e6',
+    noteBorderColor: '#d97706',
+    actorBkg: '#eef1ff',
+    actorBorder: '#7c3aed',
+    signalColor: '#0f2540',
+    signalTextColor: '#0f2540',
+    fontFamily: '-apple-system, Segoe UI, Helvetica, Arial, sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>
