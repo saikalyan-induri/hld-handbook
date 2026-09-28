@@ -293,28 +293,40 @@ EXTRA_CSS = '''
 /* ================= Multi-page site chrome (added by build.py) ================= */
 
 html[data-theme="dark"]{
-  --navy:#9ec5ff; --blue:#60a5fa; --gray-bg:#1e2530; --border:#334155; --accent:#a78bfa; --warn:#f59e0b;
+  --navy:#5eead4; --blue:#22d3ee; --gray-bg:#132a28; --border:#24443f; --accent:#2dd4bf; --warn:#f59e0b;
 }
-html[data-theme="dark"] body{background:#0f172a; color:#e2e8f0;}
-html[data-theme="dark"] tr:nth-child(even) td{background:#1a2332;}
-html[data-theme="dark"] code{background:#1e2530; color:#e2e8f0;}
+html[data-theme="dark"] body{background:#0a1e1c; color:#e4f5f2;}
+html[data-theme="dark"] tr:nth-child(even) td{background:#122825;}
+html[data-theme="dark"] code{background:#132a28; color:#e4f5f2;}
 html[data-theme="dark"] pre code{background:none; color:inherit;}
-html[data-theme="dark"] .toc-master{background:#132238;}
-html[data-theme="dark"] .filter-btn{background:#1e293b; color:#e2e8f0;}
-html[data-theme="dark"] .problem-card{background:#16202e;}
-html[data-theme="dark"] #search-results{background:#16202e; color:#e2e8f0;}
-html[data-theme="dark"] #search-results a{color:#e2e8f0; border-bottom-color:#243245;}
-html[data-theme="dark"] #search-results a:hover{background:#1e293b;}
+html[data-theme="dark"] .toc-master{background:#0f2624;}
+html[data-theme="dark"] .filter-btn{background:#152e2b; color:#e4f5f2;}
+html[data-theme="dark"] .problem-card{background:#102421;}
+html[data-theme="dark"] #search-results{background:#102421; color:#e4f5f2;}
+html[data-theme="dark"] #search-results a{color:#e4f5f2; border-bottom-color:#1d3735;}
+html[data-theme="dark"] #search-results a:hover{background:#152e2b;}
 
 /* h3/h4 and table headers use hardcoded light-mode colors in the original
    single-page doc's own <style> block (it has no dark mode at all), and
-   --navy flips to a *light* blue for dark mode everywhere else in this file
+   --navy flips to a *light* teal for dark mode everywhere else in this file
    -- so th's "white text on var(--navy) background" silently becomes
-   washed-out white-on-light-blue, and h3/h4's hardcoded dark-navy/slate
+   washed-out white-on-light-teal, and h3/h4's hardcoded dark-teal/slate
    text becomes nearly invisible dark-on-dark. Override both explicitly. */
-html[data-theme="dark"] h3{color:#9ec5ff;}
-html[data-theme="dark"] h4{color:#94a3b8;}
-html[data-theme="dark"] th{background:#132238; color:#e2e8f0;}
+html[data-theme="dark"] h3{color:#5eead4;}
+html[data-theme="dark"] h4{color:#8fada8;}
+html[data-theme="dark"] th{background:#0f2624; color:#e4f5f2;}
+
+/* --accent and --blue flip to light tints in dark mode so they stay legible
+   as *text* (headings, links, labels) on a dark background -- but several
+   components reuse the same variables as a *background* paired with fixed
+   white text (badges, active nav item, active filter button). A light tint
+   behind white text is washed out and low-contrast, so those specific
+   components get their own vivid, darker-toned override instead of the
+   text-oriented variable. */
+html[data-theme="dark"] .badge{background:#0f766e;}
+html[data-theme="dark"] .badge.warn{background:#b45309;}
+html[data-theme="dark"] .nav-list li a.active{background:#0f766e; color:#fff;}
+html[data-theme="dark"] .filter-btn.active{background:#0e7490; color:#fff;}
 
 body{padding:0;}
 #content{margin-left:250px;}
@@ -322,32 +334,32 @@ body{padding:0;}
 
 #sidebar{
   position:fixed; top:0; left:0; width:250px; height:100vh; overflow-y:auto;
-  background:#0f2540; color:#fff; padding:16px 14px; box-sizing:border-box; z-index:10;
+  background:#0f3d3d; color:#fff; padding:16px 14px; box-sizing:border-box; z-index:10;
 }
 #sidebar .sidebar-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
 #sidebar .brand{color:#fff; font-weight:700; font-size:14.5px;}
-#theme-toggle{background:none; border:1px solid #4a6a91; color:#fff; border-radius:6px; padding:3px 8px; cursor:pointer; font-size:13px;}
+#theme-toggle{background:none; border:1px solid #3f7570; color:#fff; border-radius:6px; padding:3px 8px; cursor:pointer; font-size:13px;}
 .search-wrap{position:relative; margin-bottom:14px;}
-#search-box{width:100%; padding:6px 8px; border-radius:5px; border:1px solid #4a6a91; font-size:12.5px; background:#0f2540; color:#fff;}
-#search-box::placeholder{color:#9db8d8;}
+#search-box{width:100%; padding:6px 8px; border-radius:5px; border:1px solid #3f7570; font-size:12.5px; background:#0f3d3d; color:#fff;}
+#search-box::placeholder{color:#a9d6d0;}
 #search-results{position:absolute; top:100%; left:0; right:0; background:#fff; color:#1a1f26; border-radius:6px; margin-top:4px; max-height:320px; overflow-y:auto; box-shadow:0 4px 14px rgba(0,0,0,.25); z-index:30; display:none;}
 #search-results.open{display:block;}
 #search-results a{display:block; padding:6px 10px; font-size:12px; border-bottom:1px solid #eee;}
-#search-results a:hover{background:#eef6ff;}
+#search-results a:hover{background:#e3f5f2;}
 #search-results .result-parent{display:block; font-size:10px; color:#888;}
 .nav-list{list-style:none; margin:0; padding:0; font-size:12.5px;}
-.nav-list li a{display:block; color:#cfe4ff; padding:5px 8px; border-radius:5px; margin-bottom:1px;}
+.nav-list li a{display:block; color:#bdeae3; padding:5px 8px; border-radius:5px; margin-bottom:1px;}
 .nav-list li a:hover{background:rgba(255,255,255,.08);}
 .nav-list li a.active{background:var(--accent); color:#fff; font-weight:600;}
 
-#menu-toggle{display:none; position:fixed; top:10px; left:10px; z-index:40; background:#0f2540; color:#fff; border:none; border-radius:6px; width:34px; height:34px; font-size:17px; cursor:pointer;}
+#menu-toggle{display:none; position:fixed; top:10px; left:10px; z-index:40; background:#0f3d3d; color:#fff; border:none; border-radius:6px; width:34px; height:34px; font-size:17px; cursor:pointer;}
 
 h3[id]{scroll-margin-top:64px;}
 
 .jumpbar{position:sticky; top:0; z-index:6; background:var(--gray-bg); border:1px solid var(--border); border-radius:6px; padding:8px 14px; margin:0 0 16px; display:flex; align-items:center; gap:10px; font-size:12.5px;}
 .jumpbar label{font-weight:600; color:var(--navy); white-space:nowrap;}
 .jump-select{flex:1; max-width:340px; padding:4px 8px; border-radius:5px; border:1px solid var(--border); font-size:12.5px; background:#fff; color:#1a1f26;}
-html[data-theme="dark"] .jump-select{background:#0f172a; color:#e2e8f0;}
+html[data-theme="dark"] .jump-select{background:#0a1e1c; color:#e4f5f2;}
 
 .prevnext{display:flex; justify-content:space-between; align-items:center; margin:36px 0 24px; padding-top:14px; border-top:1px solid var(--border);}
 .prevnext-link{font-size:13px; font-weight:600;}
@@ -387,13 +399,13 @@ html[data-theme="dark"] .jump-select{background:#0f172a; color:#e2e8f0;}
 /* callout/prompt boxes keep their light, colorful backgrounds even in dark mode
    (by design from the original single-page doc) -- give them dark-mode-safe
    backgrounds + text color so they stay readable instead of light-gray-on-pale-yellow */
-html[data-theme="dark"] .callout{background:#132238; color:#dbeafe; border-left-color:#a78bfa;}
+html[data-theme="dark"] .callout{background:#123330; color:#d3f3ee; border-left-color:#2dd4bf;}
 html[data-theme="dark"] .prompt{background:#3a2f14; color:#f5e6c8; border-left-color:#f59e0b;}
 
 /* mermaid diagrams render their own light-theme SVG background regardless of
    page theme (mermaid.initialize uses a fixed 'base' theme) -- keep the
    surrounding card legible in dark mode without fighting the SVG itself */
-html[data-theme="dark"] .diagram-caption{color:#8a93a3;}
+html[data-theme="dark"] .diagram-caption{color:#8aada7;}
 
 @media (max-width: 880px){
   #sidebar{left:-260px; transition:left .22s; box-shadow:2px 0 10px rgba(0,0,0,.2);}
