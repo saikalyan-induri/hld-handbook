@@ -63,6 +63,16 @@ html[data-theme="dark"] #search-results{background:#16202e; color:#e2e8f0;}
 html[data-theme="dark"] #search-results a{color:#e2e8f0; border-bottom-color:#243245;}
 html[data-theme="dark"] #search-results a:hover{background:#1e293b;}
 
+/* h3/h4 and table headers use hardcoded light-mode colors in the original
+   single-page doc's own <style> block (it has no dark mode at all), and
+   --navy flips to a *light* blue for dark mode everywhere else in this file
+   -- so th's "white text on var(--navy) background" silently becomes
+   washed-out white-on-light-blue, and h3/h4's hardcoded dark-navy/slate
+   text becomes nearly invisible dark-on-dark. Override both explicitly. */
+html[data-theme="dark"] h3{color:#9ec5ff;}
+html[data-theme="dark"] h4{color:#94a3b8;}
+html[data-theme="dark"] th{background:#132238; color:#e2e8f0;}
+
 body{padding:0;}
 #content{margin-left:250px;}
 .content-inner{padding:0 36px 40px; max-width:1100px; margin:0 auto;}
