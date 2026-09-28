@@ -292,19 +292,24 @@ for p in problems:
 EXTRA_CSS = '''
 /* ================= Multi-page site chrome (added by build.py) ================= */
 
+/* Dark mode uses a neutral charcoal base for every content surface (body,
+   cards, tables, code, search, toc-master) -- tinting those surfaces with
+   the teal accent hue made the whole page read as murky/swampy rather than
+   a clean dark UI. Teal is reserved for *accents* only: headings, links,
+   badges, borders, and the always-on sidebar/callout brand color. */
 html[data-theme="dark"]{
-  --navy:#5eead4; --blue:#22d3ee; --gray-bg:#132a28; --border:#24443f; --accent:#2dd4bf; --warn:#f59e0b;
+  --navy:#5eead4; --blue:#22d3ee; --gray-bg:#1b1e23; --border:#2b2f36; --accent:#2dd4bf; --warn:#f59e0b;
 }
-html[data-theme="dark"] body{background:#0a1e1c; color:#e4f5f2;}
-html[data-theme="dark"] tr:nth-child(even) td{background:#122825;}
-html[data-theme="dark"] code{background:#132a28; color:#e4f5f2;}
+html[data-theme="dark"] body{background:#12141a; color:#e6e8eb;}
+html[data-theme="dark"] tr:nth-child(even) td{background:#1a1d23;}
+html[data-theme="dark"] code{background:#1b1e23; color:#e6e8eb;}
 html[data-theme="dark"] pre code{background:none; color:inherit;}
-html[data-theme="dark"] .toc-master{background:#0f2624;}
-html[data-theme="dark"] .filter-btn{background:#152e2b; color:#e4f5f2;}
-html[data-theme="dark"] .problem-card{background:#102421;}
-html[data-theme="dark"] #search-results{background:#102421; color:#e4f5f2;}
-html[data-theme="dark"] #search-results a{color:#e4f5f2; border-bottom-color:#1d3735;}
-html[data-theme="dark"] #search-results a:hover{background:#152e2b;}
+html[data-theme="dark"] .toc-master{background:#1b1f24;}
+html[data-theme="dark"] .filter-btn{background:#1b1e23; color:#e6e8eb;}
+html[data-theme="dark"] .problem-card{background:#1a1d23;}
+html[data-theme="dark"] #search-results{background:#1a1d23; color:#e6e8eb;}
+html[data-theme="dark"] #search-results a{color:#e6e8eb; border-bottom-color:#2b2f36;}
+html[data-theme="dark"] #search-results a:hover{background:#23272e;}
 
 /* h3/h4 and table headers use hardcoded light-mode colors in the original
    single-page doc's own <style> block (it has no dark mode at all), and
@@ -313,8 +318,8 @@ html[data-theme="dark"] #search-results a:hover{background:#152e2b;}
    washed-out white-on-light-teal, and h3/h4's hardcoded dark-teal/slate
    text becomes nearly invisible dark-on-dark. Override both explicitly. */
 html[data-theme="dark"] h3{color:#5eead4;}
-html[data-theme="dark"] h4{color:#8fada8;}
-html[data-theme="dark"] th{background:#0f2624; color:#e4f5f2;}
+html[data-theme="dark"] h4{color:#9aa6a3;}
+html[data-theme="dark"] th{background:#1b1f24; color:#e6e8eb;}
 
 /* --accent and --blue flip to light tints in dark mode so they stay legible
    as *text* (headings, links, labels) on a dark background -- but several
@@ -359,7 +364,7 @@ h3[id]{scroll-margin-top:64px;}
 .jumpbar{position:sticky; top:0; z-index:6; background:var(--gray-bg); border:1px solid var(--border); border-radius:6px; padding:8px 14px; margin:0 0 16px; display:flex; align-items:center; gap:10px; font-size:12.5px;}
 .jumpbar label{font-weight:600; color:var(--navy); white-space:nowrap;}
 .jump-select{flex:1; max-width:340px; padding:4px 8px; border-radius:5px; border:1px solid var(--border); font-size:12.5px; background:#fff; color:#1a1f26;}
-html[data-theme="dark"] .jump-select{background:#0a1e1c; color:#e4f5f2;}
+html[data-theme="dark"] .jump-select{background:#12141a; color:#e6e8eb;}
 
 .prevnext{display:flex; justify-content:space-between; align-items:center; margin:36px 0 24px; padding-top:14px; border-top:1px solid var(--border);}
 .prevnext-link{font-size:13px; font-weight:600;}
@@ -405,7 +410,7 @@ html[data-theme="dark"] .prompt{background:#3a2f14; color:#f5e6c8; border-left-c
 /* mermaid diagrams render their own light-theme SVG background regardless of
    page theme (mermaid.initialize uses a fixed 'base' theme) -- keep the
    surrounding card legible in dark mode without fighting the SVG itself */
-html[data-theme="dark"] .diagram-caption{color:#8aada7;}
+html[data-theme="dark"] .diagram-caption{color:#98a1a8;}
 
 @media (max-width: 880px){
   #sidebar{left:-260px; transition:left .22s; box-shadow:2px 0 10px rgba(0,0,0,.2);}
