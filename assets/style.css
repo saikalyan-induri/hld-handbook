@@ -58,7 +58,6 @@ html[data-theme="dark"] pre code{background:none; color:inherit;}
 html[data-theme="dark"] .toc-master{background:#132238;}
 html[data-theme="dark"] .filter-btn{background:#1e293b; color:#e2e8f0;}
 html[data-theme="dark"] .problem-card{background:#16202e;}
-html[data-theme="dark"] .diagram{background:#0f172a;}
 html[data-theme="dark"] #search-results{background:#16202e; color:#e2e8f0;}
 html[data-theme="dark"] #search-results a{color:#e2e8f0; border-bottom-color:#243245;}
 html[data-theme="dark"] #search-results a:hover{background:#1e293b;}
